@@ -19,22 +19,23 @@ case "$(hostname)" in
  "Wheatley" | "GLaDOS" ) HN="$(hostname)";;
  *) HN="ihc";;
 esac
-echo "Setting Hostname to $HN"
+echo "--Setting Hostname to $HN"
 
 U="$(whoami)"
 sudo chown -R $U $pD
 
-echo "Setting ownership to $U"
+echo "--Setting ownership to $U"
 
 for i in "bin" "aliases"; do 
  if [ -a "$pD/$i/active" ]; then
-  echo "Removing $pD/$i/active..."
+  echo "---Removing $pD/$i/active..."
   rm "$pD/$i/active"
  fi
- echo "linking $pD/$i/$HN to $pD/$i/active"
+ echo "---linking $pD/$i/$HN to $pD/$i/active"
  ln -s "$pD/$i/$HN" "$pD/$i/active"
 done
 
+echo "--Setting up Bashrc..."
 mv $HOME/.bashrc $HOME/.bashrc_old
 ln -s "$pD/env/bashrc" "$HOME/.bashrc"
 source $HOME/.bashrc

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ssh -q $1 "hostname;sudo /sbin/service zabbix-agent stop;sudo /sbin/chkconfig zabbix-agent off;exit"
+/usr/local/bin/z-delete-host "$1"
+

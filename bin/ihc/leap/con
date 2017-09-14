@@ -1,0 +1,30 @@
+#!/bin/bash
+
+
+INVENTORY="/srv/INVENTORY/current/"
+TYPE="linux"
+output=firstrun.txt
+
+#Build array of admins
+grouplist=`find $INVENTORY -maxdepth 1 -type d`
+grouplist=`echo "$grouplist" |sed "s;$INVENTORY;;g"`
+IFS=$'\n' read -rd '' -a admins <<< "$grouplist"
+
+
+for a in ${admins[@]}; do
+  #Build array of servers
+  counter=0
+  servers=
+  while read line; do
+      servers[$counter]="$line"
+      counter=$((counter+1))
+  done < "$INVENTORY/$a/INVENTORY.$a.$TYPE.txt"
+
+  for s in ${servers[@]}; do
+      echo -n $s","$a"," >> $output
+      scp leap-check $s:/home/jejackso
+      ssh $s "/home/jejackso/leap-check" >> $output
+  done
+
+
+done

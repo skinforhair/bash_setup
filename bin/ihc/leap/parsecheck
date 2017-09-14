@@ -1,0 +1,53 @@
+#!/bin/bash
+
+source $HOME/.bin/lib/colors
+source $HOME/.bin/lib/parse-tools
+
+input="runcheck.txt"
+INVENTORY="/srv/INVENTORY/current/"
+TYPE="linux"
+output="fulllist.csv"
+
+#Build array of admins
+ grouplist=`find $INVENTORY -maxdepth 1 -type d`
+ grouplist=`echo "$grouplist" |sed "s;$INVENTORY;;g"`
+ IFS=$'\n' read -rd '' -a admins <<< "$grouplist"
+
+
+
+ function findOwner() {
+    s="$1"
+#    echo -e "checking ${yellow}$s${NC}"
+    for a in ${admins[@]}; do
+        if [ "$a" != "invalid" ]; then
+           grepcheck=`grep -r $s $INVENTORY/$a`
+            if [ -n "$grepcheck" ]; then
+             s=${s:0:$((${#s}-1))}
+             echo "$a,$s,"
+           fi
+        fi
+    done                                                 
+ } #END findOwner
+
+
+while read line; do
+    space=`expr index "$line" " "`
+    host=${line:$space}
+    success=${line:0:$space}
+#    echo "success is -$success-"
+    space=`expr index "$host" " "`
+    host=${host:0:$space}
+    if [ "$success" == "success " ]; then
+     echo -e "checking ${yellow}$host${NC}..."
+     outline=$(findOwner "$host")
+    
+    semicolons=`expr index "$line" ";;"`
+    semicolons=$((semicolons+1))
+    details=${line:$semicolons}
+#    echo "$details"
+
+        echo "$outline$details" >> $output
+
+    fi
+done < "$input"
+

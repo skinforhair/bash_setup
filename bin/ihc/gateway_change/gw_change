@@ -1,0 +1,59 @@
+#!/bin/bash
+source $HLIB/colors
+
+NWFILE=/etc/sysconfig/network
+SEARCHWORD="GATEWAY"
+SWL=${#SEARCHWORD}
+Contents=`cat $NWFILE`
+readarray -t array <<<"$Contents"
+IPAddr=
+
+RemoteServer="$1"
+RemoteFile=/tmp/gateway.txt
+#GW_Toggle=`ssh $RemoteServer cat $RemoteFile`
+
+MySwitch="$1"
+
+function usage(){
+ echo "Usage: $0 <OPTION>"
+ echo " Options: 1, 4, t"
+}
+
+case "$MySwitch" in 
+    "-1") myCheck=1;;
+    "1") myCheck=1;;
+    "-4") myCheck=4;;
+    "4") myCheck=4;;
+    "-t") myCheck="toggle";;
+    "t") myCheck="toggle";;
+    *) usage; exit 1; myCheck=$GW_Toggle;;
+esac
+
+
+for index in "${!array[@]}"
+do
+    fw=${array[index]}
+    fw=${fw:0:$SWL}
+    if [ "$fw" == "$SEARCHWORD" ]; then
+        FULLline=${array[index]}
+        IPAddr=${FULLline:$((SWL+1))}
+    fi
+done
+
+IFS='.' read -a IPArray <<<"$IPAddr"
+ 
+if [ "$myCheck" == "toggle" ]; then
+    case "${IPArray[3]}" in
+        "1") myCheck=4;;
+        "4") myCheck=1;;
+        *) myCheck=1;;
+    esac
+fi
+STR="$SEARCHWORD=${IPArray[0]}.${IPArray[1]}.${IPArray[2]}"
+ if [ "$FULLline" != "$STR.$myCheck" ]; then
+     
+    echo "Switching to $myCheck"
+    sed -i.1 s/$FULLline/$STR.$myCheck/g $NWFILE
+ else
+    echo "Aready at $myCheck"
+ fi

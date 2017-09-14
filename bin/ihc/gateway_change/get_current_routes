@@ -1,0 +1,34 @@
+#!/bin/bash
+#rm output.*
+
+if false; then
+for i in `cat input.txt`; do
+    ssh $i "/sbin/ip route |awk '/default/ { print $3 }'" >> output.1
+done
+
+for i in `cat output.1`; do
+    case "$i" in
+        "dev") echo .;;
+        "bond0") echo .;;
+        "default") echo .;;
+        "default") echo .;;
+        "via") echo .;;
+        "eth0") echo .;;
+        "eth1") echo .;;
+        "eth2") echo .;;
+        "eth3") echo .;;
+        *) echo "$i" >> output.2;;
+    esac
+done
+fi
+
+
+
+
+for i in `cat may5.txt`; do printf "%-30s" $i; ssh -q -o "BatchMode yes" $i netstat -rn |  awk '/^default|^0.0.0.0/ {print $2}'; echo; done |grep -v ^$
+
+#for i in `cat input.txt`; do ssh -q -o "BatchMode yes" $i /sbin/route -n | grep UG | awk '{print $2}'; echo; done |grep -v ^$
+
+#cat output.2
+
+

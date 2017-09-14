@@ -1,0 +1,5 @@
+#!/bin/bash
+
+H=`hostname`
+IP=$(/sbin/ip route | awk '/default/ { print $3 }')
+echo $H: $IP

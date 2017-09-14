@@ -1,5 +1,8 @@
 #!/bin/bash
 
+clear
+echo "Setting up bash profile..."
+echo ""
 ## find the profile directory:
 
 presumedPath="$HOME/.skinforhair_settings"
@@ -16,12 +19,19 @@ case "$(hostname)" in
  "Wheatley" | "GLaDOS" ) HN="$(hostname)";;
  *) HN="ihc";;
 esac
+echo "Setting Hostname to $HN"
 
 U="$(whoami)"
 sudo chown -R $U $pD
 
+echo "Setting ownership to $U"
+
 for i in "bin" "aliases"; do 
- if [ -a "$pD/$i/active" ]; then rm "$pD/$i/active"; fi
+ if [ -a "$pD/$i/active" ]; then
+  echo "Removing $pD/$i/active..."
+  rm "$pD/$i/active"
+ fi
+ echo "linking $pD/$i/$HN to $pD/$i/active"
  ln -s "$pD/$i/$HN" "$pD/$i/active"
 done
 

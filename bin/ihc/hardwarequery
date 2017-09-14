@@ -1,0 +1,41 @@
+#!/bin/bash
+for f in /home/jejackso/.bin/lib/*; do source $f; done
+
+### - Find local path (See /home/jejackso/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+input=input.txt
+output=output.txt
+
+c=0
+t=
+full=
+
+server=
+cpus=
+mem=
+numlines=$(wc -l < "$input")
+
+while [ $c -lt $numlines ]; do
+    c=$((c+1))
+    m=$((c % 3))
+    line=`sed "${c}q;d" $input`
+    case "$m" in
+        "1") server="$line";;
+        "2") cpus="${line:12}"
+             cpus=$((cpus+1));;
+        "0") mem="${line:14}"
+             mem="${mem:0:$((${#mem}-3))}"
+             mem=$((mem/1024))
+             mem=$((mem/1024))
+             
+             echo "$server,$cpus,$mem" >> $output;;
+    esac
+done
+

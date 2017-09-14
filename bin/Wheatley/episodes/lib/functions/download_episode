@@ -1,0 +1,24 @@
+#!/bin/bash
+
+function download_episode() {
+
+ SN=$(echo "$1" |sed "s;';;g")
+ Ep=$(change_EpNum_format "$2")
+
+
+echo ""
+DLC="$COMMAND -0 -C \"deluge-console add %s\" \"$SN $Ep\""
+
+ result=$($COMMAND -0 -C "deluge-console add %s" "$SN $Ep")
+ ll=$(echo "$result" |tail -n 1)
+
+
+ if [ "$ll" == "Torrent added!" ]; then
+    echo -e "${green}$ll ${NC}\n"
+ else
+    echo -e "${red}$ll ${NC}\n"
+#    echo "$DLC"
+ fi
+ 
+} #download_episode
+

@@ -1,0 +1,105 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+source $DIR/lib/db_connection
+for f in $DIR/lib/functions/*; do source $f; done
+source /root/.bin/lib/colors
+PAGES="$DIR/pages/"
+
+outfile="available_episodes.txt"
+remotepath="/home/jar/Downloads/"
+number='^[0-9]+$'
+
+maxlen="$2"
+if [ "$maxlen" == "" ]; then
+	maxlen=35
+fi
+i=0
+c=1
+
+SN="$1"
+showID=$(echo "select id from $tvshows where showname=\"$SN\""|mysql $dbOptions)
+show="showID=$showID"
+
+S=$(echo "select max(season) from $tv_feed where $show" |mysql $dbOptions)
+Season="season=$S"
+
+E=$(echo "select max(episode) from $tv_feed where $show and $Season" |mysql $dbOptions)
+Episode="episode=$E"
+
+T=$(echo "select title from $tv_feed where $show and $Season and $Episode" |mysql $dbOptions)
+
+#Now find episode data
+
+E=$((E+1))
+#if the show is new, get the first episode.
+if [ "$S" == "" ]; then
+ S=1; E=1
+fi
+t=$(EpGuideName_local "$SN" "$S" "$E")
+today=$(date +"%y%m%d")
+
+
+if [ "${t:0:3}" == "URL" ]; then
+	S=$((S+1))
+	E=1
+	t=$(EpGuideName_local "$SN" "$S" "$E")
+fi
+
+if [ "${t:0:3}" == "ERR" ]; then
+	DT="000000"
+else
+	arr=($t)
+	#if [ "${arr[1]}" != "1-1" ] && [ "${arr[1]}" != "1-10" ]; then
+		dt=${arr[2]}
+		if [ ${#dt} -lt 3 ]; then
+			dt="${arr[2]}/${arr[3]}/${arr[4]}"
+			n=5
+		else
+			n=3
+		fi
+			title=
+                        while [ $n -lt ${#arr[@]} ]; do
+                         title="$title ${arr[n]}"
+                         n=$((n+1))
+                        done
+		#pull opening brackets from title
+		brack=`expr index "$title" ]`
+		title=${title:$brack}
+      	    D="${dt:0:2}"
+	    M=$(month_to_number "${dt:3:3}")
+	    Y="${dt:7:2}"
+	    DT="$Y$M$D" 
+
+         #fi
+fi
+if ! [[ $DT =~ $number ]]; then
+   DT="000000"
+fi
+		if [ "$DT" = "000000" ]; then
+		  echo "$SN"
+		   exit 0;
+                elif [ $DT -lt $today ]; then
+                  echo "\"$DT\" \"$SN ${arr[1]} $title $dt\""
+		   exit 1;
+                else
+                  echo "\"$DT\" \"$SN ${arr[1]} $title $dt\""
+    		   exit 2;
+                fi
+

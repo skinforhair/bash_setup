@@ -1,0 +1,117 @@
+#!/bin/bash
+for f in ~/.bin/lib/*; do source $f; done
+
+### - Find local path (See ~/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+
+output=index.html
+if [ -f $output ]; then rm -rf $output; fi
+
+remotedir=/glados/screenshots/
+MSize=1000
+MQual=510
+TSize=600
+TQual=400
+
+Minutes=8
+seconds=$((Minutes*60))
+
+isMovie="$2"
+
+if [ "$isMovie" == "m" ] || [ "$isMovie" == "M" ]; then
+ MaxS=$MSize
+ MinQ=$MQual
+else
+ MaxS=$TSize
+ MinQ=$TQual
+fi
+
+MaxS=$TSize
+i="$1"
+
+RT=`mediainfo $1 |grep Duration |head -1 |awk '{print $3}'`
+ h=`expr index "$RT" h`
+ if [ $h == 0 ]; then
+  HOURS=0
+  Min=${RT:0:2}
+ else
+  RM=`mediainfo $1 |grep Duration |head -1 |awk '{print $4}'`
+  HOURS=${RT:0:$((h-1))}
+  Min=${RM:0:2}
+ fi
+
+#echo "hours:minues -- $HOURS : $Min"
+
+HM=$(($HOURS*60))
+Min=$(($Min+$HM))
+
+#echo "$Min Minutes"
+sec=$((Min/5))
+seconds=$((sec*60))
+
+FT="$(mediainfo $i |grep Format |head -1 |awk '{print $3}')"
+Sz="$(mediainfo $i |grep "File size" |head -1 |awk '{print $4}')"
+Qual="$(mediainfo $i |grep "Height" |head -1 |awk '{print $3}')"
+ if [ "$Qual" == "1" ]; then
+  Qual="$(mediainfo $i |grep "Height" |head -1 |awk '{print $3 $4}')"
+ fi
+
+if [ $Qual -gt 800 ]; then
+ Q="1080p"
+elif [ $Qual -gt 510 ]; then
+ Q="720p"
+elif [ $Qual -gt 480 ]; then
+ Q="DVD"
+else
+ Q="SD"
+fi
+  
+stringZ="<table border=1><tr><td>"
+ if [ $Sz -gt $MaxS ]; then
+  stringZ="$stringZ<font color=red>$Sz</font>"
+ else
+  stringZ="$stringZ$Sz"
+ fi
+
+stringZ="$stringZ MB</td><td>$Qual px high</td><td>$Q</td><td>$Min Minutes</td><td>$FT</td>"
+
+
+
+STARTTIME=$(date +%s)
+
+ Sz=`du -h "$i" | awk '{print $1;}'`"B"
+ FN="${i:0:$((${#i}-4))}"
+ mkdir "$FN"
+ echo "$Sz" >> $FN/size.txt
+ ffmpeg -hide_banner -loglevel panic -i $i -vf fps=1/$seconds $FN/$FN-%03d.jpg
+
+ENDTIME=$(date +%s)
+
+stringZ="$stringZ<td>$(($ENDTIME-$STARTTIME)) seconds to generate</td></tr></table><br>" 
+  c=$Minutes
+  Sz="$(cat $FN/size.txt)"
+  echo "<h1> $FN</h1>" >> $output
+  echo "$stringZ" >> $output
+  echo "<table border=0 cellspacing=0 cellpadding=0><tr>" >> $output
+  for j in `find $FN -name "*.jpg"`; do
+	echo "<td><img src=\"$j\" height=50></img><br>$c minutes</td>" >> $output
+	c=$((c+$Minutes))
+  done
+  echo "</tr></table>" >> $output
+  echo "<br>" >> $output
+  if [ -d "$remotedir/$FN" ]; then
+   rm "$remotedir/$FN" -rf
+  fi
+  if [ -f "$remotedir/shows/$FN.html" ]; then
+   rm "$remotedir/shows/$FN.html"
+  fi
+  mv $FN $remotedir
+
+mv $output $remotedir/shows/$FN.html
+
+echo "$(($ENDTIME-$STARTTIME))" seconds

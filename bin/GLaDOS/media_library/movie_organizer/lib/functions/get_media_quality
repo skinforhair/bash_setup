@@ -1,0 +1,63 @@
+#!/bin/bash
+
+function get_media_quality() {
+     MI=`$MediaInfo "$1" |grep Height |awk '{print $3}'`
+	if [ $MI -lt 10 ]; then
+		p=`$MediaInfo "$1" |grep Height |awk '{print $4}'`
+		MI=$MI$p
+	fi
+	size="$MI"
+     #IFS=$" " read -a MediaSize <<< "$MI"
+     #size=`echo "${MediaSize[2]}"`
+       #echo -en "${yellow}height is $size${NC}. "
+         if [ "$size" == "" ]; then
+            echo "SD"
+         #elif [ "$size" == "1" ]; then
+         #   echo "1080p"
+         elif [ "$size" -lt "$SD" ]; then
+            echo "SD"
+         elif [ "$size" -lt "$DVD" ]; then
+            echo "DVD"
+         elif [ "$size" -lt "$HD_720" ]; then
+            echo "720p"
+         else
+            echo "1080p"
+         fi
+}
+
+function get_media_type() {
+     MI=`$MediaInfo "$1" |grep Format`
+     IFS=$" " read -a MediaSize <<< "$MI"
+     format=`echo "${MediaSize[2]}"`
+     format=`echo ${format,,}`
+     case "$format" in
+	"mpeg-4" | "mp4" | "m4v" ) echo "mp4";;
+	"mkv" | "matroska" ) echo "mkv";;
+	"avi" ) echo "avi";;
+     esac
+}
+
+function get_media_length(){
+    MI=`$MediaInfo "$1" |grep Duration |head -1`
+    IFS=$" " read -a MediaSize <<< "$MI"
+    firstnum=`echo "${MediaSize[2]}"`
+    secondnum=`echo "${MediaSize[3]}"`
+    lastChar="${firstnum:$((${#firstnum}-1)):1}"
+     if [ "$lastChar" = "h" ]; then
+	hours="${firstnum:0:$((${#firstnum}-1))}"
+        #echo "hours is $hours"
+        #minutes=$(($hours*60))
+	#echo "minutes is $minutes"
+	minutes=$(($minutes+${secondnum:0:$((${#secondnum}-2))})) 
+        seconds="00"
+     else
+	hours="00"
+	minutes="${firstnum:0:$((${#firstnum}-2))}"
+	seconds="${secondnum:0:$((${#secondnum}-1))}"
+     fi
+#echo "$hours:$minutes:$seconds"
+ hMinutes=$((hours*60))
+ MINUTES=$(($hMinutes+minutes))
+ echo "$MINUTES"
+}
+

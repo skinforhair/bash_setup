@@ -1,0 +1,119 @@
+#!/bin/bash
+source ../db_connection
+NUMBERS='^[0-9]+([.][0-9]+)?$'
+#################################################
+### get_local_id
+### Takes in a title and year and returns the ID
+### Additionally, can take just a path to return
+### the ID (used for removing a movie)
+#################################################
+function get_local_id() {
+echo "get_local_id: \"$1\" \"$2\""
+#1: title
+#2: year
+     if [ "$2" != "" ]; then
+        title=`echo "$1" |sed "s;';'';g"`
+        year="$2"
+  	dbMatch=
+	query="select id from $movieTable where title = '$title' and year = '$year'"
+#echo "$query"
+	  dbMatch=`echo "$query" |mysql $dbOptions`
+	if [ "$?" != "0" ]; then
+		echo "query was $query"
+	fi
+        if [ "$dbMatch" == "" ]; then
+	  query="select id from $movieTable where title = '$title'"
+#echo "2 - $query"
+          dbMatch=`echo "$query" |mysql $dbOptions`
+	  if [ "$dbMatch" != "" ]; then
+	     dbMatch="$dbMatch""_$2"
+	  fi
+	fi
+        if [ "$?" != "0" ]; then
+                echo "query was $query"
+        fi
+     else
+	inputPath="$1"
+	cleanPath=`echo "$inputPath" |sed "s;';'';g"`
+	query="select id from $movieTable where local_path = '$cleanPath'";
+	dbMatch=`echo "$query" |mysql $dbOptions`
+	#dbMatch=$query
+	if [ "$dbMatch" == "" ]; then
+		dbMatch=$(get_local_id "$inputPath/")
+	fi
+     fi
+
+     #for smb, colons in filenames are changed to hyphens. search that if nothing has been found
+     if [ "$dbMatch" == "" ]; then
+	changeTitle=`echo "$1" |sed "s;-;:;g"`
+	if [ "$changeTitle" != "$1" ]; then
+         dbMatch=$(get_local_id "$changeTitle" "$2")
+	fi
+     fi
+
+    #if we still haven't found it, try adding periods to words in the title
+     if [ "$dbMatch" == "" ]; then
+      if [ "$changeTitle" == "" ]; then
+       changeTitle=`echo "$title" |sed "s;\ vs\ ;\ vs.\ ;g"`
+      else
+       changeTitle=`echo "$changeTitle" |sed "s;\ vs\ ;\ vs.\ ;g"`
+      fi
+       
+      changeTitle=`echo "$changeTitle" |sed "s;\ Dr\ ;\ Dr.\ ;g"`
+      if [ "$changeTitle" != "$title" ]; then
+       dbMatch=$(get_local_id "$changeTlte" "$2")
+      fi
+     fi
+ echo $dbMatch
+} #END get_local_id
+
+function grabResults() {
+ cQuery="select count(*) from $movieTable where title LIKE $1"
+ query="select id from $movieTable where title LIKE $1"
+ resultCount=`echo "$cQuery" |mysql $dbOptions`
+ if [ $resultCount -gt 1 ]; then
+   echo "$resultCount results for $query"
+ else
+   myout=`echo "$query" |mysql $dbOptions`
+    if [ "$?" != "0" ]; then echo "query was $query";fi
+   echo "$myout"
+ fi
+} #grabResults
+
+function new_local_id() {
+ #$1 Title
+ #$2 Year
+#echo "new_local_id Checking \"$1\" \"$2\""
+ dbMatch=
+  if ! [ "$2" == "" ]; then
+   andYear=""
+  else
+   andYear=" and year = '$2'"
+  fi
+
+ dbMatch=$(grabResults "'%$1%'$andYear") 
+
+ if [ "$dbMatch" == "" ]; then
+  #for smb, colons are changed to hyphens. search that
+  changeTitle=`echo "$1" |sed "s;-;:;g"`
+  if [ "$changeTitle" != "$1" ]; then
+    dbMatch=$(grabResults "'%$changeTitle%'$andYear")
+  fi
+ fi 
+
+ #still nothing? try adding periods to words
+ if [ "$dbMatch" == "" ]; then
+  cT=$changeTitle
+  changeTitle=`echo "$changeTitle" |sed "s;\ vs\ ;\ vs.\ ;g"`
+  changeTitle=`echo "$changeTitle" |sed "s;\ Vs\ ;\ Vs.\ ;g"`
+  changeTitle=`echo "$changeTitle" |sed "s;\ Dr\ ;\ Dr.\ ;g"`
+  changeTitle=`echo "$changeTitle" |sed "s;\ dr\ ;\ dr.\ ;g"`
+  if [ "$changeTitle" != "$cT" ]; then
+    dbMatch=$(grabResults "'%$changeTitle%'$andYear")
+  fi
+ fi
+echo "$dbMatch"
+} #new_local_id
+
+
+new_local_id "$1" "$2"

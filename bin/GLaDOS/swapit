@@ -1,0 +1,24 @@
+#!/bin/bash
+for f in /root/.bin/lib/*; do source $f; done
+
+### - Find local path (See /root/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
+GladosVer="$1"
+DirName="$GladosVer"
+Dest="/shares/incoming/WDMovies/movies/newversions"
+
+ DirName=${DirName:21}
+ DirName=${DirName:0:$((${#DirName}-1))}
+
+DF="$Dest/$DirName"
+
+mkdir "$DF"
+rsync -avz "$GladosVer" "$DF"

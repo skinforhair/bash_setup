@@ -1,0 +1,33 @@
+#!/bin/bash
+source /root/.bin/local/movie_organizer/lib/db_connection
+source $HOME/.bin/lib/colors
+
+query="SELECT MAX(ID) FROM supersets"
+
+biggest=$(echo "$query" |mysql $dbOptions)
+
+echo -e "${yellow} The following movies may not have the proper superset:${NC}"
+c=1
+while [ $c -le $biggest ]; do
+ query="select name from supersets where id=$c"
+ name=$(echo "$query" |mysql $dbOptions)
+ if [ "$name" != "" ]; then
+	newQ="select title from movies where local_path like \"%$name%\" and superset_id != \"$c\""
+	T=$(echo "$newQ" |mysql $dbOptions)
+	if [ "$T" != "" ]; then
+	 currset=$(echo "select superset_id from movies where title=\"$T\"" |mysql $dbOptions)
+	 if [ "$name" == "Kung Fu" ]; then
+	   if [ "${T:8:5}" != "Panda" ]; then
+		echo ""
+         	echo -e "${yellow}$c: $name ${red}(Current Set is $currset)${NC}"
+         	echo "$T"
+	   fi
+	 else
+	 	echo ""
+	 	echo -e "${yellow}$c: $name ${red}(Current Set is $current)${NC}"
+	 	echo "$T"
+	 fi
+	fi
+ fi
+ c=$((c+1))
+done

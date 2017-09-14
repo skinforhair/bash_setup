@@ -1,0 +1,9 @@
+#!/bin/bash
+
+function string_to_array() {
+    OIFS=$IFS
+    IFS='$2' read -a array <<< "$1"
+    IFS=$OIFS
+    echo "${array[$3]}"
+} #END string_to_array
+

@@ -1,0 +1,187 @@
+#!/bin/bash
+for f in /root/.skinforhair/lib/*; do source $f; done
+
+### - Find local path (See /root/.bin/lib/.localize) ###
+#SOURCE="${BASH_SOURCE[0]}"
+#while [ -h "$SOURCE" ]; do 
+# DIR="$( cd -P "." && pwd )"
+# SOURCE="$(readlink "$SOURCE")"
+#  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+#done
+#DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+DIR="/root/.skinforhair/bin/GLaDOS/media_library/tv_organizer/"
+
+for f in $DIR/lib/functions/*; do source $f; done
+source $DIR/lib/vars
+
+FL=$(ls $tvPath)
+IFS=$'\n' read -rd '' -a SHOWS <<< "$FL"
+D=`date +"%Y-%m-%d"`
+EXCEPTION_LIST=$DIR/lib/newshow_exceptions.txt
+NEWSHOLIST=
+count=0
+selection=
+NEWSHOWNAME=
+
+
+SeasonsAvailable=1
+currently_on_air=1
+active_download=1
+
+
+## Populate the new show array, ignoring shows in the exception list
+echo "Scanning for new shows..."
+for i in "${SHOWS[@]}"; do
+ query="select id from tvShows where showname=\"$i\""
+ EXCEPTION=$(grep "$i" $EXCEPTION_LIST)
+  if [ "$EXCEPTION" == "" ]; then
+   ID=$(echo "$query"|mysql $dbOptions)
+   if [ "$ID" == "" ]; then
+    count=$((count+1))
+    NEWSHOWLIST[$count]="$i"
+   fi
+  fi
+done
+
+## if we found new shows, list them
+if [ ${#NEWSHOWLIST[@]} -ne 0 ]; then
+ clear
+ while [ "$selection" == "" ]; do
+   for i in "${!NEWSHOWLIST[@]}"; do
+    printf "%s\t%s\n" "$i" "${NEWSHOWLIST[$i]}"
+   done
+   #after listing found shows, give other options
+   echo -e "n\t[N]ew show"
+   echo -e "c\t[C]ancel"
+   echo -en "Please choose an option : "
+   read selection
+   if ! [[ $selection =~ $numbers ]] ; then
+    case "$selection" in 
+      [nN] ) ReadInNewShowName;;
+      [cC] ) exit 0;;
+      *) clear;echo -e "${yellow}Invalid Selection ${red}[ $selection ]${NC}";selection="";;
+    esac
+   else
+    if [ "${NEWSHOWLIST[$selection]}" == "" ]; then
+         clear;echo -e "${yellow}Invalid Selection ${red}[ $selection ]${NC}";selection=""
+    fi
+   fi   
+ done
+#echo "selection was $selection"
+fi
+
+## If the show was selected from list, use it, otherwise, prompt for it.
+while [ "$NEWSHOWNAME" == "" ]; do
+ if [ "$selection" != "" ]; then
+   NEWSHOWNAME=${NEWSHOWLIST[$selection]}
+ else
+   clear
+   echo "No new shows found."
+   echo -en "Enter new Show Name: "
+   read NEWSHOWNAME
+ fi
+done
+
+#download episode guide page
+ SN=$(cleanShowName "$NEWSHOWNAME")
+  epPage="$DIR/epguides/pages/$SN.page"
+  if [ ! -f $epPage ]; then
+   PageDump=`lynx -width 1000 -dump $EPGUIDES/$SN`
+   echo "$PageDump" > $epPage
+  fi
+
+checkline=$(head -n 1 $epPage)
+ if ! [ -s $epPage ] || [ "$checkline" == "The page cannot be found" ]; then
+   echo "Cannot read $EPGUIDES/$SN"
+   rm $epPage
+   YesNo "Continue?" "n"
+   if [ "$?" == "0" ]; then
+     echo "Quitting!";exit 0
+   fi
+ else
+   SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "• Season " |awk '{print $3}' |tail -1)
+  if [ "$SeasonsAvailable" == "" ]; then
+   SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "Season " |awk '{print $2}' |tail -1)
+  fi
+  Cancelled=$(cat epguides/pages/$SN.page |grep "cancelled/ended")
+  OnAir=$(cat epguides/pages/$SN.page |grep "current show")
+
+  if [ "$Cancelled" == "$OnAir" ]; then
+    OnAir=$(cat epguides/pages/$SN.page |grep "on hiatus")
+    if [ "$OnAir" == "" ]; then
+     #currently_on_air="UNKNOWN"
+     currently_on_air="1"
+    else
+     currently_on_air="1"
+    fi
+  elif [ "$Cancelled" != "" ]; then
+    currently_on_air="0"
+  else
+    currently_on_air="1"
+  fi
+ fi
+
+pa=
+while [ "$pa" == "" ]; do
+clear
+echo -e "\nSetting up ${yellow}$NEWSHOWNAME${NC}..."
+if [ -d "$tvPath/$NEWSHOWNAME" ]; then
+ echo -n "   |_Using "
+else
+ echo -n "   |_Creating "
+fi
+echo -e "${gray}$tvPath${NC}/${red}$NEWSHOWNAME${NC}"
+
+if [ "$currently_on_air" == "1" ]; then
+  echo -en "     ${green}Currently On Air${NC}   "
+else
+  echo -en "     ${red}Series Ended${NC}   "
+fi
+
+if [ "$active_download" == "1" ]; then
+  echo -en "  ${green}Active Download${NC}"
+else
+  if [ "$currently_on_air" == "1" ]; then
+    echo -en "${red}"
+  else
+    echo -en "${yellow}"
+  fi
+  echo -en "Not Currently Downloading${NC}"
+fi
+
+echo -en "   Seasons: ${yellow}$SeasonsAvailable${NC}"
+
+ echo -en "\nDo you want to:  Change [C]urrent / Change [D]ownload / [P]roceed / [Q]uit? : "
+ read pa
+ case "$pa" in
+  [cC] ) currently_on_air=$(toggle_boolean $currently_on_air);pa=;;
+  [dD] ) active_download=$(toggle_boolean $active_download);pa=;;
+  [qQ] ) echo "Quitting!";exit 0;;
+  [pP] ) echo "Proceeding...";;
+  *    ) pa=;;
+ esac
+done
+
+ if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
+  echo -e "	|_ Creating Path at $tvPath/$NEWSHOWNAME ..."
+  mkdir "$tvPath/$NEWSHOWNAME"
+ fi
+
+#Use apostrophe's appropriately for mysql
+ MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
+
+echo -e "      |_ Checking DB ..."
+ query="select id from tvShows where showname=\"$MSHOWNAME\""
+ showExists=$(echo "$query"|mysql $dbOptions)
+  echo "$showExists"
+
+ if [ "$showExists" != "" ]; then
+  echo -e "      |_ DB Entry Exists"
+ else
+  echo -e "      |_ Creating Database Entry ..."
+  query="INSERT INTO  tvShows (id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download) VALUES (NULL,'$MSHOWNAME','0','$SeasonsAvailable','','','','$currently_on_air','$active_download')"
+  updateSQL=$(echo "$query"|mysql $dbOptions)
+  echo "            ...Database Entry created"
+ fi
+

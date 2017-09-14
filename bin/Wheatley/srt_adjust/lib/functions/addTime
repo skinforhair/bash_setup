@@ -1,0 +1,97 @@
+#!/bin/bash
+
+#newSeconds=$(addTime "$startTime" "$addSec" "$addNan")
+  #startTime and stopTime look like this: 00:01:17,480
+  #addSec is the movement we are doing
+  #addNan will almost always be 000
+#nE=$(addTime "$stopTime" "$addSec" "$addNan")
+
+function addTime() {
+ originalTime="$1"
+ newSeconds="$2"
+ newNano="$3"
+
+#parse original time
+#and remove leading zeroes
+HOUR=${originalTime:0:2}
+MIN=${originalTime:3:2}
+SEC=${originalTime:6:2}
+NAN=${originalTime:9:3}
+
+
+#echo "$HOUR $MIN $SEC $NAN"
+
+
+while [ "${newSeconds:0:1}" == "0" ]; do newSeconds=${newSeconds:1}; done
+if [ "$newSeconds" == "" ]; then newSeconds="0"; fi
+while [ "${newNano:0:1}" == "0" ]; do newNano=${newNano:1}; done
+if [ "$newNano" == "" ]; then newNano="0"; fi
+
+while [ "${HOUR:0:1}" == "0" ]; do HOUR=${HOUR:1}; done
+if [ "$HOUR" == "" ]; then HOUR="0"; fi
+while [ "${MIN:0:1}" == "0" ]; do MIN=${MIN:1}; done
+if [ "$MIN" == "" ]; then MIN="0"; fi
+while [ "${SEC:0:1}" == "0" ]; do SEC=${SEC:1}; done
+if [ "$SEC" == "" ]; then SEC="0"; fi
+while [ "${NAN:0:1}" == "0" ]; do NAN=${NAN:1}; done
+if [ "$NAN" == "" ]; then NAN="0"; fi
+
+
+
+nn=$(($newNano+NAN))
+ if [ $nn -ge 1000 ]; then
+        SEC=$(($SEC+1))
+        if [ $SEC -ge 60 ]; then
+                MIN=$(($MIN+1))
+                SEC=$(($SEC-60))
+                if [ $MIN -ge 60 ]; then
+                        HOUR=$(($HOUR+1))
+                        MIN=$(($MIN-60))
+                fi
+        fi
+        NAN=$(($nn-1000))
+ else
+        NAN=$nn
+ fi
+#echo "nano is now $NAN"
+ns=$(($newSeconds+SEC))
+ if [ $ns -ge 60 ]; then
+     numMinutes=$((ns/60))
+     MIN=$(($MIN+$numMinutes))
+     toremove=$(($numMinutes*60))
+     SEC=$(($ns-$toremove))
+#
+#        MIN=$(($MIN+1))
+#        SEC=$(($ns-60))
+        if [ $MIN -ge 60 ]; then
+                HOUR=$(($HOUR+1))
+                MIN=$(($MIN-60))
+        fi
+ elif [ $ns -lt 0 ]; then
+	MIN=$(($MIN-1))
+	SEC=$(($ns+60))
+	
+	
+ else
+        SEC=$ns
+ fi
+
+ if [ ${#HOUR} -lt 2 ] && [ $HOUR -lt 10 ]; then
+        HOUR="0"$HOUR
+ fi
+ if [ ${#MIN} -lt 2 ] && [ $MIN -lt 10 ]; then
+        MIN="0"$MIN
+ fi
+ if [ ${#SEC} -lt 2 ] && [ $SEC -lt 10 ]; then
+        SEC="0"$SEC
+ fi
+ while [ ${#NAN} -lt 3 ]; do
+        NAN="0"$NAN
+ done
+
+
+outputTime="$HOUR:$MIN:$SEC,$NAN"
+echo "$outputTime"
+} #addTime
+
+#addTime "$1" "$2" "$3"

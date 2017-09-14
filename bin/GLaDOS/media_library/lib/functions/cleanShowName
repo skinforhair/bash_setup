@@ -1,0 +1,64 @@
+#!/bin/bash
+
+cleanShowName() {
+ SHOWNAME="$1"
+
+ #Remove spacing from show name
+ SHOWNAME=`echo "$SHOWNAME" | tr -d ' '`
+
+ #Remove apostrophe from show name
+ SHOWNAME=`echo "$SHOWNAME" | tr -d "'"`
+
+ #Remove leading 'The'
+ FirstThree=${SHOWNAME:0:3}
+ if [ "$FirstThree" == "The" ]; then
+         SHOWNAME=${SHOWNAME:3:((${#SHOWNAME}-3))}
+ fi
+
+ #adjust year after show name
+ SHOWNAME=`echo "$SHOWNAME" | sed "s;(;_;"`
+ SHOWNAME=`echo "$SHOWNAME" | tr -d ")"`
+
+#Special Show names
+case $SHOWNAME in
+        "Goldbergs")
+                SHOWNAME="Goldbergs_2013"
+                ;;
+#        "DoctorWho")
+#                SHOWNAME="DoctorWho_2005"
+#                ;;
+	"Macgyver_1985")
+		SHOWNAME="Macgyver"
+		;;
+	"MST3K")
+		SHOWNAME="MysteryScienceTheater3000"
+		;;
+        "Castle_2009")
+                SHOWNAME="Castle"
+                ;;
+        "Flash")
+                SHOWNAME="Flash_2014"
+                ;;
+        "WhoseLineIsItAnyway")
+                SHOWNAME="WhoseLineIsItAnyway_US"
+                ;;
+        "Bob'sBurgers")
+                SHOWNAME="BobsBurgers"
+                ;;
+        "Parenthood")
+                SHOWNAME="Parenthood_2010"
+                ;;
+        "CSI-CrimeSceneInvestigation")
+                SHOWNAME="CSI"
+                ;;
+        "FreshPrinceofBel-Air")
+                SHOWNAME="FreshPrinceofBelAir"
+                ;;
+	"ASeriesofUnfortunateEvents")
+		SHOWNAME="SeriesofUnfortunateEvents"
+		;;
+esac
+
+
+echo "$SHOWNAME"
+} #cleanShowName

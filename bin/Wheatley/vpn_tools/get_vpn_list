@@ -1,0 +1,29 @@
+#!/bin/bash
+
+file="VPNlist.txt"
+output="VPNlist"
+dir="/etc/NetworkManager/system-connections"
+
+if [ -f "$file" ]; then rm $file; fi
+if [ -f "$output" ]; then rm $output; fi
+
+list=$(ls $dir)
+echo "$list" > $file
+
+i=0
+while read line;
+ do
+name=$(sudo cat "$dir/$line" |grep id|head -1)
+name=${name:3}
+
+uuid=$(sudo cat "$dir/$line" |grep uuid)
+uuid=${uuid:5}
+
+echo "N[$i]=\"$name\"" >> $output
+echo "U[$i]=\"$uuid\"" >> $output
+echo " " >> $output
+
+i=$((i+1))
+
+done < $file
+rm -f $file

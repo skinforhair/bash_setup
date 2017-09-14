@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cur=5.4385967
+comp=5.1138716
+
+compare=`echo "$cur < $comp" |bc`
+
+echo $compare

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+find . -iname "*.mp4" -exec mv {} . \;
+find . -iname "*.mkv" -exec mv {} . \;
+find . -iname "*.avi" -exec mv {} . \;
+find . -iname "*.srt" -exec mv {} . \;
+
+
+if [ "$1" == "-d" ]; then
+ find . -iname "*.txt" -exec rm {} \;
+ find . -iname "*.nfo" -exec rm {} \;
+ find . -iname "*.jpg" -exec rm {} \;
+fi
+
+#find . -type d -exec rm -rf {} \;
+
+#for i in *; do movie "$i"; done

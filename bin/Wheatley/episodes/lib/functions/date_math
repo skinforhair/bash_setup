@@ -1,0 +1,100 @@
+#!/bin/bash
+
+function month_num() {
+case "$1" in
+ "Jan" ) echo "01";;
+ "Feb" ) echo "02";;
+ "Mar" ) echo "03";;
+ "Apr" ) echo "04";;
+ "May" ) echo "05";;
+ "Jun" ) echo "06";;
+ "Jul" ) echo "07";;
+ "Aug" ) echo "08";;
+ "Sep" ) echo "09";;
+ "Oct" ) echo "10";;
+ "Nov" ) echo "11";;
+ "Dec" ) echo "12";;
+esac
+} #month_num
+
+function month_name() {
+ case "$1" in
+ "01" ) echo "Jan";;
+ "02" ) echo "Feb";;
+ "03" ) echo "Mar";;
+ "04" ) echo "Apr";;
+ "05" ) echo "May";;
+ "06" ) echo "Jun";;
+ "07" ) echo "Jul";;
+ "08" ) echo "Aug";;
+ "09" ) echo "Sep";;
+ "10" ) echo "Oct";;
+ "11" ) echo "Nov";;
+ "12" ) echo "Dec";;
+esac
+} #month_name
+
+
+function get_days_away() {
+ td=`date +%Y%m%d`
+ today=$(date -d "$td" +%s)
+ future=$(date -d "$3$2$1" +%s)
+ da=$((($future-$today)/86400))
+# if [ $da -eq 1 ]; then
+#  da="Tomorrow:"
+# else
+#  da="in $da days:"
+# fi
+ echo "$da"
+} #get_days_away
+
+function day_name() {
+ dname=$(date -d $3$2$1 "+%A")
+ echo $dname
+}
+
+function convert_input() {
+ stringZ="$1"
+ mark=`expr index "$stringZ" /`
+ inDAY=${stringZ:0:$((mark-1))}
+ stringZ=${stringZ:$mark}
+ mark=`expr index "$stringZ" /`
+ inMONTH=${stringZ:0:$((mark-1))}
+ inYEAR=${stringZ:$mark}
+ inYEAR="20$inYEAR"
+ inMONTH=$(month_num "$inMONTH")
+
+ echo "$inYEAR$inMONTH$inDAY"
+} #convert_input
+
+#convert_input "`date +%d/%b/%y`"
+
+function get_next_days() {
+ todaysDate=$(date +%Y%m%d)
+ numDays="$1"
+ futureDate=$(date +%Y%m%d -d "+$numDays days")
+ echo "$futureDate"
+} #get_next_days
+
+function compare_days() {
+ inputList="$1"
+ inputDayNum="$2"
+ endpoint=$(get_next_days "$inputDayNum")
+ counter=1
+ while [ $counter -le $inputDayNum ]; do
+     stringZ=
+     comp=$(get_next_days "$counter")
+     AD=$(convert_input "$6")
+     #echo "comparing $comp and $AD - $3" 
+     echo -en "."
+     if [ $AD -ge $endpoint ]; then
+       counter=$((inputDayNum+1))
+     elif [ "$comp" == "$AD" ]; then
+       arrayString[$counter]="${arrayString[$counter]}""\n${blue}$3 ${cyan}$4${NC}-\"${lightblue}$5${NC}\" (${cyan}$6${NC})"
+       counter=$((inputDayNum+1))
+     else
+       counter=$((counter+1))
+     fi
+     
+ done 
+}

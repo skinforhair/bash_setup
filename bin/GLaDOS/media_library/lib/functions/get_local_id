@@ -1,0 +1,56 @@
+#!/bin/bash
+#source ../db_connection
+#################################################
+### get_local_id
+### Takes in a title and year and returns the ID
+### Additionally, can take just a path to return
+### the ID (used for removing a movie)
+#################################################
+function get_local_id() {
+#1: title
+#2: year
+     if [ "$2" != "" ]; then
+        title=`echo "$1" |sed "s;';'';g"`
+        year="$2"
+  	dbMatch=
+	query="select id from $movieTable where title = '$title' and year = '$year'"
+#echo "$query"
+	  dbMatch=`echo "$query" |mysql $dbOptions`
+	if [ "$?" != "0" ]; then
+		echo "query was $query"
+	fi
+        if [ "$dbMatch" == "" ]; then
+	  query="select id from $movieTable where title = '$title'"
+#echo "2 - $query"
+          dbMatch=`echo "$query" |mysql $dbOptions`
+	  if [ "$dbMatch" != "" ]; then
+	     dbMatch="$dbMatch""_$2"
+	  fi
+	fi
+        if [ "$?" != "0" ]; then
+                echo "query was $query"
+        fi
+     else
+	inputPath="$1"
+	cleanPath=`echo "$inputPath" |sed "s;';'';g"`
+	query="select id from $movieTable where local_path = '$cleanPath'";
+	dbMatch=`echo "$query" |mysql $dbOptions`
+	#dbMatch=$query
+	if [ "$dbMatch" == "" ]; then
+		dbMatch=$(get_local_id "$inputPath/")
+	fi
+     fi
+
+     #for smb, colons in filenames are changed to hyphens. search that if nothing has been found
+     if [ "$dbMatch" == "" ]; then
+	changeTitle=`echo "$title" |sed "s;-;:;g"`
+	if [ "$changeTitle" != "$title" ]; then
+         dbMatch=$(get_local_id "$changeTitle" "$2")
+	fi
+     fi
+
+ echo $dbMatch
+} #END get_local_id
+
+
+#get_local_id "$1" "$2"

@@ -1,0 +1,22 @@
+#!/bin/bash
+DATE=`date +%Y-%m-%d_%H.%M.%S`
+storage=/shares/filesystem/mysql_backups/
+
+if [ ! -d $storage ]; then
+	mkdir $storage
+fi
+
+cd $storage
+
+for i in {9..0}; do 
+	j=$((i+1))
+	k=$(echo $i-VideoLibrary*)
+	if [ "$k" != "$i-VideoLibrary*" ]; then
+		l=${k:14:$((${#k}-14))}
+		mv "$k" "$j-VideoLibrary$l"
+	fi
+done
+
+
+mysqldump VideoLibrary > 0-VideoLibrary.$DATE.sql
+rm 10*

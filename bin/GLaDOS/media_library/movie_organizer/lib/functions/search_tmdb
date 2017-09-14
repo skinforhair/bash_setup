@@ -1,0 +1,81 @@
+#!/bin/bash
+
+function get_mpaa_rating() {
+        ratings=($1)
+        countries=($2)
+	myCountry="US"
+        counter=0
+        while [ $counter -lt ${#ratings[@]} ]; do
+                if [ "${countries[$counter]}" == '"'$myCountry'"' ]; then
+                        myRating="${ratings[$counter]}"
+                fi
+                counter=$((counter+1))
+        done
+ if [ "$myRating" != "" ]; then
+        myRating=`echo $myRating |sed 's;\";;g'`
+ fi
+echo "$myRating"
+} #END get_mpaa_rating
+
+function search_tmdb(){
+ if [ "$3" == "" ]; then
+  #echo "get_tmdb_id" "$1" "$2"
+  TMDB_ID=$(get_tmdb_id "$1" "$2")
+ elif [ "$3" == "prompted" ]; then
+#  YesNo "Do you expect this to be in the local DB?" "y"
+#  if [ "$?" == "0" ]; then
+   echo -en "Please enter a Title to search for: "
+   read inTitle
+   TMDB_ID=$(get_tmdb_id "$inTitle")
+#  else
+#   ST="${1:0:4}"
+#   SY="${2:0:3}"
+#   LocalList=$(echo "select id, title, year from $movieTable where title like '$ST%' and year like '$SY%' limit 7"|mysql $dbOptions)
+#   echo -e "$LocalList"
+#   read -p "Please enter a DB ID: " inputDB
+#  fi
+ else
+  TMDB_ID=$(get_tmdb_id "$1")
+ fi
+ if [ "$TMDB_ID" == "" ] || [ "$TMDB_ID" == "null" ]; then
+   echo -e "Couldn't find ${yellow}$1 ${NC}(${yellow}$2${NC})."
+   read -p " Enter a title to search for (Q to Quit): " inTitle
+   if [ "${inTitle^^}" == "Q" ]; then
+    exit 1
+   else
+    TMDB_ID=$(get_tmdb_id "$inTitle" "$2")
+   fi
+ fi
+
+#echo "tmdb_id is $TMDB_ID"
+ # echo -e "TMDB ID is ${yellow} $TMDB_ID ${NC}"
+ if [ -a $jsonFile ]; then
+    movie_json=`cat $jsonFile`
+ else 
+    movie_json=$(get_movie_json "$TMDB_ID")
+ fi
+ found=$(json_title "$movie_json" "title")
+ foundcast=$(json_actors "$movie_json")
+ foundyear=$(json_year "$movie_json")
+ IFS=',' read -a cast <<< "$foundcast"
+ echo -en "I found ${red} $found ($foundyear) ${NC} in TMDB\nstarring ${Cyan} "
+ for i in 0 1 2 3; do
+	echo -en "${cast[$i]},"
+ done
+   echo -e "${cast[4]} ${NC}"
+
+  YesNo "Is this correct?" "y"
+  if [ "$?" == "0" ]; then
+   if [ "$3" == "prompted" ]; then
+    exit 0
+   elif [ "$3" == "noyear" ]; then
+    search_tmdb "$1" "$2" "prompted" 
+   else
+    search_tmdb "$1" "$2" "noyear"
+   fi
+  else
+   searchTerms[1]="$found"
+   searchTerms[2]="$foundyear"
+   searchTerms[27]="$TMDB_ID"
+  fi
+} #END search_tmdb

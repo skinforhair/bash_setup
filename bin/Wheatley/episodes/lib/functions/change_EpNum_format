@@ -1,0 +1,19 @@
+#!/bin/bash
+
+function change_EpNum_format() {
+ EP="$1"
+
+ dash=`expr index "$EP" -`
+ S=${EP:0:$((dash-1))}
+  if [ $S -lt 10 ]; then
+    S="0$S"
+  fi
+ E=${EP:$dash}
+  if [ $E -lt 10 ]; then
+    E="0$E"
+  fi
+
+
+ echo "S$S""E$E"
+
+} #change_EpNum_format

@@ -1,0 +1,258 @@
+#!/bin/bash
+##############################
+### TMDB movie scraper
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+OIFS=$IFS
+
+searchTerms=
+json_array=
+db_array=
+
+#######################################################
+### Parse the filename and search online for the video
+### Prompt the user for verification
+#######################################################
+if ! [ -a "$1" ]; then
+  if [ -a "$1mp4" ]; then
+	checkName="$1mp4"
+  elif [ -a "$1m4v" ]; then
+	checkName="$1m4v"
+  elif [ -a "$1avi" ]; then
+	checkName="$1avi"
+  elif [ -a "$1mkv" ]; then
+	checkName="$1mkv"
+  else
+	checkName="$1"
+  fi
+else
+  checkName="$1"
+fi
+
+
+sTerms=$(parseFilename "$checkName")
+#echo -e "${yellow} $sTerms ${NC}"
+IFS='|' read -a searchTerms <<< "$sTerms"
+#info "${searchTerms[0]}  -- ${searchTerms[1]}"
+search_tmdb "${searchTerms[0]}" "${searchTerms[1]}"
+
+
+###########################################################
+### Now search the local database to see if that movie is 
+### already in the library. If so , create an array for 
+### the database entry.
+###########################################################
+dbID=$(get_local_id "${searchTerms[0]}" "${searchTerms[1]}")
+ if [ "$dbID" != "" ]; then
+   foundyear=
+   foundID=
+   checkpoint=${dbID:$((${#dbID}-5)):1}
+   if [ "$checkpoint" == "_" ]; then
+     foundyear=${dbID:$((${#dbID}-4)):4}
+     foundID=${dbID:0:$((${#dbID}-5))}
+   fi
+  echo -en "I found ${yellow} ${searchTerms[0]} ${NC}("
+   if [ "$foundyear" != "" ]; then
+	echo -en "${red}$foundyear"
+   else
+	echo -en "${yellow}${searchTerms[1]}"
+   fi
+  echo -e "${NC}) in the database..."
+  if [ "$foundyear" != "" ]; then
+   YesNo "The year is different than the DB version. Is this a new movie?" "n"
+    if [ "$?" = "1" ]; then
+	dbID=
+    else
+	dbID=$foundID
+	searchTerms[1]=$foundyear
+    fi
+  fi
+
+  if [ "$dbID" != "" ]; then
+  dTerms=$(get_file_info "$dbID")
+  IFS='|' read -a dbTerms <<< "$dTerms"
+  score=0
+  echo -e "${yellow} Database Version: \t ${Cyan} $checkName: ${NC}"
+  for i in 2 3 4; do
+	compare_files "$i" "${dbTerms[$i]}" "${searchTerms[$i]}"
+  done
+  if [ $score -gt 0 ]; then
+	defaultCont="y"
+  elif [ $score -lt 0 ]; then
+	defaultCont="n"
+  else
+	defaultCont=""
+  fi
+  YesNo "\nContinue, making ${Cyan} $checkName ${NC} the new version?" "$defaultCont"
+   if [ "$?" = "0" ]; then
+     YesNo "Would you like to delete ${Cyan}$checkName${NC}?" "n"
+	if [ "$?" = "1" ]; then
+		echo "rm $checkName"
+	fi
+	exit 0;
+   fi
+ fi
+  #echo "moving on!"
+ fi
+
+############################################################
+### Next we find the Collection and set this movie belongs to
+#############################################################
+   prompt_for_sets ${searchTerms[25]} $dbID
+
+ if [ "$dbID" == "" ]; then
+	populate_from_json "${searchTerms[0]}" "${searchTerms[1]}"
+ else
+	YesNo "Would you like to use the Database Version (No to reload from JSON)?" "y"
+	if [ "$?" = "1" ]; then
+		populate_from_db "$dbID"
+	else
+		populate_from_json "${searchTerms[0]}" "${searchTerms[1]}"
+	fi
+ fi
+
+##########################################
+### Now set all the Paths
+##########################################
+ searchTerms[21]=$(build_paths "${searchTerms[5]}" "${searchTerms[6]}" "${searchTerms[0]}" "${searchTerms[1]}")
+ searchTerms[21]="$moviePath${searchTerms[21]}"
+ searchTerms[22]=$(build_paths "${searchTerms[5]}" "${searchTerms[6]}" "${searchTerms[0]}" "${searchTerms[1]}" "url")
+ searchTerms[22]="$webPath${searchTerms[22]}"
+
+
+##########################################
+### Merge Genres and Keywords from 
+### Collection and Set
+##########################################
+searchTerms[17]=$(merge_terms "genres" "${searchTerms[5]}" "${searchTerms[6]}" "${searchTerms[17]}")
+#echo -e "${yellow}-------------${NC}"
+searchTerms[18]=$(merge_terms "keywords" "${searchTerms[5]}" "${searchTerms[6]}" "${searchTerms[18]}")
+
+searchTerms[23]=$(my_filename "${searchTerms[0]}" "${searchTerms[1]}" "${searchTerms[4]}")
+
+
+
+if false; then
+##CUTOFF
+ c=0
+ while [ $c -lt 26 ]; do
+   echo "$c: ${searchTerms[$c]}"
+   c=$((c+1))
+ done
+
+ c=0
+ while [ $c -lt 9 ]; do
+   echo "$c: ${dbTerms[$c]}"
+   c=$((c+1))
+ done
+fi
+
+
+
+#########################################
+### If there is an older version of the 
+### movie, remove it.
+#########################################
+if [ "$dbID" != "" ]; then
+ F="${searchTerms[21]}"
+ D="${dbTerms[7]}"
+
+ DL="${D:$((${#D}-1))}"
+ FL="${F:$((${#F}-1))}"
+
+ if [ "$DL" == "/" ]; then
+   D=${D:0:$((${#D}-1))}
+ fi
+ if [ "$FL" == "/" ]; then
+   F=${F:0:$((${#F}-1))}
+ fi
+  
+ if [ "$F" == "$D" ]; then
+	if [ -a "$D/*.srt" ]; then mv "$D/*.srt" /shares/incoming; fi
+	rm "$D"/*.${dbTerms[4]}.*
+ fi
+fi
+
+
+#########################################
+### Move files to the temp directory
+#########################################
+if [ "$dbID" != "" ]; then
+  if [ "${searchTerms[21]}" != "${dbTerms[7]}" ] && [ "${searchTerms[21]}/" != "${dbTerms[7]}" ]; then
+	#echo -e "${red} moving to a new location!${NC}"
+	reuse_files "${dbTerms[7]}" "${searchTerms[21]}" "${searchTerms[23]}"
+  else
+	reuse_files "${searchTerms[21]}" "${searchTerms[21]}" "${searchTerms[23]}"
+  fi
+else
+  reuse_files "${searchTerms[21]}" "${searchTerms[21]}" "${searchTerms[23]}"
+fi
+
+YesNo "Move ${red}$checkName${NC} to ${green}${searchTerms[21]}/${searchTerms[23]}.${searchTerms[2]}${NC}?" "y"
+ if [ "$?" == "1" ]; then
+	if [ ! -d "${searchTerms[21]}" ]; then
+		echo -e "Creating path ${yellow}${searchTerms[21]}${NC}"
+		mkdir -p "${searchTerms[21]}"
+	fi 
+#        if [ "${searchTerms[21]}" != "${dbTerms[7]}" ]; then
+#                rm "${dbTerms[7]}" -rf
+#        fi
+#echo "a"
+	mv "$checkName" "${searchTerms[23]}.${searchTerms[2]}"
+#echo "b"
+	mv "${searchTerms[23]}.${searchTerms[2]}" "${searchTerms[21]}"
+#echo "c"
+	mv $tempPath/* "${searchTerms[21]}"
+#echo "d"
+
+       if [ "$dbID" != "" ]; then
+       #delete the old path
+        if [ "${searchTerms[21]}" != "${dbTerms[7]}" ] && [ "${searchTerms[21]}/" != "${dbTerms[7]}" ]; then
+	  localDir=`pwd`
+	  if [ "$localDir" != "$moviePath/${dbTerms[7]}" ] && [ "$localDir/" != "$moviePath/${dbTerms[7]}" ]; then
+	   echo -e "${yellow}${searchTerms[21]}${NC} != ${yellow}${dbTerms[7]}${NC}"
+	   YesNo "Delete ${dbTerms[7]}? " 
+	     if [ "$?" == "1" ]; then
+                rm "${dbTerms[7]}" -rf
+	     fi
+	  fi
+        fi
+       fi
+ else
+	rm $tempPath/*
+ fi
+update_database "$dbID"
+$DIR/scripts/update_kodi_library
+/shares/filesystem/backup_scripts/video_db
+#######################
+### Display the array
+#######################
+
+#display_array
+
+#display_original
+
+  #     - update/insert database for known fields
+  #  If file already was in DB, but was updated
+
+IFS=$OIFS

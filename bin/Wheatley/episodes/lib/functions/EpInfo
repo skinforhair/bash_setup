@@ -1,0 +1,89 @@
+#!/bin/bash
+
+#source "already_downloaded"
+#source "/home/jar/.bin/lib/colors"
+
+function EpInfo(){
+check_list_freshness
+DL_it="$2"
+c=0
+case "$1" in 
+ "$AIRED" ) echo -e "${blue}Available Shows: ${NC}";;
+ "$NOTFOUND" ) echo -e "${red}Next episode not currently listed: ${NC}";;
+esac
+
+while read line; do
+ already_got_it=0
+  if [ "${line:0:9}" != "Generated" ]; then
+    c=$((c+1))
+    EpNum=$(echo $line |grep -o -E '[0-9]+-[0-9]+' | head -1 |sed -e 's/^0\+//')
+    E=$(echo $line |grep -b -o $EpNum|awk 'BEGIN {FS=":"}{print $1}')
+    E=$((E-1))
+    SN=${line:0:$E}
+     E=$((E+1))
+     E=$((E+${#EpNum}))
+     E=$((E+1))
+    Remainder=${line:$E}
+    Air=$(echo $Remainder |grep -o -E '[0-9]+/' |head -1 |sed -e 's/^0\+//')
+    A=$(echo $Remainder |grep -b -o $Air|awk 'BEGIN {FS=":"}{print $1}')
+    EpTitle=${Remainder:0:$((A-1))}
+    AirDate=${Remainder:$A}
+#    echo -e "$line"
+#    echo -e "$SN $EpNum $EpTitle $AirDate"
+#    echo ""
+
+if [ "$1" == "$AIRED" ]; then
+D=0
+C=0
+G=0
+
+   isDL=$(CheckActiveDownloads "$SN")
+    if [ "$isDL" != "" ]; then
+     already_got_it=1
+     D=1
+    fi
+   isDL=$(CheckDownloaded "$SN" "$EpNum" "cortana")
+    if [ "$isDL" != "" ]; then
+     already_got_it=1
+     C=1
+    fi
+   isDL=$(CheckDownloaded "$SN" "$EpNum" "glados")
+    if [ "$isDL" != "" ]; then
+     already_got_it=1
+     G=1
+    fi
+   
+   if [ $already_got_it -eq 1 ]; then
+     echo -en "${darkgray}"
+   fi
+
+fi
+
+   Ep=$(change_EpNum_format "$EpNum")
+
+   if [ "$1" == "$NOTFOUND" ]; then
+    echo -en "${blue}$SN ${cyan}$Ep${NC}-\"${lightblue}$EpTitle${NC}\" (${cyan}$AirDate${NC})"
+   else
+    echo -en "$SN $Ep-\"$EpTitle\" ($AirDate)"
+   fi
+
+   if [ $already_got_it -eq 1 ]; then
+    if [ $D -eq 1 ]; then echo -e " -- ${yellow}Downloading${NC}";fi
+    if [ $C -eq 1 ]; then echo -e " -- ${yellow}Cortana${NC}";fi
+    if [ $G -eq 1 ]; then echo -e " -- ${yellow}Glados${NC}";fi
+   fi
+  
+   if [ $already_got_it -eq 0 ] && [ "$DL_it" == "download" ]; then
+    echo -e " -- "$(download_episode "$SN" "$EpNum")
+#   else
+#    echo "already got it is $already_got_it and DL is $DL_it"
+   fi   
+#    echo -e "${NC}"
+  fi 
+done < "$1"
+echo ""
+} #EpInfo
+
+
+#file="/home/jar/.bin/local/episodes/lib/lists/Aired.txt"
+#EpInfo "$file"

@@ -1,0 +1,160 @@
+#!/bin/bash
+### Simple interface for checking status of deluge torrents
+
+
+source "/home/jar/.bin/lib/colors"
+vpnStatus=$("/home/jar/.bin/local/vpn" "status")
+vpnStatus=`echo "$vpnStatus" |awk '{print $2}'`
+tmpfile="/tmp/dl_list.txt"
+if [ -f $tmpfile ]; then rm -f $tmpfile; fi
+
+
+usage() {
+ echo " Usage: $0 <options>
+  Options:
+	-d	[D]elete a torrent. Must be followed by a number
+	-h	[H]elp
+	
+ "
+} #usage
+
+DeleteID=0
+while getopts ":hd:" OPTION; do
+  case $OPTION in
+	d) DeleteID=$OPTARG;;
+	h) usage;exit 0;;
+  esac
+done
+
+CONSOLE="/usr/bin/deluge-console"
+
+
+
+display_running_torrents() {
+bob=$($CONSOLE info)
+ if [ "$bob" == "" ]; then
+	echo -e "---${white}NO DOWNLOADS CURRENTLY RUNNING${NC}---"
+ 	exit 0;
+ fi
+bob=`echo "$bob" | tr -d '['`
+bob=`echo "$bob" | tr -d ']'`
+echo "$bob" > $tmpfile
+
+c=0
+
+while read line; do
+
+ if [ "$line" == "" ]; then
+	c=$((c+1))
+ fi
+
+ attrib=${line:0:5}
+  if [ "${attrib:0:2}" == "ID" ]; then attrib="ID"; fi
+  case "$attrib" in
+	"Name:") NameList[$c]="${line:6}";;
+	"State") StateList[$c]="${line:7}";;
+	"Progr") ProgList[$c]="${line:10}";;
+	"ID"   ) idList[$c]="${line:4}";;
+	"Size:" ) SizeList[$c]="${line:6}";;
+  esac
+done < $tmpfile
+} #display_running_torrents
+
+display_running_torrents
+
+if [ "$DeleteID" != "0" ]; then
+	DID=${idList[$DeleteID]}
+	DN=${NameList[$DeleteID]}
+	if [ "$DID" != "" ]; then
+		echo -e "Removing ${yellow}$DN...${NC}"
+        	bob=$($CONSOLE rm $DID)
+	fi
+	display_running_torrents
+fi
+
+
+if [ "$vpnStatus" != "Connected" ]; then
+	echo -e "${red}WARNING - VPN is $vpnStatus${NC}"
+	echo ""
+fi
+
+	echo ""
+
+function checkSize() {
+ line="${SizeList[$1]}"
+
+ spacecheck=`expr index "$line" \ `
+  firstSize="${line:0:$((spacecheck-1))}"
+ slashcheck=`expr index "$line" /`
+  line=${line:$slashcheck:$((${#line}-$slashcheck))}
+ spacecheck=`expr index "$line" \ `
+  secSize="${line:0:$((spacecheck-1))}"
+
+echo "$firstSize / $secSize"
+ if [ "$firstSize" == "$secSize" ]; then
+  return 1;
+ else
+  return 0;
+ fi
+ 
+} #checkSize
+
+function QueueState() {
+ input="$1"
+
+ if [ "$input" == "" ]; then
+   checkSize "$2"
+   if [ "$?" == "1" ]; then
+    d="100"
+   else
+    d="101"
+   fi  
+ else
+ j=`expr index "$input" %`
+ if [ $j -gt 0 ]; then
+  j=$((j-1))
+ fi
+echo "input: $input j: $j"
+ d="${input:0:$j}"
+# t="${input:$j:$((${#input}-$j))}"
+ t="${input:$((j+1)):$j}"
+
+ fi
+if [ "$d" == "101" ]; then
+ echo -e "${red}ERROR${NC}"
+elif [ "$d" == "100" ]; then
+ echo -e "${green}Complete - Queued to Seed ${NC}"
+else
+ echo -e "${yellow}Queued for Download${NC}"
+fi
+if false; then
+ if [ "$d" == "$t" ]; then 
+   echo -e "${green}Complete - Seed Queued${NC} ($d / $t)"
+ else
+   echo -e "${yellow}Queued to download${NC}"
+ fi
+fi
+} #QueueState
+
+i=0
+while [ $i -le $c ]; do
+     if [ "${NameList[i]}" != "" ]; then 
+	echo -en "${White}$i: ${Blue}${NameList[i]}${NC} - "
+	 stringZ=${StateList[i]:0:4}
+	 case "$stringZ" in
+		"Seed") echo -e "${green}Seeding${NC}";;
+		"Queu") QueueState "${ProgList[i]}" "$i";;
+		"Down") echo -e "${red}Downloading${NC}";;
+	 esac
+	if [ "${ProgList[i]:0:4}" != "Down" ]; then
+		echo "    ${ProgList[i]}"
+		echo ""
+	fi
+      fi
+	i=$((i+1))
+done
+
+
+
+rm $tmpfile
+

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+function get_srt_id() {
+  if [ "$3" != "" ]; then 
+	lang="$3" 
+  else 
+	lang="English" 
+  fi
+
+  ID=$(echo "select id from $srt where movie_id=$1" | mysql $dbOptions)
+  if [ "$ID" == "" ]; then
+	echo "insert into $srt(id, movie_id, title, language) values (NULL, '$1', '$2', '$lang')" |mysql $dbOptions
+	ID=$(echo "select id from $srt where movie_id=$1" | mysql $dbOptions)
+  fi
+ echo "$ID"
+}
+
+function get_srt_name(){
+ output=$(echo "select title from $srt where id=$1" |mysql $dbOptions)
+ echo "$output"
+}

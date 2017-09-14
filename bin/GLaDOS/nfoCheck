@@ -1,0 +1,54 @@
+#!/bin/bash
+
+path="/shares/video/movies"
+output="/shares/incoming/no_nfo"
+numArgs=$#
+
+#color the output
+NC='\033[0m' # no color
+white='\033[1;37m'
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[1;33m'
+gray='\033[1;30m'
+
+#create a text file of all videos
+#find $path -iname "*.mp4" >> $output
+#find $path -iname "*.avi" >> $output
+#find $path -iname "*.mkv" >> $output
+
+IFS=$'\n'
+
+for file in `find $path -iname "*.mp4"`; do
+	nfoName=`echo "$file" |sed 's;mp4;nfo;g'`
+	if [ -f "$nfoName" ]; then
+		echo -e "${gray}$file...${NC}"
+	else
+		echo -e "${red}$file${NC}"
+		echo -n "`du -m "$file" | cut -f1`" >> $output
+		echo " $file" >> $output
+	fi	
+done
+
+for file in `find $path -iname "*.mkv"`; do
+        nfoName=`echo "$file" |sed 's;mkv;nfo;g'`
+        if [ -f "$nfoName" ]; then
+		echo -e "${gray}$file...${NC}"
+        else
+                echo -n "`du -m "$file" | cut -f1`" >> $output
+                echo " $file" >> $output
+		echo -e "${red}$file${NC}"
+        fi      
+done
+
+for file in `find $path -iname "*.avi"`; do
+        nfoName=`echo "$file" |sed 's;avi;nfo;g'`
+        if [ -f "$nfoName" ]; then
+                echo -e "${gray}$file...${NC}"
+        else
+                echo -e "${red}$file${NC}"
+                echo -n "`du -m "$file" | cut -f1`" >> $output
+                echo " $file" >> $output
+        fi
+done
+

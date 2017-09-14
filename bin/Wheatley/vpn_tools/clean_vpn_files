@@ -1,0 +1,26 @@
+#!/bin/bash
+
+file="VPNlist.txt"
+output="VPNlist"
+dir="/etc/NetworkManager/system-connections"
+
+if [ -f "$file" ]; then rm $file; fi
+if [ -f "$output" ]; then rm $output; fi
+
+list=$(ls $dir)
+echo "$list" > $file
+
+i=0
+while read line;
+ do
+ `sed -i s/id=PIA\ -\ /id=/g "$dir/$line"`
+ `sed -i s/password-flags=1/password-flags=0/g "$dir/$line"`
+ `sed -i s/auth-user-pass=/password=/g "$dir/$line"`
+  secrets=$(grep vpn-secrets "$dir/$line")
+	if [ "$secrets" == "" ]; then
+		echo "adding password to $line"
+		`sed -i '/ca=/{s/.*/&\n\n[vpn-secrets]\npassword=i3shHI@$/;:a;n;ba}' "$dir/$line"`
+	fi
+
+done < $file
+rm -f $file

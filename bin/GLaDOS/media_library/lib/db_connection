@@ -1,0 +1,15 @@
+#!/bin/bash
+
+dbName="VideoLibrary"
+dbOptions="-D $dbName -s -r -N"
+dbTable="-D $dbName"
+movieTable="movies"
+collectionTable="sets"
+setTable="supersets"
+subtitles="subtitles"
+srt="srt"
+srt_data="srt_data"
+dbUser="root"
+tv_feed="TV_feed"
+tvshows="tvShows"
+

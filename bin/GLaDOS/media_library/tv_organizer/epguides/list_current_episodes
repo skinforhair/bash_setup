@@ -1,0 +1,56 @@
+#!/bin/bash
+for f in /root/.bin/lib/*; do source $f; done
+
+### - Find local path (See /home/jejackso/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
+source lib/vars
+source lib/db_connection
+for f in lib/functions/*; do source $f; done
+
+SA=$(echo "select id from $tvshows where active_download=1" |mysql $dbOptions)
+SArr=($SA)
+i=0
+c=1
+while [ $i -lt ${#SArr[@]} ]; do
+        showID="${SArr[i]}"
+        i=$((i+1))
+if [ $i -lt 10 ]; then
+	echo -en "[0$i] "
+else
+	echo -en "[$i] "
+fi
+show="showID=$showID"
+SN=$(echo "select showname from $tvshows where id=$showID" |mysql $dbOptions)
+
+S=$(echo "select max(season) from $tv_feed where $show" |mysql $dbOptions)
+Season="season=$S"
+
+E=$(echo "select max(episode) from $tv_feed where $show and $Season" |mysql $dbOptions)
+Episode="episode=$E"
+
+T=$(echo "select title from $tv_feed where $show and $Season and $Episode" |mysql $dbOptions)
+
+if [ "$S" == "NULL" ] || [ "$E" == "NULL" ] || [ "$T" == "NULL" ]; then
+ echo -e "${red}$SN${NC}****  NO ENTRY"
+else
+ if [ $S -lt 10 ]; then
+   echo -en "[S0$S] "
+ else
+   echo -en "[S$S] "
+ fi
+ if [ $E -lt 10 ]; then
+   echo -en "[E0$E] "
+ else
+   echo -en "[E$E] "
+ fi
+ echo -e "[$SN] [$T]"
+fi
+done

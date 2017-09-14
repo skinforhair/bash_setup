@@ -1,0 +1,37 @@
+function file_move_function(){
+ #cmd="$(echo "$0" |awk -F"/" '{print $NF}')"
+ cmd="$1"
+
+#echo "cmd was $cmd"
+case "$cmd" in
+ "cm") DL_DIR="/cortana/Completed";;
+ "mvv") DL_DIR="/cortana/Move";;
+ "srt") DL_DIR="/cortana/Move/get_srt";;
+ "conv") DL_DIR="/cortana/Move/Convert";;
+ "running") DL_DIR="/cortana/Running";;
+ "rc") DL_DIR="/cortana/Move/RunningConvert";;
+ "bin") DL_DIR="/home/jar/.bin";;
+ *) usage;;
+esac
+
+if [ "$2" == "" ]; then
+ cd $DL_DIR
+ #exec bash
+else
+ for var in "$@"; do
+  if [ "$var" != "$1" ]; then
+   #echo "mv $var $DL_DIR"
+   mv "$var" $DL_DIR
+  fi
+ done
+fi
+
+}
+
+alias cm="file_move_function cm"
+alias mvv="file_move_function mvv"
+alias srt="file_move_function srt"
+alias conv="file_move_function conv"
+alias rc="file_move_function rc"
+alias running="file_move_function running"
+alias bin="file_move_function bin"

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+tv_usage()
+ {
+ echo "
+ usage: tv  options -f <filename>
+ 
+ OPTIONS:
+    -h      [H]elp
+    -t      [T]rust epguides.com (don't prompt on episode name)
+    -d      Update [D]onwload list on Wheatley
+    -k      [K]odi Library update
+    -r      [R]SS off (Do not update legacy feed)
+    -l	    [L]ibrary update. (Same as -d -k)
+ "
+ }
+

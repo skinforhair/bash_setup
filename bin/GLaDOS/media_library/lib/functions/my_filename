@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function my_filename() {
+  stringZ=$(sanitize "$1" "filename")
+  stringZ="$stringZ.$2.$3"
+ echo "$stringZ"
+} #END create_filename

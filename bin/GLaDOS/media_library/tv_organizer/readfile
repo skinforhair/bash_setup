@@ -1,0 +1,41 @@
+#!/bin/bash
+##############################
+### TMDB movie scraper
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+for f in $DIR/lib/*; do source $f; done
+OIFS=$IFS
+
+
+myFile="$1"
+
+parseFilename "$myFile"
+
+#echo "path		: $path"
+#echo "show		: $show"
+#echo "season		: $season"
+echo "episode		: $epname"
+echo "ep number	: $epnumber"
+#echo "extension	: $extension"
+#echo "air		: $airdate"
+#echo "dbtime		: $dbtime"
+#echo "episodes		: $numepisodes"
+

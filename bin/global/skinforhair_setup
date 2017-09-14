@@ -1,0 +1,23 @@
+#!/bin/bash
+
+## find the profile directory:
+
+presumedPath="$HOME/.skinforhair_settings"
+
+read -p "Please enter the path: [$presumedPath] : " inputPath
+if [ "$inputPath" == "" ]; then
+  pD="$presumedPath"
+else
+  pD="$inputPath"
+fi
+
+#get which host setup
+case "$(hostname)" in 
+ "Wheatley" | "GLaDOS" ) HN="$(hostname)";;
+ *) HN="ihc";;
+esac
+
+for i in "bin" "aliases"; do 
+ if [ -a "$pD/$i/active" ]; then rm "$pD/$i/active"; fi
+ ln -s "$pD/$i/$HN" "$pD/$i/active"
+done

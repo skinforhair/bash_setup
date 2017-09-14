@@ -25,3 +25,6 @@ done
 mv $HOME/.bashrc $HOME/.bashrc_old
 ln -s "$pD/env/bashrc" "$HOME/.bashrc"
 source $HOME/.bashrc
+
+U="$(whoami)"
+sudo chown -R $U $pD

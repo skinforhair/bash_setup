@@ -1,5 +1,5 @@
 #!/bin/bash
-for f in /root/.skinforhair/lib/*; do source $f; done
+for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 
 ### - Find local path (See /root/.bin/lib/.localize) ###
 #SOURCE="${BASH_SOURCE[0]}"
@@ -10,7 +10,7 @@ for f in /root/.skinforhair/lib/*; do source $f; done
 #done
 #DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-DIR="/root/.skinforhair/bin/GLaDOS/media_library/tv_organizer/"
+DIR="/root/.skinforhair_settings/bin/GLaDOS/media_library/tv_organizer/"
 
 for f in $DIR/lib/functions/*; do source $f; done
 source $DIR/lib/vars

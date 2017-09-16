@@ -21,7 +21,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 #############################
 ### Libraries and Functions
 #############################
-for f in /home/jar/.bin/lib/*; do source $f; done
+for f in $pLIB/*; do source $f; done
 OIFS=$IFS
 
 VPNfile="$DIR/currVPN"

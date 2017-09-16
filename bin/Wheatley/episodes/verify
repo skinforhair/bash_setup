@@ -1,5 +1,5 @@
 #!/bin/bash
-source /home/jar/.bin/lib/colors
+source $pLIB/colors
 DIR="/wheatley/Completed"
 MDIR="/wheatley/Move"
 

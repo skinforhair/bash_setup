@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #source "already_downloaded"
-#source "/home/jar/.bin/lib/colors"
+#source "$pLIB/colors"
 
 function EpInfo(){
 check_list_freshness
@@ -85,5 +85,5 @@ echo ""
 } #EpInfo
 
 
-#file="/home/jar/.bin/local/episodes/lib/lists/Aired.txt"
+#file="$pBIN/Wheatley/episodes/lib/lists/Aired.txt"
 #EpInfo "$file"

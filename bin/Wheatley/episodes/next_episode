@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORKINGDIR="/home/jar/.bin/local/episodes"
+WORKINGDIR="$lBIN/episodes"
 
 source "$WORKINGDIR/lib/next_episode.conf"
 strArray=

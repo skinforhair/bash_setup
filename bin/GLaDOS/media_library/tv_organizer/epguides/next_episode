@@ -19,7 +19,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 source $DIR/lib/vars
 source $DIR/lib/db_connection
 for f in $DIR/lib/functions/*; do source $f; done
-source /root/.bin/lib/colors
+source $pLIB/colors
 PAGES="$DIR/pages/"
 A="$DIR/tmp/Aired.txt"
 U="$DIR/tmp/Upcoming.txt"
@@ -27,7 +27,7 @@ N="$DIR/tmp/Notfound.txt"
 Ltmp="$DIR/tmp/tmpfile.txt"
 
 outfile="available_episodes.txt"
-remotepath="/home/jar/.bin/local/episodes/lib/lists/"
+remotepath="$pBIN/Wheatley/episodes/lib/lists/"
 output="$DIR/$outfile"
 
 

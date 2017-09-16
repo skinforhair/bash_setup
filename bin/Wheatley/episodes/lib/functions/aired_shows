@@ -91,5 +91,5 @@ done < "$AIRED"
 } #EpInfo
 
 
-#file="/home/jar/.bin/local/episodes/lib/lists/Aired.txt"
+#file="$pBIN/Wheatley/episodes/lib/lists/Aired.txt"
 #EpInfo "$file"

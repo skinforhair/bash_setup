@@ -2,8 +2,8 @@
 ### Simple interface for checking status of deluge torrents
 
 
-source "/home/jar/.bin/lib/colors"
-vpnStatus=$("/home/jar/.bin/local/vpn" "status")
+source "$pLIB/colors"
+vpnStatus=$("$pBIN/Wheatley/vpn_tools/vpn" "status")
 vpnStatus=`echo "$vpnStatus" |awk '{print $2}'`
 tmpfile="/tmp/dl_list.txt"
 if [ -f $tmpfile ]; then rm -f $tmpfile; fi

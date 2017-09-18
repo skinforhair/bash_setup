@@ -27,7 +27,8 @@ N="$DIR/tmp/Notfound.txt"
 Ltmp="$DIR/tmp/tmpfile.txt"
 
 outfile="available_episodes.txt"
-remotepath="$pBIN/Wheatley/episodes/lib/lists/"
+remotepath=$(ssh jar@wheatley "echo \$lBIN")
+remotepath="$remotepath/episodes/lib/lists/"
 output="$DIR/$outfile"
 
 

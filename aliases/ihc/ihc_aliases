@@ -16,4 +16,10 @@ function getcustomer() {
     ssh -q $1 "hostname;sed '7q;d' /etc/motd;exit"
 }
 
+function today(){
+  dt=$(date +"%Y/%b/%d")      
+  td="$HOME/workshop/DailyTasks/$dt"
+  mkdir -p "$td"
+  cd $td
+}
 

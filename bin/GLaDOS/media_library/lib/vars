@@ -19,7 +19,7 @@
 
 # Colors for Text #
 ###################
-source $pLIB/colors
+#source $pLIB/colors
 # NC='\033[0m' # no color
 # white='\033[1;37m'
 # red='\033[0;31m'

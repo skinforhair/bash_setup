@@ -27,9 +27,9 @@ sudo chown -R $U $pD
 echo "--Setting ownership to $U"
 
 for i in "bin" "aliases"; do 
- if [ -a "$pD/$i/active" ]; then
+ if [ -L "$pD/$i/active" ]; then
   echo "---Removing $pD/$i/active..."
-  rm "$pD/$i/active"
+  rm -f "$pD/$i/active"
  fi
  echo "---linking $pD/$i/$HN to $pD/$i/active"
  ln -s "$pD/$i/$HN" "$pD/$i/active"

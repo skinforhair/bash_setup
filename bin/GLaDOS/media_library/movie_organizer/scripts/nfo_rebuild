@@ -23,7 +23,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 ### Libraries and Functions
 #############################
 source $DIR/lib/vars
-source $HLIB/colors
+source $pLIB/colors
 for f in $DIR/lib/functions/*; do source $f; done
 OIFS=$IFS
 DateStamp=`date +"%m-%d-%y_%H:%m:%s"`

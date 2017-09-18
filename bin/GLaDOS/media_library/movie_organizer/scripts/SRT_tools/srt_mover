@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source $HOME/.bin/lib/colors
-source /root/.bin/local/tv_movie_organizers/lib/db_connection
+source $pLIB/colors
+source $pBIN/GLaDOS/media_library/lib/db_connection
 
 
 inputSRT="$1"

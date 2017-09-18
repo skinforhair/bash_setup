@@ -10,7 +10,7 @@ for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 #done
 #DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-DIR="/root/.skinforhair_settings/bin/GLaDOS/media_library/tv_organizer/"
+DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
 
 for f in $DIR/lib/functions/*; do source $f; done
 source $DIR/lib/vars

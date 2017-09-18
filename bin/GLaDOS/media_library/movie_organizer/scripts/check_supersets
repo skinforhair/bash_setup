@@ -1,6 +1,6 @@
 #!/bin/bash
-source /root/.bin/local/movie_organizer/lib/db_connection
-source $HOME/.bin/lib/colors
+source $pBIN/GLaDOS/movie_organizer/lib/db_connection
+source $pLIB/colors
 
 query="SELECT MAX(ID) FROM supersets"
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source /root/.bin/local/tv_movie_organizers/movie_organizer/lib/db_connection
-source $HOME/.bin/lib/colors
+source $pBIN/GLaDOS/media_library/movie_organizer/lib/db_connection
+source $pLIB/colors
 
 if false; then
 query="select local_path from movies where 1"

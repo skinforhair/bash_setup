@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /root/.skinforhair/lib/colors
+source $pLIB/colors
 
 ca[1]=${red}
 ca[2]=${green}

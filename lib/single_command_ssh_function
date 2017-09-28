@@ -21,11 +21,17 @@ if [ "$REMOTEBOX" == "" ]; then
  #exit 1
 fi
 
+## 3 is a subdirectory of REMOTEPATH to send to
+if [ ! -z "$3" ]; then
+  REMOTEPATH="$REMOTEPATH/$3"
+fi  #if there is a $3
+
+
 if [ -z "$2" ]; then
         #if no filename specified, then just ssh over
         ssh $REMOTEUSER@$REMOTEBOX -t "cd $REMOTEPATH; bash --login"
 else
-echo "parsing $2"
+#echo "parsing $2"
         #if directory, then recursively copy that directory
         if [[ -d "$2" ]]; then
         #       echo "copying directory"
@@ -41,6 +47,6 @@ echo "parsing $2"
                         scp $REMOTEUSER@$REMOTEBOX:"$2" .
                 fi
         fi
-fi
+fi  #if there is a $2
 }
 

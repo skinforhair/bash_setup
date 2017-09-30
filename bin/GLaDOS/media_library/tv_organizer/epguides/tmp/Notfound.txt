@@ -1,4 +1,4 @@
-Generated 20170927 (Wednesday)
+Generated 20170929 (Friday)
 Archer -- Current 08
 Black Mirror -- Current 03
 Doctor Who (2005) -- Current 10
@@ -27,6 +27,7 @@ American Gods -- Current 01
 The White Princess -- Current 01
 The Handmaid's Tale -- Current 01
 Fargo -- Current 03
+Ink Master -- Current 09
 Castlevania -- Current 01
 Ink Master Redemption -- Current 04
 Legion -- Current 01

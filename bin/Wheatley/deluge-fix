@@ -1,5 +1,5 @@
 #!/bin/bash
-for f in ~/.bin/lib/*; do source $f; done
+for f in $pLIB/*; do source $f; done
 
 ### - Find local path (See ~/.bin/lib/.localize) ###
 SOURCE="${BASH_SOURCE[0]}"

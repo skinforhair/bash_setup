@@ -20,8 +20,15 @@ posterURL="posters/"
 echo -en "enter the show Name: "
 read SHOWNAME
 
-echo -en "enter the id on thetvdb.com: "
-read ShowID
+#query="select thetvdb_id from VideoLibrary.tvShows where showname=\"$SHOWNAME\""
+#SI=$(echo "$query" |mysql -N)
+#if [ "$SI" != "" ]; then
+# echo "query failed:  $query"
+ echo -en "enter the id on thetvdb.com: "
+ read ShowID
+#else
+# ShowID="$SI"
+#fi
 
 echo -en "Banner #: "
 read bannerID

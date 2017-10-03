@@ -51,7 +51,7 @@ TMP=/tmp/seasonlist.tmp
 
 
 if [ -a $TMP ]; then rm -f $TMP; fi
-
+stringG="SVU"
 find /shares/video/tv/ -maxdepth 1 -type d -print0 |xargs -0 du -h -sk |egrep -v "($stringG)" |sort -rn |head -$SHOWLIM >> $TMP
 c=1
 echo -e "Size:\tSeasons:\t\tAvg Sz:\t\tShow:"

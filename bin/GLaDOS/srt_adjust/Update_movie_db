@@ -1,0 +1,20 @@
+#/bin/bash
+
+echo "select id,local_path from VideoLibrary.movies where subtitle='none'" |mysql -N >> dblist.txt
+while read line; do
+ S=
+ ID=$(echo "$line" |awk '{print $1}')
+ p=${line:${#ID}}
+ p=${p:1}
+ S=$(ls "$p" |grep srt)
+ if [ "$S" != "" ]; then
+   echo "$ID" >> idoutput.txt
+ fi
+done<dblist.txt
+
+while read inputID; do
+ echo "update VideoLibrary.movies set subtitle='srt' where id='$inputID'" |mysql 
+done<idoutput.txt
+
+rm dblist.txt
+rm idoutput.txt

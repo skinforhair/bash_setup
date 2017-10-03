@@ -1,0 +1,2 @@
+cd $profileDir
+git rm -r --cached .

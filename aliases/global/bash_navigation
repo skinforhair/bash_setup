@@ -9,3 +9,7 @@ alias dmesg='dmesg --color'
 alias ll="ls -lh"
 alias cls="clear; ls"
 alias cll="clear; ll -h"
+
+function pd(){
+    cd $profileDir
+}

@@ -3,10 +3,10 @@
 
 
 serverName="$1"
-username="jtcurti1"
-uid="31300"
-gid="31300"
-gec="Jackson Curtis"
+username="sstak"
+uid="31076"
+gid="31076"
+gec="Snehal Tak"
 grouplist=""
 sudo="no"
 

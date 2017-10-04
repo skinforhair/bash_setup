@@ -552,7 +552,8 @@ Title=${Title//\,//}
 Title=${Title//\"/}
 #remove colons from title
 Title=${Title//\:/}
-
+#remove slashes from title
+Title=${Title//\//-}
 
 #tack on the Air date
 	Title="$Title($AirDate)"

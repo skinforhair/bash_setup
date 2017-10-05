@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+t=$(curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+  "apikey": "4B71B39C1AD74AC3",
+  "userkey": "79C7E3B0BBA9CD73",
+  "username": "skinforhair"
+}' 'https://api.thetvdb.com/login')
+
+
+myToken=`echo "$t" |jq '.token' |sed 's/\"//g'`
+echo $myToken > current_token
+

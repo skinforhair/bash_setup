@@ -11,6 +11,12 @@ for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 #DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
+token_file="$DIR/lib/thetvdb/current_token"
+if [ "$(cat $token_file)" == "" ]; then
+ $DIR/lib/thetvdb/generate_token
+fi
+token=$(cat ${token_file})
+
 
 for f in $DIR/lib/functions/*; do source $f; done
 source $DIR/lib/vars
@@ -29,7 +35,7 @@ SeasonsAvailable=1
 currently_on_air=1
 active_download=1
 
-
+function get_new_show_names(){
 ## Populate the new show array, ignoring shows in the exception list
 echo "Scanning for new shows..."
 for i in "${SHOWS[@]}"; do
@@ -82,12 +88,16 @@ while [ "$NEWSHOWNAME" == "" ]; do
    read NEWSHOWNAME
  fi
 done
+} #get_new_show_names
 
+
+function download_epguides(){
 #download episode guide page
  SN=$(cleanShowName "$NEWSHOWNAME")
   epPage="$DIR/epguides/pages/$SN.page"
   if [ ! -f $epPage ]; then
    PageDump=`lynx -width 1000 -dump $EPGUIDES/$SN`
+   echo "Grabbing data from epguides.com/$SN ..."
    echo "$PageDump" > $epPage
   fi
 
@@ -121,10 +131,89 @@ checkline=$(head -n 1 $epPage)
     currently_on_air="1"
   fi
  fi
+} #download_epguides
 
+function grab_from_tvdb(){
+#convert spaces in showname to %20
+showname=$(echo "$NEWSHOWNAME" |sed 's;\ ;%20;g')
+echo -e "Searching for ${yellow}$showname${NC}.."
+searchTVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/search/series?name=${showname}")
+
+#echo ${searchTVjson} >> search.json
+
+#echo "curl -X GET --header \"Accept: application/json\" --header \"Authorization: Bearer ${token}\" \"https://api.thetvdb.com/search/series?name=${showname}\""
+
+tvdbID=`echo "$searchTVjson" |jq '.data[]' |jq '.id' |sed 's/\"//g'`
+firstAired=`echo "$searchTVjson" |jq '.data[]' |jq '.firstAired' |sed 's/\"//g'`
+seriesName=`echo "$searchTVjson" |jq '.data[]' |jq '.seriesName' |sed 's/\"//g'`
+seriesStatus=`echo "$searchTVjson" |jq '.data[]' |jq '.status' |sed 's/\"//g'`
+
+nResults=$(echo "$tvdbID" |wc -l)
+clear
+if [ $nResults -lt 1 ]; then
+ echo "No results!"
+elif [ $nResults -gt 1 ]; then
+ echo "Show $showname has multiple results found!!"
+ IFS=$'\n' a=(${firstAired[0]})
+ IFS=$'\n' s=(${seriesStatus[0]})
+ IFS=$'\n' n=(${seriesName[0]})
+ IFS=$'\n' y=(${tvdbID[0]})
+ tvdbID=
+ while [ "$tvdbID" == "" ]; do
+ c=1
+ echo -e "N: tvdbID\tName\t\tFirst Aired\tStatus"
+ echo "----------------------------------------"
+ echo "0: CANCEL OPERATION"
+  while [ $c -le ${#y[@]} ]; do
+   d=$((c-1))
+   echo -e "$c: ${y[$d]}\t${n[$d]}\t\t${a[$d]}\t${s[$d]}"
+   c=$((c+1))
+  done #while c -le array
+
+  read -p "Please enter an ID: " inputID
+  if [ "$inputID" == "0" ]; then
+    exit 1
+  else
+    tvdbID="${y[$((inputID-1))]}"
+    seriesStatus="${s[$((inputID-1))]}"
+    if [ "$seriesStatus" == "Continuing" ]; then
+      currently_on_air=1
+    else
+      currently_on_air=0
+    fi 
+    firstAired="${a[$((inputID-1))]}"
+  fi
+ done
+fi
+
+echo -e "Downloading info for ${yellow}$showname${NC}.."
+TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
+
+#echo ${TVjson} >> series.json
+
+imdbID=`echo "$TVjson" |jq '.[]' |jq '.imdbId' |sed 's/\"//g'`
+overview=`echo "$TVjson" |jq '.[]' |jq '.overview' |sed 's/\"//g'`
+
+
+episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
+
+#echo ${episodesjson} >> episodes.json
+
+SeasonsAvailable=$(NS=$(echo $episodesjson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
+
+
+echo "sa: $SeasonsAvailable"
+#NS=$(echo "$episodesjson" |jq '.data[]' |jq '.airedSeasons')
+#IFS=$'\n' seasons=(${NS[0]})
+#SeasonsAvailable=$(echo "${seasons[*]}" |sort -nr |head -n1)
+
+} #grab_from_tvdb
+
+
+function finalize_info(){
 pa=
 while [ "$pa" == "" ]; do
-clear
+#clear
 echo -e "\nSetting up ${yellow}$NEWSHOWNAME${NC}..."
 if [ -d "$tvPath/$NEWSHOWNAME" ]; then
  echo -n "   |_Using "
@@ -162,7 +251,10 @@ echo -en "   Seasons: ${yellow}$SeasonsAvailable${NC}"
   *    ) pa=;;
  esac
 done
+} #finalize_info
 
+ 
+function write_out_info(){
  if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
   echo -e "	|_ Creating Path at $tvPath/$NEWSHOWNAME ..."
   mkdir "$tvPath/$NEWSHOWNAME"
@@ -180,8 +272,44 @@ echo -e "      |_ Checking DB ..."
   echo -e "      |_ DB Entry Exists"
  else
   echo -e "      |_ Creating Database Entry ..."
-  query="INSERT INTO  tvShows (id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download) VALUES (NULL,'$MSHOWNAME','0','$SeasonsAvailable','','','','$currently_on_air','$active_download')"
+  query="INSERT INTO  tvShows (id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id) VALUES (NULL,'$MSHOWNAME','0','$SeasonsAvailable','','','','$currently_on_air','$active_download','$tvdbID','$imdbID')"
   updateSQL=$(echo "$query"|mysql $dbOptions)
   echo "            ...Database Entry created"
  fi
+} #write_out_info
+
+
+function test_out_info(){
+ if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
+  echo -e "     |_ Creating Path at $tvPath/$NEWSHOWNAME ..."
+ fi
+
+#Use apostrophe's appropriately for mysql
+ MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
+
+echo -e "      |_ Checking DB ..."
+ query="select id from tvShows where showname=\"$MSHOWNAME\""
+ showExists=$(echo "$query"|mysql $dbOptions)
+  echo "$showExists"
+
+ if [ "$showExists" != "" ]; then
+  echo -e "      |_ DB Entry Exists"
+ else
+  echo -e "      |_ Creating Database Entry ..."
+ fi
+  query="INSERT INTO  tvShows (id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id) VALUES (NULL,'$MSHOWNAME','0','$SeasonsAvailable','','','','$currently_on_air','$active_download','$tvdbID','$imdbID')"
+
+  echo "query would be:"
+  echo "$query"
+} #test_out_info
+
+
+
+##MAIN##
+get_new_show_names
+#download_epguides
+grab_from_tvdb
+finalize_info
+test_out_info
+#write_out_info
 

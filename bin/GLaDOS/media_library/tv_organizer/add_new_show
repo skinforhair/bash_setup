@@ -108,28 +108,31 @@ checkline=$(head -n 1 $epPage)
    YesNo "Continue?" "n"
    if [ "$?" == "0" ]; then
      echo "Quitting!";exit 0
+     rm -f $epPage
    fi
  else
-   SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "• Season " |awk '{print $3}' |tail -1)
-  if [ "$SeasonsAvailable" == "" ]; then
-   SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "Season " |awk '{print $2}' |tail -1)
-  fi
-  Cancelled=$(cat epguides/pages/$SN.page |grep "cancelled/ended")
-  OnAir=$(cat epguides/pages/$SN.page |grep "current show")
+  #This has been depricated by pulling from tvdb instead
+  # SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "• Season " |awk '{print $3}' |tail -1)
+  #if [ "$SeasonsAvailable" == "" ]; then
+  # SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "Season " |awk '{print $2}' |tail -1)
+  #fi
+  #Cancelled=$(cat epguides/pages/$SN.page |grep "cancelled/ended")
+  #OnAir=$(cat epguides/pages/$SN.page |grep "current show")
 
-  if [ "$Cancelled" == "$OnAir" ]; then
-    OnAir=$(cat epguides/pages/$SN.page |grep "on hiatus")
-    if [ "$OnAir" == "" ]; then
-     #currently_on_air="UNKNOWN"
-     currently_on_air="1"
-    else
-     currently_on_air="1"
-    fi
-  elif [ "$Cancelled" != "" ]; then
-    currently_on_air="0"
-  else
-    currently_on_air="1"
-  fi
+  #if [ "$Cancelled" == "$OnAir" ]; then
+  #  OnAir=$(cat epguides/pages/$SN.page |grep "on hiatus")
+  #  if [ "$OnAir" == "" ]; then
+  #   #currently_on_air="UNKNOWN"
+  #   currently_on_air="1"
+  #  else
+  #   currently_on_air="1"
+  #  fi
+  #elif [ "$Cancelled" != "" ]; then
+  #  currently_on_air="0"
+  #else
+  #  currently_on_air="1"
+  #fi
+  echo "Downloaded episode info to $epPage"
  fi
 } #download_epguides
 
@@ -138,6 +141,19 @@ function grab_from_tvdb(){
 showname=$(echo "$NEWSHOWNAME" |sed 's;\ ;%20;g')
 echo -e "Searching for ${yellow}$showname${NC}.."
 searchTVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/search/series?name=${showname}")
+sresult=$(echo "$searchTVjson" |awk '{print $2$3}')
+sresult="${sresult:2}"
+sresult="${sresult:0:$((${#sresult}-1))}"
+
+ if [ "$sresult" == "Notauthorized" ] || [ "$searchTVjson" == "" ]; then
+   echo "$sresult"
+   echo "curl command was:"
+   echo "curl -X GET --header \"Accept: application/json\" --header \"Authorization: Bearer ${token}\" \"https://api.thetvdb.com/search/series?name=${showname}\""
+   echo ""
+   echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
+   exit 0
+ fi
+
 
 #echo ${searchTVjson} >> search.json
 
@@ -174,6 +190,7 @@ elif [ $nResults -gt 1 ]; then
   if [ "$inputID" == "0" ]; then
     exit 1
   else
+    NEWSHOWNAME=${n[$((inputID-1))]}
     tvdbID="${y[$((inputID-1))]}"
     seriesStatus="${s[$((inputID-1))]}"
     if [ "$seriesStatus" == "Continuing" ]; then
@@ -186,7 +203,8 @@ elif [ $nResults -gt 1 ]; then
  done
 fi
 
-echo -e "Downloading info for ${yellow}$showname${NC}.."
+echo -e "Downloading info for ${yellow}$NEWSHOWNAME${NC}.."
+
 TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
 
 #echo ${TVjson} >> series.json
@@ -194,7 +212,7 @@ TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization
 imdbID=`echo "$TVjson" |jq '.[]' |jq '.imdbId' |sed 's/\"//g'`
 overview=`echo "$TVjson" |jq '.[]' |jq '.overview' |sed 's/\"//g'`
 
-
+echo -e "Downloading Episode information..."
 episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
 
 #echo ${episodesjson} >> episodes.json
@@ -202,7 +220,7 @@ episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authori
 SeasonsAvailable=$(NS=$(echo $episodesjson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
 
 
-echo "sa: $SeasonsAvailable"
+#echo "sa: $SeasonsAvailable"
 #NS=$(echo "$episodesjson" |jq '.data[]' |jq '.airedSeasons')
 #IFS=$'\n' seasons=(${NS[0]})
 #SeasonsAvailable=$(echo "${seasons[*]}" |sort -nr |head -n1)
@@ -307,8 +325,8 @@ echo -e "      |_ Checking DB ..."
 
 ##MAIN##
 get_new_show_names
-#download_epguides
 grab_from_tvdb
+download_epguides
 finalize_info
 test_out_info
 #write_out_info

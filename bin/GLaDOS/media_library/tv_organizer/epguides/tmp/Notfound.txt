@@ -1,4 +1,4 @@
-Generated 20171002 (Monday)
+Generated 20171006 (Friday)
 Archer -- Current 08
 Black Mirror -- Current 03
 Doctor Who (2005) -- Current 10
@@ -12,6 +12,7 @@ Project Runway -- Current 16
 Robot Chicken -- Current 08
 The Venture Bros -- Current 06
 Veep -- Current 06
+Bob's Burgers -- Current 08
 When Calls the Heart -- Current 04
 Jessica Jones -- Current 01
 Daredevil -- Current 02
@@ -29,6 +30,7 @@ American Housewife -- Current 02
 The White Princess -- Current 01
 The Handmaid's Tale -- Current 01
 Fargo -- Current 03
+Rick and Morty -- Current 03
 Ink Master -- Current 09
 Castlevania -- Current 01
 Ink Master Redemption -- Current 04

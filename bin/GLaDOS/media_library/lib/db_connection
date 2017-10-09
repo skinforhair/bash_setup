@@ -1,7 +1,7 @@
 #!/bin/bash
 
 dbName="VideoLibrary"
-dbOptions="-D $dbName -s -r -N"
+dbOptions="-s -r -N -D $dbName"
 dbTable="-D $dbName"
 movieTable="movies"
 collectionTable="sets"

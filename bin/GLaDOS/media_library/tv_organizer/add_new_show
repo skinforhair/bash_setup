@@ -1,15 +1,6 @@
 #!/bin/bash
 for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 
-### - Find local path (See /root/.bin/lib/.localize) ###
-#SOURCE="${BASH_SOURCE[0]}"
-#while [ -h "$SOURCE" ]; do 
-# DIR="$( cd -P "." && pwd )"
-# SOURCE="$(readlink "$SOURCE")"
-#  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-#done
-#DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-
 DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
 token_file="$DIR/lib/thetvdb/current_token"
 if [ "$(cat $token_file)" == "" ]; then
@@ -29,11 +20,15 @@ NEWSHOLIST=
 count=0
 selection=
 NEWSHOWNAME=
-
-
+update=0
 SeasonsAvailable=1
-currently_on_air=1
+#currently_on_air=1
 active_download=1
+ 
+case "$1" in
+ "u" | "update" | "Update" | "U" | "-u" | "-U") update=1;;
+esac
+
 
 function get_new_show_names(){
 ## Populate the new show array, ignoring shows in the exception list
@@ -43,11 +38,18 @@ for i in "${SHOWS[@]}"; do
  EXCEPTION=$(grep "$i" $EXCEPTION_LIST)
   if [ "$EXCEPTION" == "" ]; then
    ID=$(echo "$query"|mysql $dbOptions)
-   if [ "$ID" == "" ]; then
-    count=$((count+1))
-    NEWSHOWLIST[$count]="$i"
-   fi
-  fi
+   if [ "$update" == "1" ]; then
+    if [ "$ID" != "" ]; then
+     count=$((count+1))
+     NEWSHOWLIST[$count]="$i"
+    fi #if id found
+   else
+    if [ "$ID" == "" ]; then
+     count=$((count+1))
+     NEWSHOWLIST[$count]="$i"
+    fi #if id found
+   fi #if update
+  fi #if exception==""
 done
 
 ## if we found new shows, list them
@@ -193,29 +195,58 @@ elif [ $nResults -gt 1 ]; then
     NEWSHOWNAME=${n[$((inputID-1))]}
     tvdbID="${y[$((inputID-1))]}"
     seriesStatus="${s[$((inputID-1))]}"
-    if [ "$seriesStatus" == "Continuing" ]; then
-      currently_on_air=1
-    else
-      currently_on_air=0
-    fi 
-    firstAired="${a[$((inputID-1))]}"
   fi
  done
 fi
 
-echo -e "Downloading info for ${yellow}$NEWSHOWNAME${NC}.."
+    if [ "$seriesStatus" == "Continuing" ]; then
+      currently_on_air="1"
+    else
+      currently_on_air="0"
+    fi  
+    firstAired="${a[$((inputID-1))]}"
 
-TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
 
-#echo ${TVjson} >> series.json
+if [ "$update" == "1" ]; then
+ seriesinfo="$tvPath/$NEWSHOWNAME/.showdata/seriesinfo.json"
+ episodeinfo="$tvPath/$NEWSHOWNAME/.showdata/episodeinfo.json"
+#if The show already exists, look for local series and episodes json files
+ if [ ! -f "$seriesinfo" ]; then
+  echo "creating $seriesinfo ..."
+  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
+  echo -e "${red}Downloading info for ${yellow}$NEWSHOWNAME${NC}.."
+  TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
+  echo ${TVjson} >> "$seriesinfo"
+ else
+  TVjson=$(cat "$seriesinfo")
+ fi #if seriesinfo exists
+ 
+ if [ ! -f "$episodeinfo" ]; then
+  echo "creating $episodeinfo ..."
+  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
+  echo -e "${red}Downloading episode info for ${yellow}$NEWSHOWNAME${NC}.."
+  episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
+  echo ${episodesjson} >> "$episodeinfo"
+ else
+  episodesjson=$(cat "$episodeinfo")
+ fi #if episodeinfo exists
+
+else
+ #this is a new show, download the json files
+  seriesinfo="/tmp/$NEWSHOWNAME"".seriesinfo.json"
+  episodeinfo="/tmp/$NEWSHOWNAME"".episodeinfo.json"
+  echo -e "${red}Downloading info for ${yellow}$NEWSHOWNAME${NC}.."
+  TVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
+  echo ${TVjson} >> "$seriesinfo"
+
+  echo -e "${red}Downloading Episode information...${NC}"
+  episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
+  echo ${episodesjson} >> "$episodeinfo"
+
+fi #if update == 1
 
 imdbID=`echo "$TVjson" |jq '.[]' |jq '.imdbId' |sed 's/\"//g'`
 overview=`echo "$TVjson" |jq '.[]' |jq '.overview' |sed 's/\"//g'`
-
-echo -e "Downloading Episode information..."
-episodesjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
-
-#echo ${episodesjson} >> episodes.json
 
 SeasonsAvailable=$(NS=$(echo $episodesjson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
 
@@ -257,22 +288,25 @@ else
   echo -en "Not Currently Downloading${NC}"
 fi
 
-echo -en "   Seasons: ${yellow}$SeasonsAvailable${NC}"
+SeasonsOwned=$(ls "$tvPath/$NEWSHOWNAME" |grep "Season" |grep -v "Season 00"|wc -l)
+
+echo -en "   Seasons: ${yellow}$SeasonsOwned / $SeasonsAvailable${NC}"
 
  echo -en "\nDo you want to:  Change [C]urrent / Change [D]ownload / [P]roceed / [Q]uit? : "
  read pa
  case "$pa" in
   [cC] ) currently_on_air=$(toggle_boolean $currently_on_air);pa=;;
   [dD] ) active_download=$(toggle_boolean $active_download);pa=;;
-  [qQ] ) echo "Quitting!";exit 0;;
-  [pP] ) echo "Proceeding...";;
+  [qQ] ) echo "Quitting!";write_out_info "quit";exit 0;;
+  [pP] ) echo "Proceeding...";write_out_info;;
   *    ) pa=;;
  esac
 done
 } #finalize_info
 
  
-function write_out_info(){
+function write_out_info_old(){
+
  if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
   echo -e "	|_ Creating Path at $tvPath/$NEWSHOWNAME ..."
   mkdir "$tvPath/$NEWSHOWNAME"
@@ -294,13 +328,36 @@ echo -e "      |_ Checking DB ..."
   updateSQL=$(echo "$query"|mysql $dbOptions)
   echo "            ...Database Entry created"
  fi
-} #write_out_info
+} #write_out_info_old
 
 
-function test_out_info(){
- if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
+function write_out_info(){
+ fields="id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id"
+
+ if [ ! -d "$tvPath/$NEWSHOWNAME/.showdata" ]; then
   echo -e "     |_ Creating Path at $tvPath/$NEWSHOWNAME ..."
+  if [ "$1" != "quit" ]; then
+   mkdir -p "$tvPath/NEWSHOWNAME/.showdata"
+  fi
  fi
+
+  si="$tvPath/$NEWSHOWNAME/.showdata/seriesinfo.json"
+  ei="$tvPath/$NEWSHOWNAME/.showdata/episodeinfo.json"
+
+  if [ -f "$seriesinfo" ] && [ "$seriesinfo" != "$si" ]; then
+   if [ "$1" != "quit" ]; then
+    mv "$seriesinfo" "$si"
+   else
+    echo "mv $seriesinfo $si"
+   fi
+  fi
+  if [ -f "$episodeinfo" ] && [ "$episodeinfo" != "$ei" ]; then
+   if [ "$1" != "quit" ]; then
+    mv "$episodeinfo" "$ei"
+   else
+    echo "mv $episodeinfo" "$ei"
+   fi
+  fi
 
 #Use apostrophe's appropriately for mysql
  MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
@@ -308,26 +365,26 @@ function test_out_info(){
 echo -e "      |_ Checking DB ..."
  query="select id from tvShows where showname=\"$MSHOWNAME\""
  showExists=$(echo "$query"|mysql $dbOptions)
-  echo "$showExists"
-
+ 
  if [ "$showExists" != "" ]; then
-  echo -e "      |_ DB Entry Exists"
+  Size=$(du -sh "$tvPath/$NEWSHOWNAME" |awk '{print $1}' |rev|cut -c 2-|rev)
+  echo -e "        ${green}DB Entry Exists${NC}"
+  query="Update tvShows set seasons_owned=\"$SeasonsOwned\",seasons_aired=\"$SeasonsAvailable\",size_on_disk=\"$Size\",currently_on_air=\"$currently_on_air\",active_download=\"$active_download\" where id=$showExists"
  else
-  echo -e "      |_ Creating Database Entry ..."
+  echo -e "         ${yellow}Creating Database Entry ...${NC}"
+  query="INSERT INTO  tvShows ($fields) VALUES (NULL,'$MSHOWNAME','$SeasonsOwned','$SeasonsAvailable','','','','$currently_on_air','$active_download','$tvdbID','$imdbID')"
  fi
-  query="INSERT INTO  tvShows (id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id) VALUES (NULL,'$MSHOWNAME','0','$SeasonsAvailable','','','','$currently_on_air','$active_download','$tvdbID','$imdbID')"
-
   echo "query would be:"
   echo "$query"
-} #test_out_info
+} #write_out_info
 
 
 
 ##MAIN##
 get_new_show_names
 grab_from_tvdb
-download_epguides
+#download_epguides
 finalize_info
-test_out_info
-#write_out_info
+##test_out_info
+##write_out_info
 

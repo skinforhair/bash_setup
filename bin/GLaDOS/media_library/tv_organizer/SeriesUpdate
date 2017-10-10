@@ -1,3 +1,7 @@
+#TODO::  This still doesn't write to the DB or allow user to modify fields before updating.
+#TODO::  This still doesn't get episodes owned or aired
+#TODO::  seperate app to pull .nfo info from episodes.json
+#TODO::  change some TV shows to have better title (ie Archer -> Archer (2009)
 #!/bin/bash
 
 for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done

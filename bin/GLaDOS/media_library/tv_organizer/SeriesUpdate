@@ -1,0 +1,309 @@
+#!/bin/bash
+
+for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
+
+DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
+token_file="$DIR/lib/thetvdb/current_token"
+if [ "$(cat $token_file)" == "" ]; then
+ $DIR/lib/thetvdb/generate_token
+fi
+token=$(cat ${token_file})
+
+
+for f in $DIR/lib/functions/*; do source $f; done
+source $DIR/lib/vars
+
+selection=
+NEWSHOWNAME=
+update=0
+SeasonsAvailable=0
+jsonFolder=".showdata"
+seriesjson=".showdata/seriesinfo.json"
+episodejson=".showdata/episodeinfo.json"
+TMPseriesjson="/tmp/seriesinfo.json"
+TMPepisodejson="/tmp/epidodeinfo.json"
+localID=0
+dbTable="VideoLibrary.tvShows"
+
+#local DB variables:
+id=0
+seasons_owned=0
+seasons_aired=0
+episodes_aired=0
+episodes_owned=0
+size_on_disk=0
+currently_on_air=0
+active_download=0
+tvdbID=""
+tmdbID=""
+
+
+
+function scan_for_new_show() {
+FL=$(ls $tvPath)
+IFS=$'\n' read -rd '' -a SHOWS <<< "$FL"
+D=`date +"%Y-%m-%d"`
+EXCEPTION_LIST=$DIR/lib/newshow_exceptions.txt
+NEWSHOLIST=
+count=0
+selection=
+
+ ## Populate the new show array, ignoring shows in the exception list
+echo "Scanning for new shows..."
+for i in "${SHOWS[@]}"; do
+ query="select id from tvShows where showname=\"$i\""
+ EXCEPTION=$(grep "$i" $EXCEPTION_LIST)
+  if [ "$EXCEPTION" == "" ]; then
+   ID=$(echo "$query"|mysql $dbOptions)
+   #if [ "$update" == "1" ]; then
+   # if [ "$ID" != "" ]; then
+   #  count=$((count+1))
+   #  NEWSHOWLIST[$count]="$i"
+   # fi #if id found
+   #else
+    if [ "$ID" == "" ]; then
+     count=$((count+1))
+     NEWSHOWLIST[$count]="$i"
+    fi #if id found
+   #fi #if update
+  fi #if exception==""
+done
+## if we found new shows, list them
+if [ ${#NEWSHOWLIST[@]} -ne 0 ]; then
+ clear
+ while [ "$selection" == "" ]; do
+   for i in "${!NEWSHOWLIST[@]}"; do
+    printf "%s\t%s\n" "$i" "${NEWSHOWLIST[$i]}"
+   done
+   #after listing found shows, give other options
+   echo -e "n\t[N]ew show"
+   echo -e "c\t[C]ancel"
+   echo -en "Please choose an option : "
+   read selection
+   if ! [[ $selection =~ $numbers ]] ; then
+    case "$selection" in
+      [nN] ) ReadInNewShowName;;
+      [cC] ) exit 0;;
+      *) clear;echo -e "${yellow}Invalid Selection ${red}[ $selection ]${NC}";selection="";;
+    esac
+   else
+    if [ "${NEWSHOWLIST[$selection]}" == "" ]; then
+         clear;echo -e "${yellow}Invalid Selection ${red}[ $selection ]${NC}";selection=""
+    fi
+   fi
+ done
+#echo "selection was $selection"
+fi
+## If the show was selected from list, use it, otherwise, prompt for it.
+while [ "$NEWSHOWNAME" == "" ]; do
+ if [ "$selection" != "" ]; then
+   NEWSHOWNAME=${NEWSHOWLIST[$selection]}
+ else
+   clear
+   echo "No new shows found."
+   echo -en "Enter new Show Name: "
+   read NEWSHOWNAME
+ fi
+done
+} #scan_for_new_show
+
+function refresh_json(){
+    if [ -a "$TMPseriesjson" ]; then rm -f "$TMPseriesjson"; fi
+    if [ -a "$TMPepisodejson" ]; then rm -f "$TMPepisodejson"; fi
+    echo "getting Series info for \"$NEWSHOWNAME\"..."
+    SJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
+    echo "getting Episode info..."
+    echo "-------------------------------------------------------------------"
+    EJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes")
+#    echo "creating $TMPseriesjson"
+    echo ${SJ} >> "$TMPseriesjson"
+#    echo "creating $TMPepisodejson"
+    echo ${EJ} >> "$TMPepisodejson"
+} #refresh_json
+
+function grab_from_tvdb(){
+ #convert spaces in showname to %20
+ showname=$(echo "$NEWSHOWNAME" |sed 's;\ ;%20;g')
+
+ echo -e "Searching for ${yellow}$showname${NC}.."
+ searchTVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/search/series?name=${showname}")
+
+ sresult=$(echo "$searchTVjson" |awk '{print $2$3}')
+ sresult="${sresult:2}"
+ sresult="${sresult:0:$((${#sresult}-1))}"
+
+ if [ "$sresult" == "Notauthorized" ] || [ "$searchTVjson" == "" ]; then
+   echo "$sresult"
+   echo "curl command was:"
+   echo "curl -X GET --header \"Accept: application/json\" --header \"Authorization: Bearer ${token}\" \"https://api.thetvdb.com/search/series?name=${showname}\""
+   echo ""
+   echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
+   exit 0
+ fi
+
+tvdbID=`echo "$searchTVjson" |jq '.data[]' |jq '.id' |sed 's/\"//g'`
+firstAired=`echo "$searchTVjson" |jq '.data[]' |jq '.firstAired' |sed 's/\"//g'`
+seriesName=`echo "$searchTVjson" |jq '.data[]' |jq '.seriesName' |sed 's/\"//g'`
+seriesStatus=`echo "$searchTVjson" |jq '.data[]' |jq '.status' |sed 's/\"//g'`
+nResults=$(echo "$tvdbID" |wc -l)
+if [ $nResults -lt 1 ]; then
+ echo "No results!"
+elif [ $nResults -gt 1 ]; then
+ echo "Show $showname has multiple results found!!"
+ IFS=$'\n' a=(${firstAired[0]})
+ IFS=$'\n' s=(${seriesStatus[0]})
+ IFS=$'\n' n=(${seriesName[0]})
+ IFS=$'\n' y=(${tvdbID[0]})
+ tvdbID=
+ while [ "$tvdbID" == "" ]; do
+ c=1
+ echo -e "N: tvdbID\tName\t\tFirst Aired\tStatus"
+ echo "----------------------------------------"
+ echo "0: CANCEL OPERATION"
+  while [ $c -le ${#y[@]} ]; do
+   d=$((c-1))
+   echo -e "$c: ${y[$d]}\t${n[$d]}\t\t${a[$d]}\t${s[$d]}"
+   c=$((c+1))
+  done #while c -le array
+
+  read -p "Please enter an ID: " inputID
+  if [ "$inputID" == "0" ]; then
+    exit 1
+  else
+    NEWSHOWNAME=${n[$((inputID-1))]}
+    tvdbID="${y[$((inputID-1))]}"
+    seriesStatus="${s[$((inputID-1))]}"
+    firstAired="${a[$((inputID-1))]}"
+  fi
+ done
+fi
+
+if [ "$seriesStatus" == "Continuing" ]; then
+   currently_on_air="1"
+else
+   currently_on_air="0"
+fi
+refresh_json
+seasons_aired=$(NS=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
+imdbID=$(cat $TMPseriesjson |jq '.data'|jq '.imdbId'|sed 's;";;g')
+} #grab_from_tvdb
+
+function check_data(){
+ if [ -d "$tvPath/$NEWSHOWNAME" ]; then
+  size_on_disk=$(du -sh "$tvPath/$NEWSHOWNAME" |awk '{print $1}' |rev|cut -c 2-|rev)
+  seasons_owned=$(ls "$tvPath/$NEWSHOWNAME" |grep "Season" |grep -v "Season 00"|wc -l)
+ else
+  size_on_disk=0
+  seasons_owned=0
+ fi
+ 
+ seasons_aired=$(NS=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
+ imdbID=$(cat "$TMPseriesjson" |jq '.data'|jq '.imdbId'|sed 's;";;g')
+ seriesStatus=$(cat "$TMPseriesjson" |jq '.data' |jq '.status' |sed 's/\"//g')
+  if [ "$seriesStatus" == "Continuing" ]; then
+    currently_on_air=1
+  else
+    currently_on_air=0
+  fi
+
+ echo -e "id\tshowname\ts_owned\ts_aired\tsize_on_disk\tcurrently_on_air\tactive_download\ttvdb\timdb"
+ echo "------------------------------------------------------------------------------------------------------"
+ echo -e "$id\t$NEWSHOWNAME\t$seasons_owned\t$seasons_aired\t$size_on_disk\t$currently_on_air\t$active_download\t$tvdbID\t$imdbID"
+
+YesNo "continue?" Y
+if [ "$?" == "1" ]; then
+ write_out_info
+else
+ echo "NO."
+fi
+} #check_data
+
+function move_json_files(){
+  #if new files are updated, then replace the old ones
+    if ! cmp "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson" >/dev/null 2>&1
+     then
+       echo "Updating series json"
+       mv "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson"
+     else
+       rm "$TMPseriesjson"
+    fi
+    if ! cmp "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson" >/dev/null 2>&1
+     then
+       echo "Updating episode json"
+       mv "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson"
+     else
+       rm "$TMPepisodejson"
+    fi
+} #move_json_files
+
+function write_out_info(){
+  echo "Updating path for \"$tvPath/$NEWSHOWNAME\"..."
+#  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
+#  move_json_files
+  if [ "$id" != "" ]; then
+    query="UPDATE $dbTable set seasons_owned='$seasons_owned',seasons_aired='$seasons_aired',size_on_disk='$size_on_disk',currently_on_air='$currently_on_air',active_download='$active_download',imdb_id='$imdbID' where id='$id'" 
+  else
+    query="INSERT into $dbTable (id,showname,seasons_owned,seasons_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id) VALUES ('','$MSHOWNAME','$seasons_owned','$seasons_aired','$size_on_disk','$currently_on_air','$active_download','$tvdbID','$imdbID')"
+  fi #if in DB
+
+echo "query: "
+echo "$query"
+
+} #write_out_info
+
+#####################################
+###### MAIN 
+#####################################
+
+#if no argument passed, then look for a seriesinfo.json. if one doesn't exist, scan for shows. Finally, prompt for one.
+
+if [ "$1" == "" ]; then
+ if [ -f "$seriesjson" ]; then
+  NEWSHOWNAME=$(cat $seriesjson |jq ".data" |jq ".seriesName"|sed 's;";;g')
+ else
+  scan_for_new_show
+ fi
+else
+ NEWSHOWNAME="$1"
+fi
+
+#now we should have a NEWSHOWNAME. See if it is already in the DB:
+ #Use apostrophe's appropriately for mysql
+ MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
+ query="select id from $dbTable where showname=\"$MSHOWNAME\""
+ id=$(echo "$query"|mysql -N)
+
+#grab db values
+if [ "$id" != "" ]; then
+ seasons_owned=$(echo "select seasons_owned from $dbTable where id='$id'" |mysql -N)
+ seasons_aired=$(echo "select seasons_aired from $dbTable where id='$id'" |mysql -N)
+ episodes_owned=$(echo "select episodes_owned from $dbTable where id='$id'" |mysql -N)
+ episodes_aired=$(echo "select episodes_aired from $dbTable where id='$id'" |mysql -N)
+ size_on_disk=$(echo "select size_on_disk from $dbTable where id='$id'" |mysql -N)
+ currently_on_air=$(echo "select currently_on_air from $dbTable where id='$id'" |mysql -N)
+ active_download=$(echo "select active_download from $dbTable where id='$id'" |mysql -N)
+ tvdbID=$(echo "select thetvdb_id from $dbTable where id='$id'" |mysql -N)
+ imdbID=$(echo "select imdb_id from $dbTable where id='$id'" |mysql -N)
+
+ #if db and json don't match, stop.
+ if [ -f "$seriesjson" ]; then
+  otherid=$(cat $seriesjson|jq ".data"|jq ".id")
+  if [ "$tvdbID" != "$otherid" ]; then
+   echo -e "${red}ERROR:${NC} local json has ID of ${yellow}$otherid${NC} while db has ${yellow}$tvdbID${NC}"
+   exit 1
+  fi #if downloading or active
+ else
+   echo -e "no JSON found localy... Continuing."
+ fi #if json file exists
+ #if it is in the db, and on air or downloading, refresh json files
+ if [ "$currently_on_air" == "1" ] || [ "$active_download" == "1" ]; then
+  #refresh json files
+   refresh_json
+ fi #if currently on air or downloading
+else
+#if it is NOT in the db, search thetvdb for it. download info.
+ grab_from_tvdb
+fi #if in local db
+
+
+check_data

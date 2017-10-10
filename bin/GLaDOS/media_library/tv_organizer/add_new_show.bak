@@ -31,6 +31,10 @@ esac
 
 
 function get_new_show_names(){
+ #if a show name is passed to us, use it.
+ if [ "$1" != "" ]; then
+   NEWSHOWNAME="$1"
+ else
 ## Populate the new show array, ignoring shows in the exception list
 echo "Scanning for new shows..."
 for i in "${SHOWS[@]}"; do
@@ -90,6 +94,7 @@ while [ "$NEWSHOWNAME" == "" ]; do
    read NEWSHOWNAME
  fi
 done
+fi #if show name not passed
 } #get_new_show_names
 
 
@@ -113,6 +118,27 @@ checkline=$(head -n 1 $epPage)
      rm -f $epPage
    fi
  else
+  #This has been depricated by pulling from tvdb instead
+  # SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "• Season " |awk '{print $3}' |tail -1)
+  #if [ "$SeasonsAvailable" == "" ]; then
+  # SeasonsAvailable=$(cat epguides/pages/$SN.page |grep "Season " |awk '{print $2}' |tail -1)
+  #fi
+  #Cancelled=$(cat epguides/pages/$SN.page |grep "cancelled/ended")
+  #OnAir=$(cat epguides/pages/$SN.page |grep "current show")
+
+  #if [ "$Cancelled" == "$OnAir" ]; then
+  #  OnAir=$(cat epguides/pages/$SN.page |grep "on hiatus")
+  #  if [ "$OnAir" == "" ]; then
+  #   #currently_on_air="UNKNOWN"
+  #   currently_on_air="1"
+  #  else
+  #   currently_on_air="1"
+  #  fi
+  #elif [ "$Cancelled" != "" ]; then
+  #  currently_on_air="0"
+  #else
+  #  currently_on_air="1"
+  #fi
   echo "Downloaded episode info to $epPage"
  fi
 } #download_epguides

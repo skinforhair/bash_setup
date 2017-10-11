@@ -25,7 +25,7 @@ jsonFolder=".showdata"
 seriesjson=".showdata/seriesinfo.json"
 episodejson=".showdata/episodeinfo.json"
 TMPseriesjson="/tmp/seriesinfo.json"
-TMPepisodejson="/tmp/epidodeinfo.json"
+TMPepisodejson="/tmp/episodeinfo.json"
 localID=0
 dbTable="VideoLibrary.tvShows"
 
@@ -200,8 +200,10 @@ function check_data(){
   size_on_disk=0
   seasons_owned=0
  fi
- 
- seasons_aired=$(NS=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
+ sNums=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason') 
+ IFS=$'\n'
+ seasons_aired=$(echo "${sNums[*]}" | sort -nr | head -n1)
+# seasons_aired=$(IFS=$'\n' s=(${sNums[0]});echo "${s[*]}" |sort -nr |head -n1)
  imdbID=$(cat "$TMPseriesjson" |jq '.data'|jq '.imdbId'|sed 's;";;g')
  seriesStatus=$(cat "$TMPseriesjson" |jq '.data' |jq '.status' |sed 's/\"//g')
   if [ "$seriesStatus" == "Continuing" ]; then
@@ -209,11 +211,32 @@ function check_data(){
   else
     currently_on_air=0
   fi
-
- echo -e "id\tshowname\ts_owned\ts_aired\tsize_on_disk\tcurrently_on_air\tactive_download\ttvdb\timdb"
- echo "------------------------------------------------------------------------------------------------------"
- echo -e "$id\t$NEWSHOWNAME\t$seasons_owned\t$seasons_aired\t$size_on_disk\t$currently_on_air\t$active_download\t$tvdbID\t$imdbID"
-
+if [ "$id" != "" ]; then
+ echo -e "${green}$NEWSHOWNAME${NC} -- Updating ID: ${yellow}$id${NC}"
+ diffInSeasons=$(($seasons_aired-$seasons_owned))
+ if [ $diffInSeasons -ge 2 ]; then
+  echo -en "${red}"
+ elif [ $diffInSeasons -ge 1 ]; then
+  echo -en "${yellow}"
+ else
+  echo -en "${green}"
+ fi
+ echo -e "$seasons_owned / ${NC}$seasons_aired  Owned."
+ if [ "$currently_on_air" == "1" ]; then
+   echo -en "${green}Current${NC}"
+ else
+   echo -en "${red}Ended${NC}"
+ fi
+ if [ "$active_download" == "1" ]; then
+   echo -e "   ${green}Downloading${NC}"
+ else
+   echo -e "   ${red}Inactive${NC}"
+ fi
+echo -e "TVDB: $tvdbID     IMDB: $imdbID"
+else
+ #new show
+echo -e "new show"
+fi
 YesNo "continue?" Y
 if [ "$?" == "1" ]; then
  write_out_info
@@ -242,8 +265,8 @@ function move_json_files(){
 
 function write_out_info(){
   echo "Updating path for \"$tvPath/$NEWSHOWNAME\"..."
-#  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
-#  move_json_files
+  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
+  move_json_files
   if [ "$id" != "" ]; then
     query="UPDATE $dbTable set seasons_owned='$seasons_owned',seasons_aired='$seasons_aired',size_on_disk='$size_on_disk',currently_on_air='$currently_on_air',active_download='$active_download',imdb_id='$imdbID' where id='$id'" 
   else
@@ -264,6 +287,8 @@ echo "$query"
 if [ "$1" == "" ]; then
  if [ -f "$seriesjson" ]; then
   NEWSHOWNAME=$(cat $seriesjson |jq ".data" |jq ".seriesName"|sed 's;";;g')
+ TMPseriesjson=$seriesjson
+ TMPepisodejson=$episodejson
  else
   scan_for_new_show
  fi
@@ -300,7 +325,7 @@ if [ "$id" != "" ]; then
    echo -e "no JSON found localy... Continuing."
  fi #if json file exists
  #if it is in the db, and on air or downloading, refresh json files
- if [ "$currently_on_air" == "1" ] || [ "$active_download" == "1" ]; then
+ if [ "$currently_on_air" == "1" ] || [ "$active_download" == "1" ] || [ ! -f "$seriesjson" ]; then
   #refresh json files
    refresh_json
  fi #if currently on air or downloading
@@ -311,3 +336,4 @@ fi #if in local db
 
 
 check_data
+rm /tmp/*.json

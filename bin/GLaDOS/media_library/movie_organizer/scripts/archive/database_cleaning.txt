@@ -1,0 +1,8 @@
+Some mysql commands for find and replace
+
+
+change "?" to "%3f" in the url so that file can download
+update movies set url_path = replace(url_path, '?', '%3f') where instr(url_path, '?') > 0;
+
+
+

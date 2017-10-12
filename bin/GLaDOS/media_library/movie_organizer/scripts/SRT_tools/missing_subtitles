@@ -1,52 +1,14 @@
 #!/bin/bash
 
-source $pBIN/GLaDOS/media_library/movie_organizer/lib/db_connection
-source $pLIB/colors
+NUMBERS='^[0-9]+([.][0-9]+)?$'
+dbTable="VideoLibrary.movies"
 
-if false; then
-query="select local_path from movies where 1"
-mysql VideoLibrary -se "$query" >> tmp.txt
-c=0
-while read line; do
- c=$((c+1))
- echo "$c:  $line"
-  SRT_exists=$(ls "$line" |grep srt)
-  if [ "$SRT_exists" == "" ]; then
-    echo "$line" >> noSRT.txt
-  fi
-done < tmp.txt
-rm tmp.txt
-fi
-
-
-for i in `ls srt_files`; do 
-# echo $i >> tmp.txt
-  stringZ=$(echo $i|tr "." "\n")
-   for word in $stringZ; do
-    opening=${word:0:3}
-    if [ "$opening" == "200" ] || [ "$opening" == "201" ] || [ "$opening" == "199" ] || [ "$opening" == "198" ] || [ "$opening" == "srt" ]; then
-       echo "."
-    else
-       echo -n " $word" >> output.txt
-    fi
-   done
-   echo "" >> output.txt
-done
-
-while read line; do
- query="select local_path from movies where title like '%$line%'"
- result=$(mysql VideoLibrary -se "$query")
-  if [ "$result" != "" ]; then
-    echo "$result" >> checkme.txt
-  fi
-done < output.txt
-rm output.txt
-
-while read line; do
- found=$(ls "$line" |grep srt)
- if [ "$found" == "" ]; then
-   echo "$line" >> output.txt
+ if [[ $1 =~ $NUMBERS ]]; then
+   limit="$1"
+ else
+   limit=20
  fi
-done < checkme.txt
-rm checkme.txt
 
+query="select id,year,title from $dbTable where subtitle='none' limit $limit"
+
+echo "$query" |mysql -N

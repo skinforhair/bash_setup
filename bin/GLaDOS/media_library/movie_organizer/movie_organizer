@@ -255,6 +255,7 @@ fi
 ### Check the data before writing
 ##################################
 edit_array
+searchTerms[28]=$(my_filename "${searchTerms[1]}" "${searchTerms[2]}" "${searchTerms[5]}")
 
 #don't bother with searching for srt if we are just modifying a movie
 if [ "${searchTerms[21]}" != $(dirname "$checkName") ]; then

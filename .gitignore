@@ -1,5 +1,6 @@
 ./aliases/active
 ./bin/active
-./bin/GLaDOS/media_library/tv_organizer/epguides/tmp/*
-./bin/GLaDOS/media_library/tv_organizer/epguides/archive/*
-./bin/ihc/aix_error_report/reports/*
+./env/active
+./bin/GLaDOS/media_library/tv_organizer/epguides/tmp/**
+./bin/GLaDOS/media_library/tv_organizer/epguides/archive/**
+./bin/ihc/aix_error_report/reports/**

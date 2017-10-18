@@ -18,7 +18,12 @@
  export lALS=$profileDir/aliases/active
   for f in $pALS/*;do if [ ! -d $f ]; then source $f;fi;done
   for f in $lALS/*;do if [ ! -d $f ]; then source $f;fi;done
- 
+
+#Run custom login scripts
+ if [ -d "$pENV/active/startup_scripts" ]; then
+   for f in $pENV/active/startup_scripts/*;do if [ ! -d $f ]; then `$f`;fi;done
+ fi
+
 #set up color command prompt
  source $pENV/color_command_prompt
  

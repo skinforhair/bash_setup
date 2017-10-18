@@ -1,5 +1,5 @@
-Generated 20171001 (Sunday)
-Archer -- Current 08
+Generated 20171017 (Tuesday)
+Archer (2009) -- Current 08
 Black Mirror -- Current 03
 Doctor Who (2005) -- Current 10
 Game of Thrones -- Current 07
@@ -8,7 +8,6 @@ House Of Cards -- Current 05
 iZombie -- Current 03
 New Girl -- Current 06
 Orange is the new Black -- Current 05
-Project Runway -- Current 16
 Robot Chicken -- Current 08
 The Venture Bros -- Current 06
 Veep -- Current 06
@@ -25,10 +24,10 @@ The Man in the High Castle -- Current 02
 Young Justice -- Current 02
 Iron Fist -- Current 01
 American Gods -- Current 01
-American Housewife -- Current 02
 The White Princess -- Current 01
 The Handmaid's Tale -- Current 01
 Fargo -- Current 03
+Rick and Morty -- Current 03
 Ink Master -- Current 09
 Castlevania -- Current 01
 Ink Master Redemption -- Current 04
@@ -37,6 +36,5 @@ Timeless -- Current 01
 BoJack Horseman -- Current 04
 Check It Out with Steve Brule -- Current 04
 Your Pretty Face is Going to Hell -- Current 03
-Squidbillies -- Current 10
 The Defenders (2017) -- Current 01
 Drop Dead Diva -- Current 06

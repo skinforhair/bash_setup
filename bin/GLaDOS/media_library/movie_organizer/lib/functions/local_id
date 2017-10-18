@@ -1,0 +1,107 @@
+#!/bin/bash
+
+#source ../db_connection
+
+function countQueryLoop() {
+ inputTitle="$1"
+ inputYear="$2"
+ if [ ${#inputTitle} -gt 3 ]; then
+  letterCount=3
+ else
+  letterCount=${#inputTitle}
+ fi
+
+ if [ "$inputYear" == "" ]; then
+   andYear=
+ else
+   andYear=" and year='$inputYear'"
+ fi
+
+Query="from $movieTable where title like '${inputTitle:0:$letterCount}%'$andYear"
+Qcount=$(echo "select count(*) $Query"|mysql $dbOptions)
+if [ "$Qcount" -eq 1 ]; then
+  #found a single match, take it and quit the loop
+   outputID=$(echo "select id $Query"|mysql $dbOptions)
+   nameCheck=$(echo "select title from $movieTable where id = '$outputID'" |mysql $dbOptions)
+fi
+while [ $letterCount -lt ${#inputTitle} ]; do
+ Query="from $movieTable where title like '${inputTitle:0:$letterCount}%'$andYear"
+ Qcount=$(echo "select count(*) $Query"|mysql $dbOptions)
+ if [ $Qcount -eq 1 ]; then
+   #found a single match, take it and quit the loop
+   outputID=$(echo "select id $Query"|mysql $dbOptions)
+   nameCheck=$(echo "select title from $movieTable where id = '$outputID'" |mysql $dbOptions)
+#   if [ "$nameCheck" != "$inputTitle" ]; then
+#     outputID=
+#     letterCount=$((${#inputTitle}+1))
+#   else
+     letterCount=$((${#inputTitle}+1))
+#   fi
+
+ elif [ $Qcount -eq 0 ]; then
+   #not going to find it. quit the loop
+   letterCount=$((${#inputTitle}+1))
+ else
+   #too many matches. add another letter
+   letterCount=$((letterCount+1))
+ fi
+done
+if [ $Qcount -gt 1 ]; then 
+ tryQ="from $movieTable where title = '$inputTitle'$andYear"
+ tryC=$(echo "select count(*) $tryQ"|mysql $dbOptions)
+ if [ $tryC -eq 1 ]; then
+  outputID=$(echo "select id $tryQ"|mysql $dbOptions)
+ fi
+fi
+echo "$outputID"
+} #END countQueryLoop
+
+
+function local_id() {
+ inputTitle="$1"
+ inputYear="$2"
+ quitTrying="$3"
+ outputID=
+
+#echo -en "checking \"$inputTitle\" \"$inputYear\" ..."
+outputID=$(countQueryLoop "$inputTitle" "$inputYear")
+#echo -e ": $outputID"
+
+#didn't find it. Adjust filename and try again.
+if [ "$outputID" == "" ]; then
+  #for smb, colons are changed to hyphens. search that
+  changeTitle=`echo "$inputTitle" |sed "s;-\ ;:\ ;g"`
+  #if that changed the title, search again.
+  if [ "$changeTitle" != "$inputTitle" ]; then
+   echo -en "now checking \"$changeTitle\" \"$inputYear\"..."
+   outputID=$(countQueryLoop "$changeTitle" "$inputYear")
+#   echo -e ": $outputID"
+  fi
+fi
+
+#still nothing? drop the year and try once more
+if [ "$outputID" == "" ]; then
+# echo -en "ok, how about \"$inputTitle\"..."
+ outputID=$(countQueryLoop "$inputTitle")
+ if [ "$outputID" != "" ]; then
+  outputID=$outputID"_"$inputYear
+ fi
+# echo ": $outputID"
+fi
+
+if [ "$outputID" == "" ] && [ "$changeTitle" != "$inputTitle" ]; then
+# echo -en "no? last one \"$changeTitle\"..."
+ outputID=$(countQueryLoop "$changeTitle")
+ #because the year didn't match, append mismatched year to id
+ if [ "$outputID" != "" ]; then
+  outputID=$outputID"_"$inputYear
+ fi
+# echo ": $outputID"
+fi
+
+echo "$outputID"
+
+} #END local_id
+
+#local_id "$1" "$2"
+#countQueryLoop "$1" "$2"

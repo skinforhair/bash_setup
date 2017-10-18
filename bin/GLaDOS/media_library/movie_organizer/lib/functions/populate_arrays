@@ -1,0 +1,121 @@
+#!/bin/bash
+
+function build_array_reference() {
+nameArray[0]="id"
+nameArray[1]="title"
+nameArray[2]="year"
+nameArray[3]="filetype"
+nameArray[4]="filesize"
+nameArray[5]="video_quality"
+nameArray[6]="runtime"
+nameArray[7]="mpaa"
+nameArray[8]="plot"
+nameArray[9]="tagline"
+nameArray[10]="actors"
+nameArray[11]="characters"
+nameArray[12]="crew_jobs"
+nameArray[13]="crew_names"
+nameArray[14]="releasedate"
+nameArray[15]="genres"
+nameArray[16]="keywords"
+nameArray[17]="tags"
+nameArray[18]="poster_path"
+nameArray[19]="backdrop_path"
+nameArray[20]="added"
+nameArray[21]="local_path"
+nameArray[22]="url_path"
+nameArray[23]="set_id"
+nameArray[24]="set_num"
+nameArray[25]="superset_id"
+nameArray[26]="imdb_id"
+nameArray[27]="tmdb_id"
+nameArray[28]="t.y.q"
+nameArray[29]="subtitle"
+} #build_array_reference
+
+
+function populate_from_json() {
+ TMDB_ID=${searchTerms[27]}
+ if [ -a $jsonFile ]; then
+   movie_json=`cat $jsonFile`
+ else
+   movie_json=$(get_movie_json "$TMDB_ID")
+ fi
+
+
+  searchTerms[6]=$(json_runtime "$movie_json")
+  searchTerms[7]=$(json_mpaa "$movie_json")
+  searchTerms[8]=$(json_plot "$movie_json")
+  searchTerms[9]=$(json_tagline "$movie_json")
+  searchTerms[10]=$(json_actors "$movie_json")
+  searchTerms[11]=$(json_characters "$movie_json")
+  searchTerms[12]=$(json_crew_jobs "$movie_json")
+  searchTerms[13]=$(json_crew_names "$movie_json")
+  searchTerms[14]=$(json_release "$movie_json")
+  searchTerms[15]=$(json_genres "$movie_json")
+  searchTerms[16]=$(json_keywords "$movie_json")
+  searchTerms[18]=$(json_poster "$movie_json")
+  searchTerms[19]=$(json_backdrop "$movie_json")
+  searchTerms[26]=$(json_imdb "$movie_json")
+  searchTerms[28]="${searchTerms[1]}"".${searchTerms[2]}"".${searchTerms[5]}"
+} #END populate_from_json
+
+function populate_from_db() {
+searchTerms[6]=$(echo "select runtime from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[7]=$(echo "select mpaa from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[8]=$(echo "select plot from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[9]=$(echo "select tagline from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[10]=$(echo "select actors from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[11]=$(echo "select characters from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[12]=$(echo "select crew_jobs from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[13]=$(echo "select crew_names from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[14]=$(echo "select releasedate from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[15]=$(echo "select genres from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[16]=$(echo "select keywords from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[17]=$(echo "select tags from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[18]=$(echo "select poster_path from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[19]=$(echo "select backdrop_path from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[20]=$(echo "select added from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[21]=$(echo "select local_path from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[22]=$(echo "select url_path from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[23]=$(echo "select set_id from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[24]=$(echo "select set_num from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[25]=$(echo "select superset_id from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[26]=$(echo "select imdb_id from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[27]=$(echo "select tmdb_id from $movieTable where id=$1" | mysql $dbOptions)
+searchTerms[28]="${searchTerms[1]}"".${searchTerms[2]}"".${searchTerms[5]}"
+searchTerms[29]=$(echo "select subtitle from $movieTable where id=$1" | mysql $dbOptions)
+} #END populate_from_db
+
+function populate_dbTerms() {
+dbTerms[0]="$1"
+dbTerms[1]=$(echo "select title from $movieTable where id=$1" |mysql $dbOptions)
+dbTerms[2]=$(echo "select year from $movieTable where id=$1" |mysql $dbOptions)
+dbTerms[3]=$(echo "select filetype from $movieTable where id=$1" |mysql $dbOptions)
+dbTerms[4]=$(echo "select filesize from $movieTable where id=$1" |mysql $dbOptions)
+dbTerms[5]=$(echo "select video_quality from $movieTable where id=$1" |mysql $dbOptions)
+dbTerms[6]=$(echo "select runtime from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[7]=$(echo "select mpaa from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[8]=$(echo "select plot from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[9]=$(echo "select tagline from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[10]=$(echo "select actors from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[11]=$(echo "select characters from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[12]=$(echo "select crew_jobs from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[13]=$(echo "select crew_names from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[14]=$(echo "select releasedate from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[15]=$(echo "select genres from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[16]=$(echo "select keywords from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[17]=$(echo "select tags from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[18]=$(echo "select poster_path from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[19]=$(echo "select backdrop_path from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[20]=$(echo "select added from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[21]=$(echo "select local_path from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[22]=$(echo "select url_path from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[23]=$(echo "select set_id from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[24]=$(echo "select set_num from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[25]=$(echo "select superset_id from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[26]=$(echo "select imdb_id from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[27]=$(echo "select tmdb_id from $movieTable where id=$1" | mysql $dbOptions)
+dbTerms[28]="${dbTerms[1]}"".${dbTerms[2]}"".${dbTerms[5]}"
+dbTerms[29]=$(echo "select subtitle from $movieTable where id=$1" | mysql $dbOptions)
+} #END populate_dbTerms

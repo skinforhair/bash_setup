@@ -1,0 +1,115 @@
+#!/bin/bash
+##############################
+### TMDB movie scraper
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+mPath="/shares/video/movies/"
+#mypath=`dirname "$1"`
+
+t=
+y=
+
+parse_one_arg() {
+ t=$(echo "$1")
+ t=${t:0:$((${#t}-8))}
+ y=$(echo "$1" |grep -oP '\(\K[^)]+')
+ echo "$t--$y"
+}
+
+parse_two_args() {
+  t="$1"
+  y="$2"
+  echo "$t--$y"
+remove_using_args
+}
+
+
+remove_using_args() {
+ inputID=$(get_local_id "$t" "$y")
+        if [ "$inputID" != "" ]; then
+         movies="$movieTable where id = '$inputID'"
+        
+ 	 query="select title from $movies";
+         t=`echo "$query" |mysql $dbOptions`
+
+	 query="select year from $movies";
+         y=`echo "$query" |mysql $dbOptions`
+ 
+	 YesNo "Remove [${yellow}$inputID${NC}] ${red}$t${BRed} ($y)${NC} ?" "y"
+	  if [ "$?" == "1" ]; then
+         query="delete from $movies";
+         dbMatch=`echo "$query" |mysql $dbOptions`
+         echo -e "${BWhite}Removed ${BRed}$t${NC} from database!"
+
+         query="select local_path from $movies"
+	 myPath=`echo "$query" |mysql $dbOptions`
+
+	 cd $mPath
+	 rm "$t ($y)" -rf
+	 echo -e "${BWhite}Removed ${BRed}$mPath$t ($y) ${NC}"
+	 echo ""
+         #echo "rm -rf \"$myPath\""
+         #curpath=`pwd`
+         #if [ "$curpath" == "$myPath" ]; then
+         #       cd ..
+         #fi
+	  fi
+        else
+                echo "movie not found!"
+                echo "query: $query"
+        fi
+}
+
+case "$#" in
+  "0") echo "no arguments!!";exit 1;;
+  "1") parse_one_arg "$1";;
+  "2") parse_two_args "$1" "$2";;
+esac
+
+#myPath=`find /shares/video/movies/ -iname "$1"`
+#echo -e "I found :${red}$myPath${NC}"
+
+
+if false; then
+inputID=$(get_local_id "$myPath")
+        if [ "$inputID" != "" ]; then
+         query="select title from $movieTable where id = '$inputID'";
+         title=`echo "$query" |mysql $dbOptions`
+
+         query="delete from $movieTable where id = '$inputID'";
+         dbMatch=`echo "$query" |mysql $dbOptions`
+
+         echo "rm -rf \"$myPath\""
+         curpath=`pwd`
+         if [ "$curpath" == "$myPath" ]; then
+                cd ..
+         fi
+         echo "Removed $title with id of $inputID from Database!"
+        else
+                echo "movie not found!"
+                echo "query: $query"
+        fi
+fi
+
+
+#$DIR/scripts/clean_kodi_library

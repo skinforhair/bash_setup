@@ -1,0 +1,53 @@
+#!/bin/bash
+for f in /root/.bin/lib/*; do source $f; done
+
+### - Find local path (See /root/.bin/lib/.localize) ###
+#SOURCE="${BASH_SOURCE[0]}"
+#while [ -h "$SOURCE" ]; do 
+# DIR="$( cd -P "." && pwd )"
+# SOURCE="$(readlink "$SOURCE")"
+#  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+#done
+#DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
+DIR="/root/.bin/local/tv_movie_organizers/movie_organizer/scripts"
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+
+
+#list=/shares/incoming/jb_movies.list
+USB_MOUNT="/mnt/usb/movies"
+FILE_LIST="$DIR/temp/usb_movie_list"
+
+#ls $USB_MOUNT >> $FILE_LIST
+
+while read line; do
+# folder=`echo "$line" |sed -r 's;\ ;\\\ ;g'`
+# folder=`echo "$folder" |sed -r 's;\(;\\\(;g'`
+# folder=`echo "$folder" |sed -r 's;\);\\\);g'`
+# folder=`echo "$folder" |sed -r 's;\,;\\\,;g'`
+# folder=`echo "$folder" |sed -r 's;\!;\\\!;g'`
+# 
+# folder=`echo "${folder//\'/\'}"` 
+#folder="/shares/video/movies/$folder"
+
+folder="/shares/video/movies/$line"
+#echo $folder
+
+if [ -d "$folder" ]; then
+ #echo -en "."
+ echo "  rsync -avz \"$folder/\" \"$USB_MOUNT/$line\""
+ rsync -az --delete "$folder/" "$USB_MOUNT/$line"
+else
+ echo ""
+ echo "$line Not Found."
+fi
+  
+
+done < $FILE_LIST
+
+#rm $FILE_LIST

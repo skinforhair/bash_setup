@@ -1,0 +1,80 @@
+#!/bin/bash
+
+
+declare -a MOUNTDIR=(glados cortana)
+declare -a REMOTE_HOST=(GLaDOS Cortana)
+declare -a SHARE=("incoming" "Wheatley")
+declare -a SMB=("username" "password")
+declare -a TYPE=("SMB" "VM")
+
+LOCALHOST=`hostname`
+CF=".mountcheck"
+
+function isMounted() {
+ m="$1"
+ MD=${MOUNTDIR[m]}
+ RH=${REMOTE_HOST[m]}
+ if [ ! -f "/$MD/$CF" ]; then
+   echo "ERROR. No file found at /$MD/$CF"
+   exit 1
+ fi
+ MC=`cat /$MD/$CF`
+
+ if [ "$MC" == "$LOCALHOST" ]; then
+  return 0
+ else
+  if [ "$MC" == "$RH" ]; then
+   return 1
+  else
+   return 0
+  fi
+ fi
+} #isMounted
+
+function create_command() {
+ COM="echo \"No\ mount\ command\ found\ for\ $1\"\!"
+ if [ "${TYPE[$1]}" == "SMB" ]; then
+  COM="sudo mount //${REMOTE_HOST[$1]}/${SHARE[$1]}/ /${MOUNTDIR[$1]}/ -t cifs -o username=${SMB[$1]},password=${SMB[$1]},uid=1000"
+ fi
+ if [ "${TYPE[$1]}" == "VM" ]; then 
+  COM="sudo mount -t vboxsf ${SHARE[$1]} /${MOUNTDIR[$1]}/"
+ fi
+ echo "$COM" 
+} #create_command
+
+function mount_up(){
+ m="$1"
+ COM="$(create_command $m)"
+ MD=${MOUNTDIR[m]}
+ RH=${REMOTE_HOST[m]}
+
+ isMounted "$m" 
+ IM=$?
+if [ "$IM" == 1 ]; then
+ #  echo -e "${lightblue}/$RH${NC} is mounted on ${green}$MD${NC}"
+  return 1;
+ else
+   echo "Mounting $MD"
+   `$COM`
+ fi
+} #mount_up
+
+### MAIN FUNCTION ###
+case "$1" in 
+  [gG] | [lL][aA][dD][oO][sS]             ) m="0";;
+  [cC] | [cC][oO][rR][tT][aA][nN][aA]     ) m="1";;
+  ""                                      ) m="99";;
+  *                                       ) echo "Invalid input!";exit 0;;
+esac
+
+ if [ $m == 99 ]; then
+   #loop through all
+   c=0
+   l=${#MOUNTDIR[@]}
+   while [ $c -lt $l ]; do
+    mount_up "$c"
+    c=$((c+1))
+   done
+ else
+   mount_up "$m"
+ fi

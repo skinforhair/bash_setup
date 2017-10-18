@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cp /mnt/csp-install/{agent64-linux-rhel5.bin,agent-cert.ssl} /tmp/

@@ -1,0 +1,56 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+source $DIR/lib/functions/get_media_quality
+source $DIR/lib/quality_defs
+
+#InputFile=`echo "$(pwd \"$1\")/$1"`
+if [ "$2" == "" ]; then
+ InputFile="$1"
+#echo "$InputFile"
+
+Height=`echo $(/usr/bin/mediainfo "$InputFile" |grep Height |awk '{print $3}')`
+#echo "h is $Height"
+ if [ $Height -lt 10 ]; then
+   p=`/usr/bin/mediainfo "$InputFile" |grep Height|awk '{print $4}'`
+   Height=$Height$p
+ fi
+
+
+Width=`echo $(/usr/bin/mediainfo "$InputFile" |grep Width |awk '{print $3}')`
+ if [ $Width -lt 10 ]; then
+   p=`/usr/bin/mediainfo "$InputFile" |grep Width|awk '{print $4}'`
+   Width=$Width$p
+ fi
+Q=$(get_media_quality "$InputFile")	
+else
+ Width=$1
+ Height=$2
+          if [ "$Height" == "" ]; then
+             Q="SD"
+         #elif [ "$Height" == "1" ]; then
+         #    "1080p"
+         elif [ "$Height" -lt "$SD" ]; then
+             Q="SD"
+         elif [ "$Height" -lt "$DVD" ]; then
+             Q="DVD"
+         elif [ "$Height" -lt "$HD_720" ]; then
+             Q="720p"
+         else
+             Q="1080p"
+         fi
+
+fi
+echo "$Width""w x $Height""h  - $Q"

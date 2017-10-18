@@ -1,0 +1,10 @@
+#!/bin/bash
+
+filename=`find . -name "*.mp4"`
+ if [ "$filename" == "" ]; then
+	filename=`find . -name "*.mkv"`
+ fi
+
+filename=${filename:2:${#filename}}
+
+movie "$filename"

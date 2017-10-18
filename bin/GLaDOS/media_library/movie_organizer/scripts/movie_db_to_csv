@@ -1,0 +1,2 @@
+mysql -B VideoLibrary -e "Select * from movies;" |sed "s/'/\'/;s/\t/\",\"/g;s/^/\"/;s/$/\"/;s/\n//g" > outfile.csv
+

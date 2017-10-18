@@ -1,0 +1,21 @@
+#!/bin/bash
+source $pLIB/colors
+DIR="/wheatley/Completed"
+MDIR="/wheatley/Move"
+
+
+for j in avi mp4 mkv srt; do
+ for i in `find $DIR -iname "*.$j"`; do 
+  echo -e "${red}$i${NC}"
+	name=$(basename "$i")
+	if [ ! -f "$MDIR/$name" ]; then
+	 echo "moving $name..."
+	 cp "$i" "$MDIR"
+	 if [ "$?" != "0" ]; then
+		echo -e "${red}PROBLEM WITH FILENAME${NC}"
+	 fi
+	else
+	 echo "$name already in $MDIR"
+	fi
+ done
+done

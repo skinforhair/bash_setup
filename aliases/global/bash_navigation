@@ -1,0 +1,15 @@
+## Aliases for bashrc
+
+alias vi="vim"
+alias ls="ls --color=auto"
+alias sl="ls --color=auto"
+alias dir="dir --color=auto"
+alias grep="grep --color=auto"
+alias dmesg='dmesg --color'
+alias ll="ls -lh"
+alias cls="clear; ls"
+alias cll="clear; ll -h"
+
+function pd(){
+    cd $profileDir
+}

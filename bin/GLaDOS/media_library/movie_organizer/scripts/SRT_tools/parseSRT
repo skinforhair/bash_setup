@@ -1,0 +1,172 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+OIFS=$IFS
+
+inputFile=$1
+numLines=$(cat $inputFile |wc -l)
+fulltext=""
+perc=$(bc -l <<< $numLines/100)
+Point=`expr index "$perc" .`
+Perc=${perc:0:$((Point-1))}
+
+#Find the movie in the local DB
+dbID=
+sTerms=$(parseFilename "$inputFile")
+
+#while [ "$dbID" == "" ]; do
+ IFS='|' read -a searchTerms <<< "$sTerms"
+ dbID=$(get_local_id "${searchTerms[0]}" "${searchTerms[1]}")
+ if [ "$dbID" == "" ]; then
+        echo "can't find ${searchTerms[0]} (${searchTerms[1]}) in the database!"
+	exit 1;
+        #this should prompt for a movie title
+        #sTerms="iron eagle|1986|json|1|Unknown"
+ else
+        grab_all_from_db "$dbID"
+ fi
+#done
+
+srtID=$(get_srt_id "$dbID" "${searchTerms[0]}")
+srtIDName=$(get_srt_name "$srtID")
+
+exists=`echo "select count(*) from $srt_data where srt_id=$srtID" |mysql $dbOptions`
+if [ "$exists" != "0" ]; then
+ YesNo "$srtIDName found in SRT database. Overwrite?" "n"
+  if [ "$?" = "0" ]; then
+	exit 1
+  else
+	echo "delete from $srt_data where srt_id=$srtID" |mysql $dbOptions
+  fi
+fi
+echo -e "Adding data to $srtIDName"
+
+counter=0
+percentDone=0
+nextPerc=$((counter+$Perc))
+echo "reading file...."
+## Read in all text and format carriage returns to be the same
+oFile=temp.txt
+if [ -a $oFile ]; then rm $oFile; fi
+cp $inputFile $oFile
+
+#sed -i -- 's;\r\n;\r;g' $oFile
+#sed -i -- 's;\n;\r;g' $oFile
+
+
+#sed -i -- 's/\r$//' $oFile
+#sed -i -- "s;'';\";g" $oFile
+#sed -i -- "s;';'';g" $oFile
+
+
+echo "cleaning up..."
+counter=0
+percentDone=0
+nextPerc=$((counter+$Perc))
+## Read in the text. on a blank line, insert a delimiter, |
+## Replace carriage returns with delimiter, ++
+while read line; do
+	counter=$((counter+1))
+	if [ $counter -gt $nextPerc ]; then
+          percentDone=$((percentDone+1))
+          nextPerc=$((nextPerc+$Perc))
+          echo -ne "${red}$percentDone %${NC}"\\r
+	fi 
+	if [[ "$line" == $'\r' ]] || [ "$line" == "" ] || [[ "$line" == $'\r\n' ]] || [[ "$line" == $'\n' ]]; then
+		cleanLine="|"
+#		echo "$counter"
+	else
+		cleanLine=`echo "$line" |sed "s;'';\";g"`
+		cleanLine=`echo "$cleanLine" |sed "s;';'';g"`
+#		cleanLine=`echo "$cleanLine" |sed 's;\r;\+\+;g'`
+		cleanLine=$cleanLine"++"
+	fi
+	fulltext="$fulltext$cleanLine"
+done < "$oFile"
+
+
+rm $oFile
+echo "$fulltext" >> $oFile
+
+## Read the new text into an array, arr
+IFS='|' read -ra arr <<<"$fulltext"
+
+## loop through the array, removing end delimiter, and changing
+## ++ to | on each item
+i=0
+while [ $i -lt ${#arr[@]} ]; do
+  stringZ="${arr[i]}"
+  stringZ=${stringZ:0:$((${#stringZ}-2))}
+  stringZ=`echo "$stringZ" |sed 's;\+\+;\|;g'`
+  arr[i]="$stringZ"
+  #echo "$((i+1)):  ${arr[i]}"
+  i=$((i+1))
+done
+# At this point, the items in the array look something like this:
+# 1|00:00:04,000 --> 00:00:12,500|Preview text
+
+# Now we must divide items into index, start, stop, and text
+echo "Reading Lines: "
+i=0
+while [ $i -lt ${#arr[@]} ]; do
+ stringZ="${arr[i]}"
+ IFS='|' read -ra brr <<<"$stringZ"
+        count=${#brr[@]}
+	textLines=$((count-2))
+	index=${brr[0]}
+	startstop=${brr[1]}
+
+	## This Block converts the text portion to a | delimited line
+	txt=2
+	txtLine=""
+	while [ $textLines -gt 0 ]; do
+		txtLine="$txtLine${brr[$txt]}|"
+		txt=$((txt+1))
+		textLines=$((textLines-1))
+	done
+	if [ "$txtLine" != "" ]; then
+	  txtLine=${txtLine:0:$((${#txtLine}-1))}
+	fi
+
+	#clean inputs
+	#txtLine=`echo "$txtLine" | sed "s;\'\';\";g"`
+	#txtLine=`echo "$txtLine" | sed "s;\';\'\';g"`
+
+	## Split start and stop times
+	startTime=${startstop:0:12}
+	stopTime=${startstop:17:12}
+
+#	echo "$index : $startTime --> $stopTime <-----> $txtLine"
+#	echo ""
+#	echo ""
+
+	Query="insert into $srt_data(id, srt_id, position, start, stop, text) values (NULL, '$srtID', '$index', '$startTime', '$stopTime', '$txtLine')"
+	echo "$Query" | mysql $dbOptions
+	if [ "$?" != "0" ]; then
+		echo "---"
+		echo "$txtLine"
+		echo "---"
+		read -rsp $'Pausing for error. Press any key to continue...\n' -n1 key
+#	else
+#		echo "$index -- $txtLine"
+	fi
+ i=$((i+1))
+done
+echo ""

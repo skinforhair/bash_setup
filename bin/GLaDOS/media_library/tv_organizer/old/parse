@@ -1,0 +1,52 @@
+#!/bin/bash
+
+OIFS=$IFS
+IFS=","
+
+output=new.csv
+
+
+function changeDate() {
+  cutoff=6
+  cutback=5
+  newD="$1"
+  newD=${newD:$cutoff:$((${#newD}-$(($cutoff+$cutback))))}
+
+  newD=${newD/Jan/01}
+  newD=${newD/Feb/02}
+  newD=${newD/Mar/03}
+  newD=${newD/Apr/04}
+  newD=${newD/May/05}
+  newD=${newD/Jun/06}
+  newD=${newD/Jul/07}
+  newD=${newD/Aug/08}
+  newD=${newD/Sep/09}
+  newD=${newD/Oct/10}
+  newD=${newD/Nov/11}
+  newD=${newD/Dec/12}
+
+  day=${newD:0:2}
+  month=${newD:3:2}
+  year=${newD:6:4}
+  t=${newD:11:8}
+
+
+  echo "$year-$month-$day $t"
+} #end changeDate
+
+function fixLink() {
+  stringZ="$1"
+  show="${2/\ /\%20}"
+  season="/Season%20$3"
+  url="http://files.whosteppedingnome.com/video/tv/"
+  stringZ=${stringZ/$url$show/}
+  echo "$stringZ"
+} #end fixLink
+
+
+while read id title season link episodenum episodetitle size pubDate
+ do
+  pub=`changeDate "$pubDate"`
+  echo "$title,$season,$episodenum,$episodetitle,$size,$pub" >> $output
+ done < $1
+IFS=$OIFS

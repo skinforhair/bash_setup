@@ -1,0 +1,12 @@
+function getprimary() {
+     ssh -q $1 "hostname;sed '5q;d' /etc/motd;exit"
+ }
+ 
+ function getsecondary() {
+     ssh -q $1 "hostname;sed '6q;d' /etc/motd;exit"
+ }
+ 
+ function getcustomer() {
+     ssh -q $1 "hostname;sed '7q;d' /etc/motd;exit"
+ }
+

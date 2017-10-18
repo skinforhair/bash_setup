@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#for i in plot tagline actors characters crew_jobs crew_names genres keywords local_path url_path; do
+# ReplaceQuery="update movies set $i = replace($i, '?', '%3f') where instr($i, '?') > 0"
+# LocateQuery="select title, year from movies where $i like '%''%'"
+
+
+i="$1"
+
+#find '' in the table
+locateQuery="select title, year from movies where instr($i, \"''\") > 0;"
+
+echo "$i:"
+
+echo "$locateQuery" |mysql -D VideoLibrary -s -r -N
+
+#replace '' with '
+fixQuery="update movies set $i = replace($i,\"''\",\"'\") where instr($i, \"''\") > 0;"
+
+echo -e "\nFixing...\n"
+echo "$fixQuery" |mysql -D VideoLibrary -s -r -N
+echo -e "\n"
+echo "$locateQuery" |mysql -D VideoLibrary -s -r -N
+
+
+#done
+

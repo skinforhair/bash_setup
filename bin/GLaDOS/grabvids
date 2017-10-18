@@ -1,0 +1,17 @@
+#!/bin/bash
+
+find . -iname "*.mp4" -exec mv {} . \;
+find . -iname "*.mkv" -exec mv {} . \;
+find . -iname "*.avi" -exec mv {} . \;
+find . -iname "*.srt" -exec mv {} . \;
+find . -iname "*.jpg" -exec mv {} . \;
+
+find . -iname "*.txt" -exec rm {} \;
+find . -iname "*.nfo" -exec rm {} \;
+find . -iname "*.sfv" -exec rm {} \;
+
+
+find . -type d -iname "Screens" -exec rm -rf {} \;
+
+find . -type d -exec rmdir {} \;
+#for i in *; do movie "$i"; done

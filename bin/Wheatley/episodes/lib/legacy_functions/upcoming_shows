@@ -1,0 +1,33 @@
+#!/bin/bash
+
+function upcoming_shows() {
+ grab_shows
+ filename="/tmp/tvshows_upcoming_$today"
+ if [ -f $filename ]; then rm $filename; fi
+ i=0
+ mark=999999999
+while read line; do
+  i=$((i+1))
+  if [ "$line" == "---- Upcoming ----" ]; then
+       mark=$i
+       echo -e "\n${yellow}$line${NC}\n"
+  else
+   if [ $i -ge $mark ] && [ "$line" != "" ]; then
+       lineArr=($line)
+          date="${lineArr[$((${#lineArr[@]}-1))]}"
+          day="${date:0:2}"
+          mon="${date:3:3}"
+           mon2=$(month_to_number "$mon")
+          yer="${date:7:2}"
+           year="20$yer"
+          newdate="$year$mon2$day"
+           D=`date -d $newdate |cut -f 1 -d ' '`
+        echo "$newdate $date ($D) $line" >> $filename
+   fi
+  fi
+done < "$DIR/$FN"
+
+list=$(sort -k1 -n $filename)
+echo "$list" |cut -f 1 -d ' ' --complement
+} #upcoming_shows
+

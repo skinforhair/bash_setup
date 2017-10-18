@@ -1,0 +1,59 @@
+#!/bin/bash
+##############################
+### TMDB movie scraper
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+OIFS=$IFS
+
+
+sID="$1"
+myName=$(echo "select name from $setTable where id=$sID" |mysql $dbOptions)
+myUName=`echo "$myName" |sed 's;\ ;%20;g'`
+echo -e "set is ${yellow}$myName${nc}"
+
+Query="select id from $movieTable where superset_id=$sID"
+
+list=$(echo "$Query" |mysql $dbOptions)
+
+
+bigList=($(for j in $list; do echo $j; done))
+for i in ${bigList[@]}; do 
+ lpath=$(echo "select local_path from $movieTable where id=$i" |mysql $dbOptions)
+ upath=$(echo "select url_path from $movieTable where id=$i" |mysql $dbOptions)
+
+ nlpath=`echo "$lpath" |sed "s;$myName\/;$myName\ Set\/;g"`
+ nupath=`echo "$upath" |sed "s;$myUName\/;$myUName%20Set\/;g"`
+ 
+ echo -e "${yellow}$upath${nc}to${red}$nupath${nc}"
+
+  if [ "$lpath" != "$nlpath" ]; then
+    echo "update $movieTable set local_path=\"$nlpath\" where id=$i" |mysql $dbOptions
+    echo "update $movieTable set url_path=\"$nupath\" where id=$i" |mysql $dbOptions
+  else
+    echo -e "Skipping ${yellow}${lpath:${#moviePath}}${nc}"
+  fi
+done
+
+
+
+IFS=$OIFS

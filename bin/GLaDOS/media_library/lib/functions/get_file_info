@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function get_file_info() {
+title=$(echo "select title from $movieTable where id=$1" | mysql $dbOptions)
+year=$(echo "select year from $movieTable where id=$1" | mysql $dbOptions)
+filetype=$(echo "select filetype from $movieTable where id=$1" | mysql $dbOptions)
+size=$(echo "select filesize from $movieTable where id=$1" | mysql $dbOptions)
+quality=$(echo "select video_quality from $movieTable where id=$1" | mysql $dbOptions)
+setID=$(echo "select superset_id from $movieTable where id=$1" | mysql $dbOptions)
+collectionID=$(echo "select set_id from $movieTable where id=$1" | mysql $dbOptions)
+localPath=$(echo "select local_path from $movieTable where id=$1" | mysql $dbOptions)
+ echo "$title|$year|$filetype|$size|$quality|$setID|$collectionID|$localPath"
+} #END get_file_info

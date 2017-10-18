@@ -1,0 +1,36 @@
+ #!/bin/bash
+
+j=0
+for i in {2580..2593}; do
+ block[$j]=$(perl -C -e "print chr 0x$i")
+ j=$((j+1))
+done
+
+for i in {A..F}; do
+ block[$j]=$(perl -C -e "print chr 0x258$i")
+ j=$((j+1))
+done
+
+for i in {2596..2597}; do
+ block[$j]=$(perl -C -e "print chr 0x$i")
+ j=$((j+1))
+done
+
+for i in {2..5}; do
+ block[$j]=$(perl -C -e "print chr 0x25E$i")
+ j=$((j+1))
+done
+ 
+skull="\xE2\x98\xA0"
+block[j]=$skull
+
+
+j=0
+color[j]="\033[0m"
+j=$((j+1))
+for h in {30..37}; do
+ for v in {40..47}; do
+   color[$j]="\e["$h";"$v"m"
+   j=$((j+1))
+ done
+done

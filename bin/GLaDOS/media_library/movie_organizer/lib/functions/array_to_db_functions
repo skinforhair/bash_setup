@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function string_cleaner() {
+ stringZ="$1"
+ stringZ=`echo "$stringZ" |sed "s;';'';g"`
+ stringZ=`echo "$stringZ" |sed "s;--;-;g"`
+ stringZ=`echo "$stringZ" |sed 's;";-;g'`
+echo "$stringZ"
+} #END string_cleaner
+
+
+function array_to_db() {
+ #either enter a new movie in the db
+ if [ "${searchTerms[0]}" == "" ]; then
+   query="INSERT into $dbName.$movieTable("
+   for i in {0..27}; do
+    query="$query${nameArray[$i]}, "
+   done
+    query="$query${nameArray[29]}) VALUES ('NULL',"
+
+   for i in {1..27}; do 
+    if [ $i -eq 20 ]; then
+     sZ=`date +"%Y-%m-%d %R:%s"`
+     sZ=${sZ:0:19}
+    else
+     sZ=$(string_cleaner "${searchTerms[$i]}")
+    fi
+    query="$query '$sZ',"
+   done
+    sZ=$(string_cleaner "${searchTerms[29]}")
+    query="$query '$sZ');"
+
+ #or update an existing movie
+ else
+   query="UPDATE $dbName.$movieTable SET"
+   for i in {1..19}; do
+    sZ=$(string_cleaner "${searchTerms[$i]}")
+    query="$query ${nameArray[$i]} = '$sZ',"
+   done
+ #we skip [20] because that's the date it was added to library
+   for i in {21..27}; do
+    sZ=$(string_cleaner "${searchTerms[$i]}")
+    query="$query ${nameArray[$i]} = '$sZ',"
+   done
+
+    sZ=$(string_cleaner "${searchTerms[29]}")
+    query="$query ${nameArray[29]} = '$sZ'"
+    sZ="${searchTerms[0]}"
+    query="$query WHERE id = '$sZ';"
+ fi
+
+if [ "$TESTMODE" == "0" ]; then
+  echo "$query" |mysql $dbOptions 
+else
+  echo "Query is $query"
+fi
+} #array_to_db
+

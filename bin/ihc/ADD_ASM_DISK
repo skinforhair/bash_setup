@@ -1,0 +1,186 @@
+#!/bin/bash
+
+## Jeremiah Jackson - 03/02/2017
+## This script searches for new avaiable disks and adds them to multipath.conf
+
+CONF=/etc/multipath.conf
+BACKUP=/etc/multipath.conf.`date +%m%d%Y`
+ 
+TEMP=/tmp/multipath_temp.txt
+FIRST=
+LAST=
+
+FDISK_command=drives-to-fdisk
+
+function ScanCards() {
+## First find what cards multipath is using, then scan them for new disks
+diskcheck="$(sudo /sbin/multipath -ll |grep -A 6 disk001 |tail -4)"
+
+d1=$(echo "$diskcheck" |head -1)
+d1=$(echo "$d1" |awk '{print $2}')
+colon=`expr index "$d1" :`
+colon=$((colon-1))
+d1=${d1:0:$colon}
+#echo "$d1"
+
+d2=$(echo "$diskcheck" |head -2|tail -1)
+d2=$(echo "$d2" |awk '{print $2}')
+colon=`expr index "$d2" :`
+colon=$((colon-1))
+d2=${d2:0:$colon}
+#echo "$d2"
+
+d3=$(echo "$diskcheck" |head -3|tail -1)
+d3=$(echo "$d3" |awk '{print $2}')
+colon=`expr index "$d3" :`
+colon=$((colon-1))
+d3=${d3:0:$colon}
+#echo "$d3"
+
+d4=$(echo "$diskcheck" |head -4|tail -1)
+d4=$(echo "$d4" |awk '{print $2}')
+colon=`expr index "$d4" :`
+colon=$((colon-1))
+d4=${d4:0:$colon}
+#echo "$d4"
+
+if [ "$1" == "printout" ]; then
+ echo "Run These Commands:"
+fi
+
+for i in $d1 $d2 $d3 $d4; do
+  if [ "$1" == "printout" ]; then
+    echo "echo \"- - -\" > /sys/class/scsi_host/host$i/scan"
+  else
+    echo "Scanning card $i..."
+    echo "- - -" > /sys/class/scsi_host/host$i/scan
+  fi
+done
+} #ScanCards
+
+function UpdateConfig() {
+sudo cp $CONF $BACKUP
+ 
+ if [ "$1" != "" ]; then
+     COMMENT="$1"
+ else
+     echo -n "Enter a comment for this add: "
+     read COMMENT
+     echo -n "Enter an INCIDENT number if applicable: "
+     read INC
+ fi
+ lastDisk=`sudo tail -6 $CONF |head -1`
+ lastDisk=$(echo "$lastDisk" |awk '{print $2}')
+ 
+ if [ "${lastDisk:0:4}" != "disk" ]; then
+     echo "Can't find last disk number"
+     echo "Here's the end of $CONF:"
+     sudo tail -10 $CONF
+     echo -n "Enter the last disk number you see (ie disk151): "
+     read lastDisk
+ fi
+ 
+ diskNum=${lastDisk:4:$((${#lastDisk}-4))}
+ 
+ sudo sed -i '$ d' $CONF
+ sudo echo "## `date +%m/%d/%Y` by JJ: $COMMENT $INC" >> $CONF
+ sudo /sbin/multipath -ll |grep mpath|grep -v 3600605b0037803b0188a1a547fbc6a07 >> $TEMP
+ 
+ c=$((diskNum+1))
+ $FIRST=$c 
+ while read line; do
+  wwid=$(echo "$line" |awk '{print $2}')
+  wwid=${wwid:1:${#wwid}}
+  wwid=${wwid:0:$((${#wwid}-1))}
+ echo "multipath {
+                 wwid   $wwid
+                 alias   disk$c
+                 mode    660
+                 uid     900
+                 gid     500
+ }" >> $CONF
+ c=$((c+1))
+ done < $TEMP
+ sudo rm $TEMP
+ echo "}" >>$CONF
+ c=$((c-1))
+ $LAST=$c
+} #UpdateConfig
+
+
+function RunFdisk() {
+ answer=3
+ while [ $answer -eq 3 ]; do
+ echo -en "Is this the master server? [y/n]: "
+ read YesNo
+ case "$YesNo" in
+  [yY] | [yY][eE][sS] ) answer=1;;
+  [nN] | [nN][oO]     ) answer=0;;
+  *                   ) answer=3;;
+ esac
+ done
+ if [ $answer -eq 1 ]; then
+  c=$FIRST
+  while [ $c -le $LAST ]; do
+    disk=$(sudo /sbin/multipath -ll |grep -A 4 disk$c|tail -1|awk '{print $3}')
+    clear
+  echo -e "Ready to run FDISK on ${red}$disk${NC}. This is ${yellow}disk$c${NC} (out of ${red}$LAST${NC}) in /etc/multipath.conf"
+#  echo -n " Press enter when ready, or [C]ancel:"
+#  read someInput
+#  if [ "$someInput" != "c" ] && [ "$someInput" != "C" ]; then
+   sudo /sbin/fdisk /dev/$disk
+#  else
+#   exit 1
+#  fi
+
+  c=$((c+1))
+  done 
+ fi
+} #RunFdisk
+
+function FinishUp() {
+ answer=3
+ while [ $answer -eq 3]; do
+ echo -en "Are all multipath.confs updated and FDISK has been run? [y/n]: "
+  read YesNo
+  case "$YesNo" in
+   [yY] | [yY][eE][sS] ) answer=1;;
+   [nN] | [nN][oO]     ) answer=0;;
+   *                   ) answer=3;;
+  esac
+ done
+ if [ $answer -eq 1 ]; then
+  c=$FIRST
+  while [ $c -le $LAST ]; do 
+   sudo /sbin/kpartx -a /dev/mapper/disk$c
+   c=$((c+1))
+  done
+   sudo /sbin/partprobe
+  c=$FIRST
+  while [  $c -le $LAST ]; do
+   sudo /bin/chown oracle:dba /dev/mapper/disk$c*
+   c=$((c+1))
+  done
+ fi
+} #FinishUp
+
+
+#### MAIN FUNCTION ####
+
+## order of operations:
+# Scan Cards for disk
+ ScanCards
+sudo /sbin/multiapth -v2
+
+# Update /etc/multipath.conf
+ UpdateConfig
+sudo /sbin/multipath -v2
+
+# Verify that Disks appear
+sudo ls -lrta /dev/mapper |grep -v oracle
+
+# Time to fdisk:
+ RunFdisk
+
+# Clean up:
+ FinishUp 

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+function CheckActiveDownloads() {
+ CONSOLE="/usr/bin/deluge-console"
+ sn=$(echo "$1" |sed "s;\ ;.;g")
+ Show=$($CONSOLE info |grep -i "$sn")
+ echo "$Show"
+} #CheckActiveDownloads
+
+
+function CheckFolders() {
+ if [ "$1" == "glados" ]; then
+  foundFile=$(find /glados -type f \( ! -name "*.nfo" \) -iname "$2")
+ else
+   foundFile=$(find /cortana/Completed -type f \( ! -name "*.nfo" \) -iname "$2")
+   if [ "$foundFile" != "" ]; then
+	foundFile="Cortana - Completed"
+   else
+    for i in "Move" "Move/get_srt" "Move/Convert"; do
+     foundFile=$(find /cortana/$i -maxdepth 1 -type f \( ! -name "*.nfo" \) -iname "$2")
+      if [ "$foundFile" != "" ]; then
+       foundFile="Cortana - $i"
+	break
+      fi
+    done
+   fi
+ fi
+if [ "$3" == "report" ]; then
+ echo "foundfile is -- $foundFile -- $2 -- $1"
+else
+echo "$foundFile"
+fi
+} #CheckFolders
+
+function CheckDownloaded() {
+ LOC="$3"
+ EP=$(change_EpNum_format "$2")
+ EPx="$2"
+ EPx=$(echo "$EPx" |sed "s;-;;g")
+ sn=$(echo "$1" |sed "s;\ ;.;g")
+ sn=$(echo "$sn" |sed "s;';;g")
+ sn=$(echo "$sn" |sed "s;(;;g")
+ sn=$(echo "$sn" |sed "s;);;g")
+ searchName="*""$sn""*""$EP""*"
+
+ #allow for Episode name to be just numbers, IE 517 instead of s05e17
+ otherSearch="*""$sn""*""$EPx""*"
+
+ found=$(CheckFolders "$3" "$searchName")
+  if [ "$found" == "" ]; then
+    found=$(CheckFolders "$3" "$otherSearch")
+  fi
+
+#if [ "$found" == "" ]; then
+# echo "find /cortana -type f \( ! -name "*.nfo" \) -iname \"$otherSearch\""
+#else
+ echo $found
+#fi
+} #CheckDownloaded
+
+#source change_EpNum_format
+#echo "checking cortana"
+#echo $(CheckFolders "cortana" "*Arrow*517*")

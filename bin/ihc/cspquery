@@ -1,0 +1,12 @@
+#!/bin/bash
+
+server="$1"
+command="rpm -q SYMCcsp"
+
+output="$server:"
+
+response=$(ssh $server "$command")
+
+echo "$server|$response" >> output.txt
+
+

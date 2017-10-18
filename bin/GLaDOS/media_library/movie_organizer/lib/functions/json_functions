@@ -1,0 +1,109 @@
+#!/bin/bash
+
+function json_mpaa(){
+  certifications=`echo $1 |jq '.releases' |jq '.countries[]' |jq '.certification'`
+  countries=`echo $1 |jq '.releases' |jq '.countries[]' |jq '.iso_3166_1'`
+  mpaa=$(get_mpaa_rating "$certifications" "$countries")
+ echo "$mpaa"
+}
+
+function json_backdrop(){
+ stringZ=`echo $1 |jq '.backdrop_path' |sed 's/\"//g'`
+ stringZ="https://image.tmdb.org/t/p/original"$stringZ
+echo "$stringZ"
+}
+
+function json_poster(){
+ stringZ=`echo $1 |jq '.poster_path' |sed 's/\"//g'`
+ stringZ="https://image.tmdb.org/t/p/original"$stringZ
+echo "$stringZ"
+}
+
+function json_imdb(){
+ echo $1 |jq '.imdb_id' |sed 's/\"//g'
+}
+
+function json_plot(){
+ stringZ=`echo $1 |jq '.overview' |sed 's/\"//g'`
+ stringZ=`echo "$stringZ" |sed 's/\\\//g'`
+ echo "$stringZ"
+}
+
+function json_release(){
+ echo $1 |jq '.release_date' |sed 's/\"//g'
+}
+
+function json_runtime(){
+ echo $1 |jq '.runtime' |sed 's/\"//g'
+}
+
+function json_tagline(){
+ echo $1 |jq '.tagline' |sed 's/\"//g'
+}
+
+function json_genres(){
+ stringZ=`echo $1 |jq '.genres[]' |jq '.name'`
+  stringZ=`echo $stringZ |sed 's;\"\ \";,\ ;g'`
+  stringZ=`echo $stringZ |sed 's;\";;g'`
+echo "$stringZ"
+}
+
+function json_characters(){
+ stringZ=`echo "$1" |jq '.credits' |jq '.cast[]' |jq '.character'`
+  #Remove Commas from names
+  stringZ=`echo $stringZ |sed 's;,\ Jr.\";\ Jr.\";g'`
+  stringZ=`echo $stringZ |sed 's;,\ Jr\";\ Jr\";g'`
+
+
+  stringZ=`echo $stringZ |sed 's;\"\ \";,\ ;g'`
+  stringZ=`echo $stringZ |sed 's;\";;g'`
+echo "$stringZ"  
+}
+
+function json_crew_jobs(){
+ stringZ=`echo $1 |jq '.credits' |jq '.crew[]' |jq '.job'`
+  stringZ=`echo $stringZ |sed 's;\"\ \";,\ ;g'`
+  stringZ=`echo $stringZ |sed 's;\";;g'`
+echo "$stringZ"
+}
+
+function json_crew_names(){
+ stringZ=`echo $1 |jq '.credits' |jq '.crew[]' |jq '.name'`
+  #Remove Commas from names
+  stringZ=`echo $stringZ |sed 's;,\ Jr.\";\ Jr.\";g'`
+  stringZ=`echo $stringZ |sed 's;,\ Jr\";\ Jr\";g'`
+
+  stringZ=`echo $stringZ |sed 's;\"\ \";,\ ;g'`
+  stringZ=`echo $stringZ |sed 's;\";;g'`
+echo "$stringZ"
+}
+
+function json_year(){
+ stringZ=`echo $1 |jq '.release_date' |sed 's/\"//g'`
+  stringZ=${stringZ:0:4}
+ echo "$stringZ"
+}
+
+function json_keywords(){
+  keywords=`echo $1 |jq '.keywords' |jq '.keywords[]' |jq '.name'`
+   keywords=`echo $keywords |sed 's;\"\ \";,\ ;g'`
+   keywords=`echo $keywords |sed 's;\";;g'`
+ echo "$keywords"
+}
+
+function json_title() {
+ stringZ=`echo "$1" |jq '.title' |sed 's/\"//g'`
+ echo $stringZ
+} #END extract_json
+
+function json_actors(){
+ stringZ=`echo "$1" |jq '.credits' |jq '.cast[]' |jq '.name'`
+  #Remove Commas from names
+  stringZ=`echo $stringZ |sed 's;,\ Jr.\";\ Jr.\";g'`
+  stringZ=`echo $stringZ |sed 's;,\ Jr\";\ Jr\";g'`
+
+  stringZ=`echo $stringZ |sed 's;\"\ \";,\ ;g'`
+  stringZ=`echo $stringZ |sed 's;\";;g'`
+echo "$stringZ"
+}
+

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+show_today() {
+        D=$(day_of_week `date +"%u"`)
+        echo "today is "`date +"%d/%b/%y"`" ($D)"
+} #show_today

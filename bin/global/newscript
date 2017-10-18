@@ -1,0 +1,26 @@
+#!/bin/bash
+ 
+ LIB="/root/.bin/lib"
+ 
+ if [ "$1" == "" ]; then
+     echo "You must enter a name for your new script!"
+     exit 1;
+ fi
+ 
+ touch $1 && chmod 775 $1
+ echo "#!/bin/bash" > $1
+ 
+ echo "for f in /root/.bin/lib/*; do source \$f; done" >> $1
+ echo "" >> $1
+ 
+ echo "### - Find local path (See $LIB/.localize) ###" >> $1
+ echo "SOURCE=\"\${BASH_SOURCE[0]}\"" >> $1
+ echo "while [ -h \"\$SOURCE\" ]; do " >> $1
+ echo " DIR=\"\$( cd -P \"$( dirname \"\$SOURCE\" )\" && pwd )\"" >> $1
+ echo " SOURCE=\"\$(readlink \"\$SOURCE\")\"" >> $1
+ echo "  [[ \$SOURCE != /* ]] && SOURCE=\"\$DIR/\$SOURCE\"" >> $1
+ echo "done" >> $1
+ echo "DIR=\"\$( cd -P \"\$( dirname \"\$SOURCE\" )\" && pwd )\"" >> $1
+ echo "" >> $1
+ 
+

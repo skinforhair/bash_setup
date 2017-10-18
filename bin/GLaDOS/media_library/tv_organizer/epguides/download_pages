@@ -1,0 +1,121 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+source $DIR/lib/db_connection
+for f in $DIR/lib/functions/*; do source $f; done
+source $pLIB/colors
+PAGES="$DIR/pages/"
+
+testURL=${EPGUIDES:7}
+testURL=${testURL:0:$((${#testURL}-1))}
+
+function check_resolv() {
+  isCorrect=0
+  google=$(grep 8.8.8.8 /etc/resolv.conf)
+   if [ "$google" != "" ] && [ "${google:0:1}" != "#" ]; then
+     isCorrect=1
+   fi
+echo "$isCorrect"
+} #check_resolv
+
+function cleanTMP() {
+        if [ -f $available ]; then rm $available; fi
+        if [ -f $upcoming ]; then rm $upcoming; fi
+#        if [ -f $output ]; then rm $output; else touch $output; fi
+} #END cleanTMP
+
+
+available="$DIR/tmp/avail.txt"
+upcoming="$DIR/tmp/upcom.txt"
+
+outfile="available_episodes.txt"
+remotepath="/home/jar/Downloads/"
+output="$DIR/tmp/$outfile"
+
+INTERNET=$(ping_remote_site "$testURL")
+
+if [ "$INTERNET" == "1" ]; then
+
+cleanTMP
+
+#SA=$(echo "select id from $tvshows where 1" |mysql $dbOptions)
+SA=$(echo "select id from $tvshows where currently_on_air=1" |mysql $dbOptions)
+SArr=($SA)
+
+maxlen=35
+i=0
+c=1
+
+while [ $i -lt ${#SArr[@]} ]; do
+
+	showID="${SArr[i]}"
+	i=$((i+1))
+
+show="showID=$showID"
+SN=$(echo "select showname from $tvshows where id=$showID" |mysql $dbOptions)
+
+
+SHOWNAME=$(cleanShowName "$SN")
+URL="$EPGUIDES$SHOWNAME"
+#echo "$URL"
+if [ "$SHOWNAME" != "ConMan" ]; then
+PageDump=`lynx -width 1000 -dump $URL`
+echo "$PageDump" > $PAGES$SHOWNAME.page
+fi
+
+curlen=${#SN}
+
+ perc=$(echo "scale=2; $i*100/${#SArr[@]}" |bc)
+ perc=${perc:0:2}
+  if [ "${perc:1:1}" == "." ]; then
+        perc=${perc:0:1}
+  fi
+  if [ $perc -lt 33 ]; then
+        echo -en "${red}"
+  elif [ $perc -lt 66 ]; then
+        echo -en "${yellow}"
+  else
+        echo -en "${green}"
+  fi
+ if [ $i -lt 10 ]; then
+        echo -en "[ "
+ else
+        echo -en "["
+ fi
+ echo -en "$i${NC}/${#SArr[@]}]"
+
+echo -en " ${blue}[ $SN"
+ while [ $curlen -lt $maxlen ]; do
+  echo -en " "
+  curlen=$((curlen+1))
+ done
+echo -en "]${NC}\\r"
+
+done
+
+else
+ echo -e "\n${red}No internet connection, aborting!${NC}\n"
+ if [ "$(check_resolv)" == "0" ]; then
+  echo "8.8.8.8 appears to be missing from /etc/resolv.conf:"
+  cat /etc/resolv.conf
+ else
+  echo "ping_gw returned: $INTERNET"
+ fi
+fi
+

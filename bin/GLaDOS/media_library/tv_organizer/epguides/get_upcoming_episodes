@@ -15,7 +15,7 @@ N="$DIR/tmp/Notfound.txt"
 Ltmp="$DIR/tmp/tmpfile.txt"
 
 outfile="available_episodes.txt"
-remotepath=$(ssh jar@wheatley "echo \$lBIN")
+remotepath=$(ssh cavejohnson@wheatley "echo \$lBIN")
 remotepath="$remotepath/episodes/lib/lists/"
 output="$DIR/tmp/$outfile"
 
@@ -127,8 +127,8 @@ echo "Generated $DT" | cat - $U > temp && mv temp $U
 echo "Generated $DT" | cat - $N > temp && mv temp $N
 
 function upload_to_wheatley(){
-   ssh jar@wheatley "if [ -a $remotepath$outfile ]; then rm $remotepath$outfile; fi;if [ -a $remotepath$A ]; then rm $remotepath$A; fi;if [ -a $remotepath$U ]; then rm $remotepath$U; fi;if [ -a $remotepath$N ]; then rm $remotepath$N; fi"
-    scp $output $A $U $N jar@wheatley:$remotepath
+   ssh cavejohnson@wheatley "if [ -a $remotepath$outfile ]; then rm $remotepath$outfile; fi;if [ -a $remotepath$A ]; then rm $remotepath$A; fi;if [ -a $remotepath$U ]; then rm $remotepath$U; fi;if [ -a $remotepath$N ]; then rm $remotepath$N; fi"
+    scp $output $A $U $N cavejohnson@wheatley:$remotepath
                 if [ $? == 0 ]; then
                         #rm $output
                         stamp=$(date +%m%d%Y)

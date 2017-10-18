@@ -1,8 +1,0 @@
- #!/bin/bash
- 
- function get_ip_from_hostname(){
-  remote_address=$(getent hosts $1)
-  ip_address=$(echo "$remote_address" |awk '{print $1}')
-  echo "$ip_address"
- }
-

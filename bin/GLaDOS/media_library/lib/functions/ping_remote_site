@@ -1,9 +1,0 @@
-#!/bin/bash
-
-function ping_remote_site() {
-#this line pings the local gateway
-#ping -q -w 1 -c 1 `ip r | grep default | cut -d ' ' -f 3` > /dev/null && echo ok
-
-#this line pings $1
-ping -q -w 1 -c 1 $1 > /dev/null && echo 1 || echo 0
-} #ping_remote_site

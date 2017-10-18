@@ -1,8 +1,0 @@
-#!/bin/bash
-
-##command is :
-# ffmpeg -i source.video : - find the type of audio track (aac, mp3, flac, etc)
-# ffmpeg -i source.video -map s:S -acodec: copy -vn output.type
-# where s:S is the audo stream number, i.e.  0:2
-#  
-

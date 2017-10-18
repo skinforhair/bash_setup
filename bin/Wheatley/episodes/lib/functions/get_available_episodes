@@ -1,7 +1,0 @@
-#!/bin/bash
-
-function upcoming_shows() {
-  echo -e "${yellow}Aired SHOWS:${NC}"
-  echo ""
-  EpInfo $AIRED "download"
-}

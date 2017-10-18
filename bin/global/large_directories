@@ -1,3 +1,0 @@
-#!/bin/bash
-
-sudo du -a /opt | sort -n -r | head -n 10

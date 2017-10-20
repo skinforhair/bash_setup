@@ -34,7 +34,7 @@ function isMounted() {
 function create_command() {
  COM="echo \"No\ mount\ command\ found\ for\ $1\"\!"
  if [ "${TYPE[$1]}" == "SMB" ]; then
-  COM="sudo mount //${REMOTE_HOST[$1]}/${SHARE[$1]}/ /${MOUNTDIR[$1]}/ -t cifs -o username=${SMB[$1]},password=${SMB[$1]},uid=1000"
+  COM="sudo mount //${REMOTE_HOST[$1]}/${SHARE[$1]}/ /${MOUNTDIR[$1]}/ -t cifs -o username=${SMB[$1]},password=${SMB[$1]},uid=1000 -o vers=1.0"
  fi
  if [ "${TYPE[$1]}" == "VM" ]; then 
   COM="sudo mount -t vboxsf ${SHARE[$1]} /${MOUNTDIR[$1]}/"
@@ -56,6 +56,7 @@ if [ "$IM" == 1 ]; then
  else
    echo "Mounting $MD"
    `$COM`
+   #echo "com is $COM"
  fi
 } #mount_up
 

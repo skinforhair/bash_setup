@@ -287,7 +287,7 @@ function write_out_info(){
  if [ ! -d "$tvPath/$NEWSHOWNAME/.showdata" ]; then
   echo -e "     |_ Creating Path at $tvPath/$NEWSHOWNAME ..."
   if [ "$1" != "quit" ]; then
-   mkdir -p "$tvPath/NEWSHOWNAME/.showdata"
+   mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
   fi
  fi
 

@@ -486,7 +486,12 @@ Episode=$3
 URL="http://epguides.com/"
 PAGES="$DIR/epguides/pages/"
 #external function to get Page Dump of episode list
-PageDump=$(EpGuideName_local "$1" "$2" "$3")
+if [ "$SHOWNAME" == "Mythbusters" ]; then
+  Season=$((Season+2002))
+fi
+#echo "season is $Season"
+#echo "episode is $Episode"
+PageDump=$(EpGuideName_local "$1" "$Season" "$3")
 
 #put it in an array
 arr=($PageDump)

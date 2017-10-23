@@ -80,19 +80,19 @@ fi
 
 #get the line with the Episode title
 if [ $Episode -lt 10 ]; then
- PageDump=`cat $PAGE |grep "$Season- $Episode" |grep -v "*" |head -1`
+ PageDump=`cat $PAGE |grep "$Season- $Episode" |grep -v "*" |grep -v "tvmaze.com"|head -1`
  if [ "$PageDump" == "" ]; then
-   PageDump=`cat $PAGE |grep "$Season-$Episode" |grep -v "*" |head -1`
+   PageDump=`cat $PAGE |grep "$Season-$Episode" |grep -v "*" |grep -v "tvmaze.com"|head -1`
  fi
 else
- PageDump=`cat $PAGE |grep "$Season-$Episode" |grep -v "*" |head -1`
+ PageDump=`cat $PAGE |grep "$Season-$Episode" |grep -v "*" |grep -v "tvmaze.com"|head -1`
 fi
 
 if [ "$PageDump" == "" ] && [ "${Episode:0:1}" == "0" ]; then
- PageDump=`cat $PAGE |grep "$Season- ${Episode:1:1}" |grep -v "*" |head -1`
+ PageDump=`cat $PAGE |grep "$Season- ${Episode:1:1}" |grep -v "*" |grep -v "tvmaze.com"|head -1`
  if [ "$PageDump" == "" ]; then
 #echo -e "${yellow}--${Episode:1:1}--${NC}"
-  PageDump=`cat $PAGE |grep "$Season-${Episode:1:1}" |grep -v "*" |head -1`
+  PageDump=`cat $PAGE |grep "$Season-${Episode:1:1}" |grep -v "*" |grep -v "tvmaze.com"|head -1`
  fi
 fi
 if [ "$PageDump" == "" ]; then

@@ -182,7 +182,8 @@ fi
 
 
 if [ "$update" == "1" ]; then
- active_download=$(echo "select active_download from VideoLibrary.tvShows where showname='$NEWSHOWNAME'" |mysql -srN)
+ MSHOWNAME=$(echo "$NEWSHOWNAME" |sed "s;';'';g")
+ active_download=$(echo "select active_download from VideoLibrary.tvShows where showname='$MSHOWNAME'" |mysql -srN)
 
  seriesinfo="$tvPath/$NEWSHOWNAME/.showdata/seriesinfo.json"
  episodeinfo="$tvPath/$NEWSHOWNAME/.showdata/episodeinfo.json"
@@ -256,6 +257,7 @@ fi
 if [ "$active_download" == "1" ]; then
   echo -en "  ${green}Active Download${NC}"
 else
+  active_download=0
   if [ "$currently_on_air" == "1" ]; then
     echo -en "${red}"
   else
@@ -264,7 +266,11 @@ else
   echo -en "Not Currently Downloading ($active_download)${NC}"
 fi
 
-SeasonsOwned=$(ls "$tvPath/$NEWSHOWNAME" |grep "Season" |grep -v "Season 00"|wc -l)
+if [ ! -d "$tvPath/$NEWSHOWNAME" ]; then
+ SeasonsOwned=0
+else
+ SeasonsOwned=$(ls "$tvPath/$NEWSHOWNAME" |grep "Season" |grep -v "Season 00"|wc -l)
+fi
 
 echo -en "   Seasons: ${yellow}$SeasonsOwned / $SeasonsAvailable${NC}"
 
@@ -284,38 +290,42 @@ done
 function write_out_info(){
  fields="id,showname,seasons_owned,seasons_aired,episodes_owned,episodes_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id"
 
+ si="$tvPath/$NEWSHOWNAME/.showdata/seriesinfo.json"
+ ei="$tvPath/$NEWSHOWNAME/.showdata/episodeinfo.json"
+
+
+ if [ "$1" == "quit" ]; then 
+  echo -e "${yellow}Steps that would have been taken:${NC}"
+  echo -e " |_ Creating Path at $tvPath/$NEWSHOWNAME ..."
+  echo -e "  |_mv $seriesinfo $si"
+  echo -e "  |_mv $episodeinfo" "$ei"
+  echo ""
+ else
+
  if [ ! -d "$tvPath/$NEWSHOWNAME/.showdata" ]; then
   echo -e "     |_ Creating Path at $tvPath/$NEWSHOWNAME ..."
-  if [ "$1" != "quit" ]; then
-   mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
-  fi
+  mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
+ else
+  echo -e "     |_ Updating Path at $tvPath/$NEWSHOWNAME ..."
  fi
-
-  si="$tvPath/$NEWSHOWNAME/.showdata/seriesinfo.json"
-  ei="$tvPath/$NEWSHOWNAME/.showdata/episodeinfo.json"
-
   if [ -f "$seriesinfo" ] && [ "$seriesinfo" != "$si" ]; then
-   if [ "$1" != "quit" ]; then
     mv "$seriesinfo" "$si"
-   else
-    echo "mv $seriesinfo $si"
-   fi
   fi
   if [ -f "$episodeinfo" ] && [ "$episodeinfo" != "$ei" ]; then
-   if [ "$1" != "quit" ]; then
     mv "$episodeinfo" "$ei"
-   else
-    echo "mv $episodeinfo" "$ei"
-   fi
   fi
 
-#Use apostrophe's appropriately for mysql
+ #Use apostrophe's appropriately for mysql
  MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
 
-echo -e "      |_ Checking DB ..."
- query="select id from VideoLibrary.tvShows where showname=\"$MSHOWNAME\""
- showExists=$(echo "$query"|mysql -N)
- 
+ echo -e "      |_ Checking DB ..."
+  query="select id from VideoLibrary.tvShows where showname=\"$MSHOWNAME\""
+  showExists=$(echo "$query"|mysql -N)
+  if [ "$showExists" == "" ]; then
+   query="select id from VideoLibrary.tvShows where showname=\"$NEWSHOWNAME\""
+   showExists=$(echo "$query"|mysql -N)
+  fi
+
  if [ "$showExists" != "" ]; then
   Size=$(du -sh "$tvPath/$NEWSHOWNAME" |awk '{print $1}' |rev|cut -c 2-|rev)
   echo -e "        ${green}DB Entry Exists${NC}"
@@ -324,12 +334,14 @@ echo -e "      |_ Checking DB ..."
   echo -e "         ${yellow}Creating Database Entry ...${NC}"
   query="INSERT INTO  VideoLibrary.tvShows ($fields) VALUES (NULL,'$MSHOWNAME','$SeasonsOwned','$SeasonsAvailable','','','','$currently_on_air','$active_download','$tvdbID','$imdbID')"
  fi
-  echo "query would be:"
-  echo "$query"
+  #echo "query would be:"
+  #echo "$query"
 #  echo "dbOptions is $dbOptions"
-  if [ "$1" != "quit" ]; then
    echo "$query" |mysql -N
-  fi
+   echo "Running query..."
+   echo "$query"
+   echo "---------"
+ fi #if !quit
 } #write_out_info
 
 

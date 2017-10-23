@@ -266,6 +266,9 @@ while [ $counter -lt ${#DirArray[@]} ]; do
 			"Gently's")
 				b="Gentlys"
 				;;
+			"Marvel's")
+				b="Marvels"
+				;;
 			"(2005)")
 				b="2005"
 				;;
@@ -420,6 +423,9 @@ promptForTitle() {
 			;;
 		"Dirk Gentlys Holistic Detective Agency (2016)")
 			SHOWNAME="Dirk Gently's Holistic Detective Agency (2016)"
+			;;
+		"Marvels Inhumans")
+			SHOWNAME="Marvel's Inhumans"
 			;;
 			
 	esac

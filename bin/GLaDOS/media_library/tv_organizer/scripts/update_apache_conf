@@ -1,0 +1,32 @@
+#!/bin/bash
+
+confLocation="/shares/filesystem/apache/conf/tv.conf"
+
+
+outputfile=tmp.conf
+tmpOut="tmp.txt"
+if [ -f $tmpOut ]; then rm -f $tmpOut;fi
+
+for i in "`find /shares/video/tv/ -type d -maxdepth 1`"; do 
+ echo "$i" >> $tmpOut
+done
+
+while read i; do
+showName="${i:17}"
+if [ "$showName" != "lost+found" ] && [ "$showName" != "" ];then
+showName=$(echo "$showName" |sed -e 's/ /%20/g')
+#echo "$showName"
+
+  echo "<Directory \"$i\">" >> $outputfile
+  echo " HeaderName /web-indexing/video/tv/TvShow.php?showname=$showName" >> $outputfile
+  echo " ReadmeName /web-indexing/video/footer.html" >> $outputfile
+  echo "</Directory>" >> $outputfile
+fi
+done < $tmpOut
+
+rm -f $tmpOut
+mv $outputfile $confLocation
+
+php /shares/glados/TV_Shows/genindex.php
+
+sudo service httpd graceful

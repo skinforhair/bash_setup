@@ -1,0 +1,54 @@
+#!/bin/bash
+tmp1=/tmp/avg-show-size1
+tmp2=/tmp/avg-show-size2
+tmp3=/tmp/avg-show-size3
+
+for i in {1..3}; do if [ -a "/tmp/avg-show-size$i" ]; then rm "/tmp/avg-show-size$i"; fi; done
+
+BASE="/shares/video/tv"
+if [ "$1" != "" ]; then
+ limit="$1"
+else
+ limit=350
+fi
+ 
+ls "$BASE"|grep -v lost >> $tmp1
+
+while read show; do
+ NumSeasons=$(ls "$BASE/$show/" |grep Season |grep -v jpg |grep -v nfo|wc -l)
+ c=1
+ echo "$show :"
+
+ while [ $c -lt $NumSeasons ]; do
+ #loop through each season, grabbing counts and size
+ if [ $c -lt 10 ]; then
+   CHKS="Season 0$c"
+ else
+   CHKS="Season $c"
+ fi
+   NumAVI=$(ls -R "$BASE/$show/$CHKS/" |grep ".avi" |wc -l)
+   NumMP4=$(ls -R "$BASE/$show/$CHKS/" |grep ".mp4" |wc -l)
+   NumMKV=$(ls -R "$BASE/$show/$CHKS/" |grep ".mkv" |wc -l)
+   SeasonSize=$(du -s "$BASE/$show/$CHKS/" |awk '{print $1}')
+   NFiles=$(($NumAVI+$NumMP4+$NumMKV))
+    if [ "$NFiles" == 0 ]; then
+     AvgSeasonSize=0
+    else
+     AvgSeasonSize=$(($SeasonSize/$NFiles))
+     AvgSeasonSize=$(($AvgSeasonSize/1024))
+    fi
+
+# echo " $CHKS - $SeasonSize  - $NFiles"
+# echo "   -- $NumAVI  AVI"
+# echo "   -- $NumMP4  MP4     ( $AvgSeasonSize )"
+# echo "   -- $NumMKV  MKV"
+
+    if [ $AvgSeasonSize -ge $limit ]; then
+      echo "$show - $CHKS - avi [$NumAVI] - mkv [$NumMKV] - mp4 [$NumMP4] - Avg: [ $AvgSeasonSize ]" >> $tmp2
+    fi
+
+  c=$((c+1))
+ done
+done < $tmp1
+
+

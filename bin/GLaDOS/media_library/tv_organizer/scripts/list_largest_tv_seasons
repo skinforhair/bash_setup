@@ -1,0 +1,73 @@
+#!/bin/bash
+
+source $pLIB/colors
+
+ca[1]=${red}
+ca[2]=${green}
+ca[3]=${yellow}
+ca[4]=${Blue}
+ca[5]=${Purple}
+ca[6]=${BWhite}
+ca[7]=${URed}
+ca[8]=${UYellow}
+ca[9]=${UGreen}
+ca[10]=${UBlue}
+
+sa=
+cnt=
+
+function contains() {
+ ret=""
+ for i in "${!sa[@]}"; do
+   if [[ "${sa[$i]}" = "${1}" ]]; then
+       ret=$(echo "${i}")
+   fi
+ done
+echo "$ret"
+}
+
+
+
+if [ "$1" != "" ]; then
+   SHOWLIM="$1"
+else
+ SHOWLIM=15
+fi
+TMP=/tmp/seasonlist.tmp
+
+if [ -a $TMP ]; then rm -f $TMP; fi
+
+find /shares/video/tv/ -maxdepth 2 -type d -print0 |xargs -0 du -h -sk |grep Season |sort -rn |head -$SHOWLIM >> $TMP
+
+echo -e "Size:\tFiles:\tAvg Sz:\tSeason:\t\tShow:"
+echo "------------------------------------------------------------------"
+while read line; do
+ SIZE=$(echo "$line" |awk '{print $1}')
+ stringZ=${line:$((${#SIZE}+1))}
+ NFILES=$(ls "$stringZ" |grep -v jpg|wc -l |awk '{print $1}')
+ GB=$(du -sh "$stringZ" |awk '{print $1}')
+
+ stringY=${line:$((${#SIZE}+18))}
+ slash=`expr index "$stringY" /`
+ 
+ SHOWNAME=${stringY:0:$(($slash-1))}
+ ShowIndex=$(contains "$SHOWNAME")
+ if [ "$ShowIndex" == "" ]; then
+  ShowIndex=${#sa[@]} 
+  sa[$ShowIndex]="$SHOWNAME"
+  cnt[$ShowIndex]=1
+ else
+  cnt[$ShowIndex]=$((${cnt[$ShowIndex]}+1))
+ fi
+  SHOWNAME="${ca[$ShowIndex]}$SHOWNAME${NC}"
+
+
+ SEASON=${stringY:$slash}
+
+ AVG=$((SIZE/$NFILES))
+ AVG=$((AVG/1024))
+echo -e "$GB\t$NFILES\t$AVG\t$SEASON\t$SHOWNAME"
+
+done < $TMP
+
+if [ -a $TMP ]; then rm -f $TMP; fi

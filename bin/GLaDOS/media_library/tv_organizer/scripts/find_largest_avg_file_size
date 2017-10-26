@@ -1,4 +1,6 @@
 #!/bin/bash
+for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
+
 tmp1=/tmp/avg-show-size1
 tmp2=/tmp/avg-show-size2
 tmp3=/tmp/avg-show-size3
@@ -26,25 +28,44 @@ while read show; do
  else
    CHKS="Season $c"
  fi
+
+  if [ -d "$BASE/$show/$CHKS" ]; then
    NumAVI=$(ls -R "$BASE/$show/$CHKS/" |grep ".avi" |wc -l)
+    numMPG=$(ls -R "$BASE/$show/$CHKS/" |grep ".mpg" |wc -l)
    NumMP4=$(ls -R "$BASE/$show/$CHKS/" |grep ".mp4" |wc -l)
+    numM4V=$(ls -R "$BASE/$show/$CHKS/" |grep ".m4v" |wc -l)
+   NumOther=$(($numMPG+$numM4V))
    NumMKV=$(ls -R "$BASE/$show/$CHKS/" |grep ".mkv" |wc -l)
    SeasonSize=$(du -s "$BASE/$show/$CHKS/" |awk '{print $1}')
-   NFiles=$(($NumAVI+$NumMP4+$NumMKV))
+   NFiles=$(($NumAVI+$NumMP4+$NumMKV+$NumOther))
     if [ "$NFiles" == 0 ]; then
      AvgSeasonSize=0
     else
      AvgSeasonSize=$(($SeasonSize/$NFiles))
      AvgSeasonSize=$(($AvgSeasonSize/1024))
     fi
-
-# echo " $CHKS - $SeasonSize  - $NFiles"
-# echo "   -- $NumAVI  AVI"
-# echo "   -- $NumMP4  MP4     ( $AvgSeasonSize )"
-# echo "   -- $NumMKV  MKV"
-
+  else
+   AvgSeasonSize=0
+  fi #if season exists
+    
     if [ $AvgSeasonSize -ge $limit ]; then
-      echo "$show - $CHKS - avi [$NumAVI] - mkv [$NumMKV] - mp4 [$NumMP4] - Avg: [ $AvgSeasonSize ]" >> $tmp2
+      stringZ="[$AvgSeasonSize] - ["
+       if [ $NumAVI = 0 ]; then
+        stringZ="$stringZ ${gray}"
+       elif [ $NumAVI -lt 5 ]; then
+        stringZ="$stringZ ${yellow}"
+       else
+        stringZ="$stringZ ${red}"
+       fi
+      stringZ="$stringZ $NumAVI avi${NC}] - ["
+       if [ $NumOther -gt 0 ]; then
+        stringZ="$stringZ ${yellow}"
+       fi
+      stringZ="$stringZ $NumOther other${NC}] - [$NumMKV mkv] - [$NumMP4 mp4] - $show $CHKS" 
+ 
+      echo -e "$stringZ"
+      echo -e "$stringZ" >> $tmp2
+      #echo "$show - $CHKS - avi [$NumAVI] - mkv [$NumMKV] - mp4 [$NumMP4] - Avg: [ $AvgSeasonSize ]" >> $tmp2
     fi
 
   c=$((c+1))

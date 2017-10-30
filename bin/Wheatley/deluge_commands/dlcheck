@@ -122,14 +122,19 @@ build_arrays
 
 if [ "$1" == "seeding" ]; then
  remove_downloads "seeding"
+ grab_current_info
+ build_arrays
 elif [ "$1" == "-d" ]; then
   if [ "$2" == "" ]; then
     remove_downloads "seeding"
+    grab_current_info
+    build_arrays
   else
     remove_downloads "$2"
+    grab_current_info
+    build_arrays
   fi
 fi
-grab_current_info
-build_arrays
+
 display_current
 

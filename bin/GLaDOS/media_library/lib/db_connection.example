@@ -1,9 +1,0 @@
-#!/bin/bash
-
-dbName="MyVideoDB"
-dbOptions="-D $dbName -s -r -N"
-movieTable="movies"
-setTable="sets"
-supersetTable="suersets"
-dbUser="video_db_user"
-dbPass="super-secret"

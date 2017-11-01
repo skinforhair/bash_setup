@@ -1,4 +1,0 @@
-#!/bin/bash
-
-##command is:
-# ffmpeg -i source.aac -acodec mp3 -ac 2 -ab 160 output.mp3

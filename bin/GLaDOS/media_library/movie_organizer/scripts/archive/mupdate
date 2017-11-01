@@ -1,3 +1,0 @@
-#!/bin/bash
-
-cd "$1"; $HOME/.bin/local/movie_organizer/scripts/find_and_run_update

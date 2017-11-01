@@ -1,5 +1,0 @@
-hp-cdiso
-hp-edgeprd01
-hp-edgeprd02
-hp-edgeprd03
-hp-edgeprd04

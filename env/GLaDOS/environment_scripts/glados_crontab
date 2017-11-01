@@ -1,0 +1,20 @@
+#!/bin/bash
+
+tmpFile=output.txt
+if [ -f $tmpFile ]; then rm $tmpFile; fi
+
+
+
+s="/shares/filesystem/backup_scripts/movie"
+ t="3:30 am"
+ c="30 3 * * * "
+
+found_cron=$(crontab -l |grep "$s")
+ if [ "found_cron" == "" ]; then
+	 echo "## $t" > $tmpFile 
+	 echo "$c $s" >> $tmpFile
+	 echo "Adding $s crontab at $t..."
+#	 crontab $tmpFile
+#	 rm $tmpFile
+ fi
+

@@ -19,23 +19,32 @@ case "$(hostname)" in
  "Wheatley" | "GLaDOS" ) HN="$(hostname)";;
  *) HN="ihc";;
 esac
-echo "--Setting Hostname to $HN"
+
+source "$pD/lib/colors"
+echo -e "..Setting Hostname to ${yellow}$HN${NC}"
 
 U="$(whoami)"
 sudo chown -R $U $pD
 
-echo "--Setting ownership to $U"
+echo -e "..Setting ownership to ${yellow}$U${NC}"
 
 for i in "bin" "aliases" "env"; do 
  if [ -L "$pD/$i/active" ]; then
-  echo "---Removing $pD/$i/active..."
+  echo -e "...${red}Removing${NC} $pD/${red}$i/active${NC}..."
   rm -f "$pD/$i/active"
  fi
- echo "---linking $pD/$i/$HN to $pD/$i/active"
+ echo -e "...${yellow}linking${NC} $pD/$i/${blue}$HN${NC} to $pD/${yellow}$i/active${NC}"
  ln -s "$pD/$i/$HN" "$pD/$i/active"
 done
 
-echo "--Setting up Bashrc..."
+
+envScripts="$pD/env/$(hostname)/environment_scripts"
+if [ -d "$envScripts" ]; then
+	echo -e "..Running setup scripts for ${red}$(hostname)${NC} ..."
+	for i in `ls $envScripts`; do $envScripts/$i;done
+fi
+
+echo -e "..Setting up ${red}Bashrc${NC}..."
 mv $HOME/.bashrc $HOME/.bashrc_old
 ln -s "$pD/env/bashrc" "$HOME/.bashrc"
 source $HOME/.bashrc

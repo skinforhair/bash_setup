@@ -1,0 +1,49 @@
+#!/bin/bash
+for f in ~/.bin/lib/*; do source $f; done
+
+### - Find local path (See ~/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+output=index.html
+if [ -f $output ]; then rm -rf $output; fi
+
+remotedir=/glados/screenshots/
+
+Minutes=5
+
+seconds=$((Minutes*60))
+
+for i in `ls *.mkv` `ls *.mp4` `ls *.avi`; do 
+if [ "${i:0:2}" != "ls" ]; then
+ Sz=`du -h "$i" | awk '{print $1;}'`"B"
+ FN="${i:0:$((${#i}-4))}"
+ mkdir "$FN"
+ echo "$Sz" >> $FN/size.txt
+ ffmpeg -i $i -vf fps=1/$seconds $FN/$FN-%03d.jpg
+fi
+done
+
+for i in `ls -d */`; do 
+ if [ "$i" != "Convert/" ] && [ "$i" != "get_srt/" ]; then 
+  c=$Minutes
+  Sz="$(cat $i/size.txt)"
+  echo "<h1> $i - $Sz</h1>" >> $output
+  echo "<table border=0 cellspacing=0 cellpadding=0><tr>" >> $output
+  for j in `find $i -name "*.jpg"`; do
+	echo "<td><img src=\"$j\" height=50></img><br>$c minutes</td>" >> $output
+	c=$((c+$Minutes))
+  done
+  echo "</tr></table>" >> $output
+  echo "<br>" >> $output
+  mv $i $remotedir
+ fi
+done
+
+mv $output $remotedir
+

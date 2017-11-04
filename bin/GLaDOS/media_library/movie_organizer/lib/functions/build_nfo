@@ -1,0 +1,205 @@
+#!/bin/bash
+
+function NFOActors() {
+  # 1 - actor list
+  # 2 - Character list
+  # 3 - output NFO file
+  # 4 - (optional) limit number of actors
+        IFS=',' read -a array <<< "$1"
+        IFS=',' read -a brray <<< "$2"
+
+        counter=0
+        if [ "$4" != "" ]; then
+                limit=$4
+        else
+                limit=${#array[@]}
+        fi
+        while [ $counter -lt $limit ]; do
+           if [ "$counter" = "0" ]; then
+                echo "<actor clear='true'>" >> "$3"
+                echo "  <name>${array[$counter]}</name>" >> "$3"
+                echo "  <role>${brray[$counter]}</role>" >> "$3"
+                echo "</actor>" >> "$3"
+           else
+                echo "<actor>" >> "$3"
+                        actorName=${array[$counter]}
+                        roleName=${brray[$counter]}
+                        actorName=${actorName:1}
+                        roleName=${roleName:1}
+                echo "  <name>$actorName</name>" >> "$3"
+                echo "  <role>$roleName</role>" >> "$3"
+                echo "</actor>" >> "$3"
+           fi
+             counter=$((counter+1))
+        done
+} #END NFOActors
+
+
+function NFOCrew() {
+  # 1 - crew jobs list
+  # 2 - crew names list
+  # 3 - job to search for
+  # 4 - output NFO file
+        IFS=',' read -a array <<< "$1"
+        IFS=',' read -a brray <<< "$2"
+
+        counter=0
+        found=0
+        limit=${#array[@]}
+        while [ $counter -lt $limit ]; do
+         current="${array[$counter]}"
+         if [ "${current,,}" == "${3,,}" ]; then
+           if [ "$found" = "0" ]; then
+                echo "<${array[$counter]} clear='true'>${brray[$counter]}</${array[$counter]}>" >> "$4"
+           else
+                echo "<${array[$counter]}>${brray[$counter]}</${array[$counter]}>" >> "$4"
+           fi
+           found=$((found+1))
+         fi
+         counter=$((counter+1))
+        done
+} #END NFOCrew
+
+function arrayContains() {
+    local array=$1
+    local seeking=$2
+    local in="n"
+    local count=0
+    while [ $count -lt ${#array[@]} ]; do
+        if [[ "${array[$count]}" == "$seeking" ]]; then
+            in="y"
+            break
+        fi
+        count=$(($count+1))
+    done
+    echo $in
+} #arrayContains
+
+function merge_arrays() {
+	# 1 - list from movie
+	# 2 - Array type (genre or keyword)
+	# 3 - shelfID
+	# 4 - collectionID
+  stringC=$(echo "select $2s from $collectionTable where id=$4" |mysql $dbOptions)
+  stringS=$(echo "select $2s from $shelfTable where id=$3" |mysql $dbOptions)
+  bigString="$1,$stringC,$stringS"
+  bigString=${bigString,,}
+  IFS=',' read -a array <<< "$bigString"
+
+IFS=$','
+narray=($(printf "%s\n" "${array[@]}" | sort -u | tr '\n' ','))
+
+new_array=
+c=0;j=0;while [ $c -lt ${#narray[@]} ]; do
+  skstring="${narray[$c]}"
+  if [ "${skstring:0:1}" == " " ]; then
+    skstring=${seekstring:1}
+  fi
+  if [ $(arrayContains "$new_array" "$skstring") == "n" ]; then
+    new_array[$j]=$skstring
+    j=$((j+1))
+  else
+#    new_array[$j]="DUP"
+    j=$((j+1))
+  fi
+ c=$((c+1))
+done
+#new_array=($(echo "${array[@]}" | tr ',' '\n' | sort -u | tr '\n' ','))
+unset IFS
+ c=0
+ output=
+
+while [ $c -lt ${#new_array[@]} ]; do
+  thisLine="${new_array[$c]}"
+  if [ "$output" == "" ] && [ "$thisLine" != "" ]; then
+    output="${new_array[$c]}"
+  else
+   if [ "$thisLine" != "" ]; then
+    output="$output, ${new_array[$c]}"
+   fi
+  fi
+  c=$((c+1))
+done
+echo $output
+} #END merge_arrays
+
+function NFOGroup() {
+        # 1 - list from movie array
+        # 2 - type we're grouping
+        # 3 - output NFO file
+        barray=$(merge_arrays "$1" "$2" "${searchTerms[25]}" "${searchTerms[23]}")
+        IFS=',' read -a array <<< "$barray"
+        counter=0
+        while [ $counter -lt ${#array[@]} ]; do
+                theWord=${array[$counter]}
+		if [ "${theWord:0:1}" == " " ]; then
+		  theWord=${theWord:1}
+		fi
+                theWord=${theWord^}
+                if [ "$counter" = "0" ]; then
+                        echo "<$2 clear='true'>$theWord</$2>" >> $3
+                else
+
+                        echo "<$2>$theWord</$2>" >> $3
+                fi
+         counter=$((counter+1))
+        done
+} #END NFOGroup
+
+
+function build_nfo() {
+ outputNFO="$tempPath/$1.nfo"
+        echo "<nfo>" > $outputNFO
+		myTitle=`echo "${searchTerms[1]}" |sed "s;'';';g"`
+        echo "  <title>$myTitle</title>" >> $outputNFO
+        echo "  <year>${searchTerms[2]}</year>" >> $outputNFO
+        echo "  <plot>${searchTerms[8]}</plot>" >> $outputNFO
+        echo "  <runtime>${searchTerms[6]}</runtime>" >> $outputNFO
+        echo "  <id>${searchTerms[26]}</id>" >> $outputNFO
+	echo "  <tmdb_id>${searhTerms[27]}</tmdb_id>" >> $outputNFO
+        echo "  <tagline>${searchTerms[9]}</tagline>" >> $outputNFO
+        echo "  <mpaa>${searchTerms[7]}</mpaa>" >> $outputNFO
+        NFOActors "${searchTerms[10]}" "${searchTerms[11]}" "$outputNFO"
+        NFOCrew "${searchTerms[12]}" "${searchTerms[13]}" "director" "$outputNFO"
+        NFOCrew "${searchTerms[12]}" "${searchTerms[13]}" "writer" "$outputNFO"
+        echo "<quality>${searchTerms[5]}</quality>" >> $outputNFO
+
+        tagList="${searchTerms[17]}"
+        #if movie is in a shelf, then add a tag
+        if [ "${searchTerms[25]}" != "0" ]; then
+         #ignore 1, 6, 20 and 21, which are Marvel and DC
+         case "${searchTerms[25]}" in
+         1|6|20|21 ) searchTerms[17]="$tagList" ;;
+         * )
+          shelfName=$(echo "select name from $shelfTable where id=${searchTerms[25]}" |mysql $dbOptions)
+	  if [ "$tagList" != "" ]; then
+	    tagList="$tagList,$shelfName"
+          else
+	    tagList="$shelfName"
+	  fi
+	  searchTerms[17]="$tagList"
+         ;;
+         esac
+        fi
+
+
+	#if tags are blank, see if there are some in the DB
+	 if [ "${searchTerms[17]}" == "" ] && [ "${dbTerms[17]}" != "" ]; then
+		searchTerms[17]="${dbTerms[17]}"
+ 	 fi
+
+        #if movie is in a set, then we get set, genre, and keyword info from that
+        if [ "${searchTerms[23]}" != "0" ] && [ "${searchTerms[23]}" != "" ]; then
+         setName=$(echo "select name from $collectionTable where id=${searchTerms[23]}" |mysql $dbOptions)
+ 	 echo "  <set>$setName Collection</set>" >> $outputNFO
+	 if [ "${searchTerms[24]}" != "" ] && [ "${searchTerms[24]}" != "0" ]; then
+  	  echo "  <sorttitle>$setName ${searchTerms[24]}</sorttitle>" >> $outputNFO
+	 fi
+        fi
+
+        #get the movie's genre and keywords
+         NFOGroup "${searchTerms[15]}" "genre" "$outputNFO"
+         NFOGroup "${searchTerms[16]}" "keyword" "$outputNFO"
+         NFOGroup "$tagList" "tag" "$outputNFO"
+        echo "</nfo>" >> $outputNFO
+} #END build_nfo

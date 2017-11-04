@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function display_array() {
+  counter=0
+  while [ $counter -lt ${#searchTerms[@]} ]; do
+       echo -e "$counter: ${yellow} ${searchTerms[$counter]} ${NC}"
+       counter=$((counter+1))
+  done
+} #END display_array
+
+function display_original() {
+  counter=0
+  while [ $counter -lt ${#dbTerms[@]} ]; do
+       echo -e "$counter: ${red} ${dbTerms[$counter]} ${NC}"
+       counter=$((counter+1))
+  done
+} #END display_original

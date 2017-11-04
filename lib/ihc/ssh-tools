@@ -1,0 +1,52 @@
+#!/bin/bash
+
+grab_agent_vars() {
+  if [ -d $HOME/.ssh ]; then
+      for var in SSH_AUTH_SOCK SSH_AGENT_PID; do
+          (eval echo $var=\$$var) | sed 's/=/="/; s/$/"/; s/^/export /';
+      done > $HOME/.ssh/agent_vars
+      chmod 600 $HOME/.ssh/agent_vars
+  else
+      echo "Cannot find $HOME/.ssh"
+  fi
+}
+
+Fix_agent() {
+    source $HOME/.ssh/agent_vars
+}
+
+New_agent() {
+    eval `ssh-agent -s`
+    ssh-add
+    grab_agent_vars
+}
+
+ssha() {
+    ssha_count=`ps -u jejackso | grep [s]sh-agent | wc -l`
+    if [ $ssha_count -gt 0 ]; then
+        if [ $ssha_count -eq 1 ]; then
+            echo "  Attempting to use existing agent."
+        else
+            echo "  $ssha_count ssh-agents running. Attempting to use one."
+            plural="s"
+        fi
+       found_agent="false"
+       for ssha_pid in `ps -u jejackso | awk '/ssh-agent/ {print $1}'`; do
+          grep $ssha_pid $HOME/.ssh/agent_vars 2>&1 | grep SSH_AGENT_PID >/dev/null 2>&1
+          ret=$?
+          if [ $ret -eq 0 ]; then
+              echo "  Using existing ssh-agent, process $ssha_pid."
+              found_agent="true"
+              Fix_agent
+              break
+          fi
+       done
+       if [ $found_agent == "false" ]; then
+           echo "  Cannot use existing agent${plural}."
+           New_agent
+       fi
+     else
+         New_agent
+     fi
+}
+

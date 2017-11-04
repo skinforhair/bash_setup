@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+
+serverName="$1"
+username="sstak"
+uid="31076"
+gid="31076"
+gec="Snehal Tak"
+grouplist=""
+sudo="no"
+
+GROUPADD="echo \\"\""Adding GID $gid as group $username\\"\"";sudo /usr/sbin/groupadd"
+USERADD="echo \\"\""Adding $gec UID $uid\\"\"";sudo /usr/sbin/useradd"
+
+groupString="-g $gid"
+userString="-u $uid $username"
+homeString="-d /home/$username -m"
+bashString="-s /bin/bash"
+commentString="-c \\""\"""$gec\\""\""
+
+pwdString="echo \\""\"temp01\\"\"" |sudo passwd $username --stdin > /dev/null"
+
+groupAddString="$GROUPADD $groupString $username"
+userAddString="$USERADD $groupString $homeString $bashString $commentString $userString"
+pwdExpireString="sudo chage -d 0 -M 98 -W 18 $username"
+
+stringZ="$groupAddString;$userAddString;$pwdString;$pwdExpireString"
+
+if [ "$sudo" == "yes" ]; then
+    stringZ="$stringZ;sudo /usr/sbin/usermod -a -G wheel $username"
+fi
+
+if [ "$grouplist" != "" ]; then
+    stringZ="$stringZ;sudo /usr/sbin/usermod -a -G $grouplist $username"
+fi
+
+stringZ="$stringZ;id $username"
+
+echo "ssh -q $serverName \"$stringZ\""

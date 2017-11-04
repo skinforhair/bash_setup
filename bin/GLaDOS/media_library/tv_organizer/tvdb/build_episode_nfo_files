@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+#JQ command for pulling an episode:
+# Pulls S01E05:
+#cat episodeinfo.json |jq ".data[] | select( .airedSeason==1)| select (.airedEpisodeNumber==5)"
+

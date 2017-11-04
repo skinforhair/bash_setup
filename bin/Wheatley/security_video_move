@@ -1,0 +1,36 @@
+#!/bin/bash
+#for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
+
+### - Find local path (See ~/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+LOCAL_STORE="/cortana/security_cameras"
+LOCAL_BUCKET="$LOCAL_STORE/transfer"
+REMOTE_BUCKET="/shares/fridge/Security_Cameras/"
+LOGFILE="$LOCAL_STORE/logs/transfer.`date +%F.%H.%M`.log"
+
+conn="jar@192.168.1.143"
+
+#grab all videos and put them in the transfer bucket
+find $LOCAL_STORE/video -name "*.mp4" -print0 | xargs -0 -I file mv file $LOCAL_BUCKET/
+
+extension="mp4"
+ #if there files of extension are here, copy them, otherwise, check remote
+ count=`ls -1 $LOCAL_BUCKET/*.$extension 2>/dev/null | wc -l`
+ if [ $count != 0 ]; then
+   for i in $LOCAL_BUCKET/*.$extension; do
+     scp "$i" $conn:$REMOTE_BUCKET
+      if [ $? = 0 ]; then
+        echo "`date +[%H:%M]`: $i" >> $LOGFILE
+        rm "$i"
+      else
+        echo -e "${red}Incomplete Copy!${nc}"
+      fi
+    done
+fi

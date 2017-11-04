@@ -1,0 +1,129 @@
+#!/bin/bash
+
+############
+### VPN Tool
+############
+DIR="$pBIN/Wheatley/vpn_tools"
+
+#############################
+### Libraries and Functions
+#############################
+#for f in $pLIB/*; do if [ -f $f ]; then  source $f;fi; done
+OIFS=$IFS
+
+VPNfile="$DIR/currVPN"
+currVPN=`cat $VPNfile`
+
+#set UUIDs
+if [ -f "VPNlist" ]; then
+ source "VPNlist"
+else
+#US West
+N[0]="US West"
+U[0]="dc143ca3-d26d-4383-a1f6-f8f4385735c9"
+#US California
+N[1]="California"
+U[1]="a3d26795-c39d-4af3-ac12-86d3ddb67cc7"
+#US Seattle
+N[2]="Seattle"
+U[2]="196ee11d-a6bc-4f3c-aff1-009708c0fb42"
+#US Texas
+N[3]="Texas"
+U[3]="b93ec6a5-4a9f-4fd3-9cc6-500c196ac745"
+#US Florida
+N[4]="Florida"
+U[4]="6f48f857-2aac-4d04-8429-7252ca190951"
+#US Midwest
+N[5]="Midwest"
+U[5]="43283858-f80b-4d99-9a8f-75016fac6efa"
+#US Silicon Valley
+N[6]="US Silicon Valley"
+U[6]="9ff8e7e1-5164-44d0-9c8b-226dc4f4545a"
+#US East
+N[7]="US East"
+U[7]="bec09718-b79e-4e86-90d7-9949e0d7706e"
+#Netherlands
+N[8]="Netherlands"
+U[8]="3e5bd572-b0cd-4549-86cc-e8e9881cd28b"
+fi
+
+Lim=${#U[@]}
+ Lim=$((Lim-1))
+
+function VPNdisconnect() {
+ c="$1"
+ echo "Disconnecting from ${N[c]}..."
+  sudo nmcli c down id "${N[c]}"
+} #disconnect
+
+function changeNum() {
+  c="$1"
+  if [ "$c" == "$Lim" ]; then
+        c=0
+  else
+        c=$((c+1))
+  fi
+ echo "$c"
+} #changeNum
+
+function VPNconnect() {
+ c="$1"
+ echo "Connecting to ${N[c]}..."
+  sudo nmcli c up id "${N[c]}"
+} #connect
+
+function writeout() {
+ c="$1"
+ echo $c > $VPNfile
+}
+
+function VPNstatus() {
+ com=".bin/wan_ip"
+ rcom="/root/$com"
+ lcom="/home/jar/$com"
+
+ R=$(ssh glados "dig +short myip.opendns.com @resolver1.opendns.com")
+ L=$(dig +short myip.opendns.com @resolver1.opendns.com)
+
+  R=$(echo "$R" |awk '{print $4}')
+  L=$(echo "$L" |awk '{print $4}')
+
+ if [ "$R" == "$L" ]; then
+	echo 0
+ else
+	echo 1
+ fi
+
+ echo "$R" > "$DIR/glados_wan_ip.txt"
+ echo "$L" > "$DIR/wheatley_wan_ip.txt"
+
+} #VPNstatus
+
+function print_VPNstatus() {
+ s=$(VPNstatus)
+ if [ "$s" == "0" ]; then
+	echo "VPN Disconnected."
+ else
+ 	echo "VPN Connected to ${N[currVPN]}"
+ fi
+} #print_VPNstatus
+
+function VPNrotate() {
+ s=0
+ while [ "$s" == "0" ]; do
+   VPNdisconnect "$currVPN"
+   currVPN=$(changeNum "$currVPN")
+   VPNconnect "$currVPN"
+   s=$(VPNstatus)
+ done
+   writeout "$currVPN"
+} #VPNrotate
+
+case "$1" in
+ "start") VPNconnect "$currVPN"; echo "---"; print_VPNstatus;;
+ "stop") VPNdisconnect "$currVPN"; echo "---"; print_VPNstatus;;
+ "status") print_VPNstatus;;
+ "") print_VPNstatus;;
+ "rotate") VPNrotate; echo "---"; print_VPNstatus;;
+ *) echo "boo";;
+esac

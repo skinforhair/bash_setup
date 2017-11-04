@@ -1,0 +1,130 @@
+#!/bin/bash
+
+source $pLIB/colors
+source $pBIN/GLaDOS/media_library/lib/db_connection
+
+
+inputSRT="$1"
+outputDIR="/shares/incoming/srt/done"
+
+filename=`echo "$inputSRT" |sed "s;\.;\ ;g"`
+
+ arr=($filename)
+ arr_len=${#arr[@]}
+ arr_len=$((arr_len-1))
+ 
+
+for w in ${arr[@]}; do
+ 
+  if [ "${w:0:2}" = "19" ] || [ "${w:0:2}" = "20" ] || [ "${w:1:2}" = "19" ] || [ "${w:1:2}" = "20" ] && [ "${w:0:1}" != "7" ]; then
+
+        if [ "${w:0:1}" = "(" ]; then
+                word=${w:1:$((${#w}-2))}
+        fi
+#echo "year is $word"
+
+    Year="$w"
+     if [ ${Year:0:1} == "(" ]; then
+	Year=${Year:1}
+     fi
+     if [ ${Year:$((${#Year}-1))} == ")" ]; then
+	Year=${Year:0:$((${#Year}-1))}
+     fi
+    titleCount=0
+
+    while [ $titleCount -lt $index ]; do
+       Title="$Title ${arr[$titleCount]}"
+       titleCount=$((titleCount+1))
+    done
+
+    Title=${Title:0}
+   URLTitle=`echo "$Title" |sed 's/\ /%20/g'`
+    URLTitle=`echo "$URLTitle" |sed 's/\:/%3A/g'`
+
+  else
+    if [ ${w:0:5} = "1080p" ] || [ ${w:0:4} = "720p" ]; then
+         Quality="$w"
+    fi
+  fi
+
+
+   index=$((index+1))
+
+  done
+
+ if [ "$Title" == "" ]; then
+#       echo "Malformed file name. Please Check"
+        Title="${arr[0]} ${arr[1]} ${arr[2]}"
+        Title=`echo "$Title" |sed "s/'//g"`
+        Title=`echo "$Title" |sed "s/’/\'/g"`
+        URLTitle=`echo "$Title" |sed 's/\ /%20/g'`
+#       exit 0;
+ fi
+
+ if [ ${URLTitle:0:3} == "%20" ]; then
+        URLTitle=${URLTitle:3}
+ fi
+ if [ "${Title:0:1}" == " " ]; then
+        Title=${Title:1}
+ fi
+
+Tarray=($Title)
+#sTitle=${Tarray[0]}
+# if [ "$sTitle" == "The" ]; then
+#   sTitle=${Tarray[1]}
+# fi
+
+if [ "${Tarray[0]}" != "The" ]; then
+	sTitle=${Tarray[0]}" "${Tarray[1]}
+else
+	sTitle=${Tarray[1]}" "${Tarray[2]}
+fi
+
+#sTitle=`echo "$sTitle" |sed "s;\';\'\';g"`
+sTitle=${sTitle:0:$((${#sTitle}-1))}
+
+echo -e "Title is ${yellow}$Title${NC} (${Cyan}$Year${NC})"
+
+query="select local_path from movies where title LIKE '%$sTitle%' and year = '$Year'"
+#echo -e "${Cyan}$query${NC}"
+id=$(echo "$query" | mysql $dbOptions)
+#id=`echo "$id" |sed "s;\ ;\\\\\ ;g"`
+#id=`echo "$id" |sed 's;);\\\);g'`
+#id=`echo "$id" |sed 's;(;\\\(;g'`
+
+movie=
+#echo -e "${Cyan}id is $id${NC}"
+if [ "$id" != "" ]; then
+ echo -e "${Cyan}Found $id${NC}"
+fi
+
+movie=`ls "$id" |grep "mp4"`
+if [ "$movie" == "" ]; then
+  movie=`ls "$id" |grep "avi"`
+fi
+if [ "$movie" == "" ]; then
+  movie=`ls "$id" |grep "mkv"`
+fi
+
+
+if [ "$movie" == "" ]; then
+  echo -e "${red}No movie found!${NC}"
+else
+  srt=${movie:0:$((${#movie}-3))}
+  srt=$srt"srt"
+  echo ""
+  echo -e "Moving ${Cyan}$1${NC} to ${yellow}$id/$srt${NC}..."
+#  read SomeVar
+  if [ -d "$id" ]; then
+	  mv "$1" "$id/$srt"
+  else
+	echo -e "${red}$id${NC} Not Found."
+  fi
+  #echo -e "${Cyan}$query${NC}"
+fi
+
+
+
+
+
+

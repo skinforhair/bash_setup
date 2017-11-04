@@ -1,0 +1,9 @@
+#!/bin/bash
+
+## These are the maximum height limits for each 
+## level of video quality.
+
+SD=350
+DVD=510
+HD_720=800
+HD_1080=1200

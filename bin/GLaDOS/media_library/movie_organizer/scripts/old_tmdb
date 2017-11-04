@@ -1,0 +1,188 @@
+#!/bin/bash
+##############################
+### TMDB movie scraper
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+source $DIR/lib/tmdb_functions
+source $DIR/lib/functions
+
+
+##############
+### Accepted arguments:
+###  -c (clean directory) 
+###     removes the existing jpg, nfo, and json files
+###  -n (nolookup)
+###	pull information locally, instead of from tmdb
+###  -s (specific)
+###	look for specific names when doing set lookups
+###        ie, RED vs Predator. 
+
+######################
+### PRIMARY METHOD
+######################
+movie=
+
+if [ "$2" == "-c" ] || [ "$3" == "-c" ]; then
+	clean_directory
+fi
+	
+
+#gets title, year, and hopefully quality and size from file
+parseFilename "$1"
+
+
+
+if [ "$2" != "-n" ] && [ "$3" != "-n" ]; then
+#Check if it is already in the db
+#echo -e "${yellow}2 is $2 and 3 is $3${NC}"
+
+#jartitle=`echo "${movie[3]}" |sed "s;';'';g"`
+#echo -e "found ${yellow}$jartitle${NC}"
+
+dbID=$(get_local_id "${movie[3]}" "${movie[4]}")
+ #If there is a period in the title, sometimes it gets lost...
+ if [ "$dbID" == "" ]; then
+	#echo -e "${Cyan}...${NC}"
+	tryTitle=`echo "${movie[3]}" |sed 's;r\ ;r\.\ ;g'`
+	dbID=$(get_local_id "$tryTitle" "${movie[4]}")
+ fi
+else
+	dbID=
+fi
+
+#get tmdb id of movie
+movie[2]=$(get_tmdb_id "${movie[3]}" "${movie[4]}")
+  #echo -e "${yellow}${movie[2]}${NC}"
+echo "Checking ${movie[3]} (${movie[4]})..."
+
+        #Grab the json file
+	jsonFile=$(sanitize "${movie[3]}" "title")
+        jsonFile="$jsonFile.${movie[4]}.json"
+	if [ -a "$jsonFile" ]; then
+		mv "$jsonFile" "$tempPath"
+	fi
+	if [ ! -a "$tempPath/$jsonFile" ]; then
+		get_movie_json "${movie[2]}" "$tempPath/$jsonFile"
+	fi
+		#echo -e "${yellow}reading $tempPath/$jsonFile${NC}..."
+	        movie_json=`cat "$tempPath/$jsonFile"`
+
+
+        MI=`/usr/bin/mediainfo "$1" |grep Height`
+        FS=$" " read -a MediaSize <<< "$MI"
+        MH=`echo "${MediaSize[2]}"`
+        if [ "$MH" == "" ]; then
+             Fsize="Unknown"
+        elif [ $MH -lt 350 ]; then
+             Fsize="SD"
+        elif [ $MH -lt 510 ]; then
+             Fsize="DVD"
+        elif [ $MH -lt 800 ]; then
+             Fsize="720p"
+        else
+             Fsize="1080p"
+        fi
+
+
+
+ if [ "$dbID" != "" ]; then
+   newfile_size="${movie[20]}"
+   newfile_type="${movie[19]}"
+   echo -e "Found ${red}${movie[3]}${NC} (${red}${movie[4]}${NC}) in the database. Populating..."
+   db_to_array "$dbID"
+   echo -e "${Cyan}${movie[3]}${NC} (${Cyan}${movie[4]}${NC})"
+   echo "\"$newfile_size\" \"$newfile_type\" \"${movie[20]}\" \"${movie[19]}\" \"$1\""
+   compareFiles "$newfile_size" "$newfile_type" "${movie[20]}" "${movie[19]}" "$1"
+
+
+   if [ ${movie[21]} == "Unknown" ]; then
+                if [ "$MH" == "" ]; then
+                        movie[21]="Unknown"
+                elif [ $MH -lt 350 ]; then
+                        movie[21]="SD"
+                elif [ $MH -lt 510 ]; then
+                        movie[21]="DVD"
+                elif [ $MH -lt 800 ]; then
+                        movie[21]="720p"
+                else
+                        movie[21]="1080p"
+                fi
+   fi
+
+ else #file is not in the database
+	if [ -a "$tempPath/$jsonFile" ]; then
+	        echo "Reading from $jsonFile"
+	else
+		echo -e "${red}No JSON in $tempPath$jsonFile.${NC}"
+		echo -e "Aborting."
+		exit 0
+	fi
+        json_to_array "$movie_json"
+ fi
+
+if [ "$2" == "-s" ] || [ "$3" == "-s" ]; then
+	get_specific_sets "$movie_json" "$Fsize"
+else
+	get_sets "$movie_json" "$Fsize"
+fi
+
+pushd $(dirname "$1")
+ localDIR="$PWD/"
+popd
+
+
+nfoFileName=$(createNFO)
+createPath "$localDIR"
+myNewFileName="${movie[3]}.${movie[4]}"
+myNewFileName=$(sanitize "$myNewFileName" "title")
+
+ if [ ${movie[21]} != "Unknown" ]; then
+	myNewFileName="$myNewFileName.${movie[21]}"
+ fi
+
+ if [ -a "$jsonFile" ]; then
+	mv "$jsonFile" "${movie[22]}/$myNewFileName.json"
+ fi
+
+ if [ -a "$tempPath/$jsonFile" ]; then
+        mv "$tempPath/$jsonFile" "${movie[22]}/$myNewFileName.json"
+ fi
+
+ if [ -a "$nfoFileName" ]; then
+	mv "$nfoFileName" "${movie[22]}/$myNewFileName.nfo"
+ fi
+
+myNewFileName="$myNewFileName.${movie[19]}"
+mv "$1" "${movie[22]}/$myNewFileName"
+
+
+downloadArtwork
+
+rm $tempPath/*.json
+
+#to implement: desired behavior
+#write a script for special case to refresh db entry by downloading json.
+
+#current problems:
+
+#next steps:
+

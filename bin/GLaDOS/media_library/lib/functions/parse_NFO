@@ -1,0 +1,31 @@
+#!/bin/bash
+
+function parse_NFO() {
+# IFS=$'\n' read -a nfoArray <<< "$1"
+ readarray -t nfoArray <<<"$1"
+# echo "${nfoArray[0]} --- ${nfoArray[1]} --- ${nfoArray[2]} --- ${nfoArray[3]} --- ${nfoArray[4]}"	
+
+title="${nfoArray[1]}"
+ spot=`expr index "$title" '>'`
+ title=${title:$spot}
+ spot=`expr index "$title" '<'`
+ title=${title:0:$((spot-1))}
+ #title=`echo "$title" |sed "s;';'';g"`
+
+year="${nfoArray[2]}"
+ spot=`expr index "$year" '>'`
+ year=${year:$spot}
+ spot=`expr index "$year" '<'`
+ year=${year:0:$((spot-1))}
+
+#echo "Checking $title ($year)..."
+
+dbID=$(echo "select id from $movieTable where title=\"$title\" and year=\"$year\"" |mysql $dbOptions)
+
+#if [ "$dbID" == "" ]; then
+# echo "$title ($year)"
+#else
+ echo $dbID
+#fi
+
+} #END parse_NFO

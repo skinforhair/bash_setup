@@ -1,0 +1,30 @@
+NEW				OLD
+0:  id				0: Title
+1:  title			1: year
+2:  year			2: filetype
+3:  filetype			3: filesize
+4:  filesize			4: quality
+5:  video_quality		5: superset
+6:  runtime			6: collection/set
+7:  mpaa			7: set_number
+8:  plot			8: runtime
+9:  tagline			9: mpaa
+10: actors			10: Plot
+11: characters			11: tagline
+12: crew_jobs			12: actors
+13: crew_names			13: characters
+14: releasedate			14: crew jobs
+15: genres			15: crew names
+16: keywords			16: release date
+17: tags			17: genres
+18: poster_path			18: keywords
+19: backdrop_path		19: poster path
+20: added			20: backdrop path
+21: local_path			21: local_path
+22: url_path			22: url_path
+23: set_id			23: title.year.quality
+24: set_num			24: imdb_id
+25: superset_id			25: tmdb_id
+26: imdb_id			26: tags
+27: tmdb_id			27: added
+28: title.year.quality

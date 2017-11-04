@@ -1,0 +1,164 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+source $DIR/lib/db_connection
+for f in $DIR/lib/functions/*; do source $f; done
+source /root/.bin/lib/colors
+PAGES="$DIR/pages/"
+
+function cleanTMP() {
+        if [ -f $available ]; then rm $available; fi
+        if [ -f $upcoming ]; then rm $upcoming; fi
+#        if [ -f $output ]; then rm $output; else touch $output; fi
+} #END cleanTMP
+
+
+available="$DIR/tmp/avail.txt"
+upcoming="$DIR/tmp/upcom.txt"
+
+outfile="available_episodes.txt"
+remotepath="/home/jar/Downloads/"
+output="$DIR/tmp/$outfile"
+
+
+cleanTMP
+touch $available
+touch $upcoming
+touch $output
+
+SA=$(echo "select id from $tvshows where isActive=1" |mysql $dbOptions)
+SArr=($SA)
+
+maxlen=35
+i=0
+c=1
+while [ $i -lt ${#SArr[@]} ]; do
+	showID="${SArr[i]}"
+	i=$((i+1))
+
+show="showID=$showID"
+SN=$(echo "select showname from $tvshows where id=$showID" |mysql $dbOptions)
+
+S=$(echo "select max(season) from $tv_feed where $show" |mysql $dbOptions)
+Season="season=$S"
+
+E=$(echo "select max(episode) from $tv_feed where $show and $Season" |mysql $dbOptions)
+Episode="episode=$E"
+
+T=$(echo "select title from $tv_feed where $show and $Season and $Episode" |mysql $dbOptions)
+#echo "$SN Season $S Episode $E: $T"
+
+curlen=${#SN}
+
+
+ #echo -en "Checking show "
+ perc=$(echo "scale=2; $i*100/${#SArr[@]}" |bc)
+ perc=${perc:0:2}
+  if [ "${perc:1:1}" == "." ]; then
+        perc=${perc:0:1}
+  fi
+  if [ $perc -lt 33 ]; then
+        echo -en "${red}"
+  elif [ $perc -lt 66 ]; then
+        echo -en "${yellow}"
+  else
+        echo -en "${green}"
+  fi
+ if [ $i -lt 10 ]; then
+        echo -en "[ "
+ else
+        echo -en "["
+ fi
+ echo -en "$i${NC}/${#SArr[@]}]"
+
+ if false; then
+  case "$c" in
+        "1") echo -en "   | "\\r;c=2;;
+        "2") echo -en "   / "\\r;c=3;;
+        "3") echo -en "   - "\\r;c=4;;
+        "4") echo -en "   \ "\\r;c=1;;
+  esac
+ fi
+
+echo -en " ${blue}[ $SN"
+ while [ $curlen -lt $maxlen ]; do
+  echo -en " "
+  curlen=$((curlen+1))
+ done
+echo -en "]${NC}\\r"
+#Now find episode data
+
+E=$((E+1))
+t=$(EpGuideName_local "$SN" "$S" "$E")
+
+#echo "sending \"$SN\" \"$S\" \"$E\""
+#echo "t is $t"
+if [ "${t:0:3}" == "URL" ]; then
+	S=$((S+1))
+	E=1
+	t=$(EpGuideName_local "$SN" "$S" "$E")
+#echo "t changed to $t"
+fi
+
+if [ "${t:0:3}" != "ERR" ]; then
+	arr=($t)
+	if [ "${arr[1]}" != "1-1" ] && [ "${arr[1]}" != "1-10" ]; then
+		dt=${arr[2]}
+		if [ ${#dt} -lt 3 ]; then
+			dt="${arr[2]}/${arr[3]}/${arr[4]}"
+			n=5
+		else
+			n=3
+		fi
+			title=
+                        while [ $n -lt ${#arr[@]} ]; do
+                         title="$title ${arr[n]}"
+                         n=$((n+1))
+                        done
+		#pull opening brackets from title
+		brack=`expr index "$title" ]`
+		title=${title:$brack}
+      	    D="${dt:0:2}"
+	    M=$(month_to_number "${dt:3:3}")
+	    Y="${dt:7:2}"
+	    today=$(date +"%y%m%d")
+	    DT="$Y$M$D" 
+		if [ $DT -le $today ]; then
+		  echo "$SN ${arr[1]} -- $title -- $dt" >> $available
+		else
+		  echo "$SN ${arr[1]} -- $title -- $dt" >> $upcoming
+		fi
+
+         fi
+fi
+done
+		echo "Generated `date`" >> $output
+		echo -e "\n---- Available ----\n" >> $output
+	        cat "$available" >> $output
+                echo -e "\n---- Upcoming ----\n" >> $output
+                cat "$upcoming" >> $output
+              cleanTMP
+    ssh jar@wheatley "if [ -a $remotepath$outfile ]; then rm $remotepath$outfile; fi"
+    scp $output jar@wheatley:$remotepath
+		if [ $? == 0 ]; then
+			#rm $output
+			stamp=$(date +%m%d%Y)
+			mv $output $DIR/archive/$outfile.$stamp
+		fi
+

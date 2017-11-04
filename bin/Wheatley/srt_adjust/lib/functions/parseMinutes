@@ -1,0 +1,16 @@
+#!/bin/bash
+function parseMinutes() {
+  S=$1
+  M=$2
+  H=$3
+  
+  nMin=$(($S/60))
+  newMin=$(($nMin+$M))
+    if [ $newMin -ge 60 ]; then
+	H=$(($H+1))
+	newMin=$((newMin-60))
+    fi  
+  M=$newMin
+
+echo "$H:$M:$S"
+}

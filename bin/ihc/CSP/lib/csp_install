@@ -1,0 +1,63 @@
+#!/bin/bash
+
+
+#### Uninstall CSP
+ #rpm -e SYMCcsp
+ #rm -f /var/spool/mail/sisips
+ #ps -ef |grep [s]isi
+
+#### Check if sisips module is running
+ #lsmod |grep sisips
+
+
+#### Install on client
+#### (On client, as your own user)
+ ### Create sisips user (to avoid having to change the uid/gid later)
+  ## AIX/RHEL create directories:
+      #sudo mkdir -p /opt/Symantec/scspagent/IPS
+      #sudo chmod 755 /opt/Symantec{,/scspagent{,/IPS}}
+
+  ## RHEL create user:
+      #sudo groupadd -g 10463 sisips
+      #sudo useradd -u 10463 -g sisips -c "SCSP_User" -s /bin/sh -d /opt/Symantec/scspagent/IPS sisips
+  ## AIX create user:
+      #sudo mkgroup id=10463 sisips
+      #sudo useradd -u 10463 -g sisips -G system -c "SCSP_User" -s /bin/sh -d /opt/Symantec/scspagent/IPS sisips
+
+  ## AIX/RHEL fix directory ownership:
+      #sudo chown -R sisips:sisips /opt/Symantec/scspagent
+
+ ### Get install package
+      #sudo mkdir /mnt/csp-install
+      #sudo mount lpv-sapwn01.co.ihc.com:/data/csp/csp-5.2.9mp6 /mnt/csp-install
+      #sudo rm /tmp/agent*.bin
+
+ ### If you are unable to mount the NFS share from lpv-sapnw01 (e.g. servers in PCI zone),scp the files manually:
+  ## From lpv-sapwn01:/data/csp/csp-<version>, run scp agent-<arch>.bin agent-cert.ssl <hostname>:/tmp/
+  ## Substitute the appropriate version, architecture, and hostname in the command above.
+  ## For PCI zone servers, you'll have to scp to lp-webhobbit01 -> lp-pciproxy1 -> PCI zone server
+
+ ## RHEL 5 32-bit:
+    #cp /mnt/csp-install/{agent-linux-rhel5.bin,agent-cert.ssl} /tmp/
+ ## RHEL 5 64-bit:
+    #cp /mnt/csp-install/{agent64-linux-rhel5.bin,agent-cert.ssl} /tmp/
+ ## RHEL 6 (64-bit only):
+    #cp /mnt/csp-install/{agent64-linux-rhel6.bin,agent-cert.ssl} /tmp/
+ ## AIX:
+    #cp /mnt/csp-install/{agent-aix.bin,agent-cert.ssl} /tmp/
+ ## Solaris 10 sparc:
+    #cp /mnt/csp-install/{agent-solaris10-sparc.bin,agent-cert.ssl} /tmp/
+ ## Solaris 10 x86:
+    #cp /mnt/csp-install/{agent-solaris10-x86.bin,agent-cert.ssl} /tmp/
+
+#### Install package
+  ### If more than one agent*.bin file is in /tmp, you'll have to either delete the extras or specify the correct one in this command.
+      #cd /tmp; sudo ./agent*.bin -silent -server=lpv-seccsp01.co.ihc.com -altservers=lpv-seccsp02.co.ihc.com -cert=agent-cert.ssl -ipsPolGrp=Nix -disableIps
+
+#### Clean up
+ #rm agent*.{bin,ssl}
+ #sudo umount /mnt/csp-install
+ #sudo rmdir /mnt/csp-install
+
+ 
+

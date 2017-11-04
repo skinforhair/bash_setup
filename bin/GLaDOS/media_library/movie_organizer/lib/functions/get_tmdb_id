@@ -1,0 +1,53 @@
+#!/bin/bash
+
+function get_tmdb_id() {
+ tmdbID=""
+        inputTitle=`echo $1 |sed 's;\ ;\%20;g'`
+        inputTitle=`echo "$inputTitle" |sed 's;\&;\%26;g'`
+#        inputTitle=`echo "$inputTitle" |sed 's;-;\%3A;g'`
+        #inputTitle=`echo "$inputTitle" |sed "s;';-;g"`
+        inputYear="$2"
+
+#echo "looking for $inputTitle $inputYear"
+
+        TMDB_SEARCH_URL="$TMDB_URL/search/movie?$API_KEY&query=$inputTitle"
+        if [ "$inputYear" != "" ]; then
+                TMDB_SEARCH_URL="$TMDB_SEARCH_URL&year=$inputYear"
+        fi
+
+	#echo -e "${yellow}TMDB: $TMDB_SEARCH_URL${NC}"
+        TMDB_SEARCH=`curl -s "$TMDB_SEARCH_URL"`
+	#echo "$TMDB_SEARCH_URL"
+        tmdbID=`echo $TMDB_SEARCH |jq '.results[0]' |jq '.id'`
+
+   #If there is a period in the title, sometimes it gets lost...
+   if [ "$tmdbID" == "null" ]; then
+        #echo -e "${Cyan}...${NC}"
+        ##tryTitle=`echo "$inputTitle" |sed 's;r\ ;r\.\ ;g'`
+        tryTitle=`echo "$inputTitle" |sed 's;\ ;\.\ ;g'`
+        dbID=$(local_id "$tryTitle" "$inputYear")
+	if [ "$dbID" == "" ]; then
+	  tryTitle=`echo "$1" |cut -d " " -f2-`
+	  if [ "$tryTitle" != "" ]; then
+		tmdbID=$(get_tmdb_id "$tryTitle" "$2")
+	  fi
+	fi
+   fi
+
+
+ if [ "$3" == "" ]; then
+  if [ "$tmdbID" == "null" ]; then
+	tryYear=$((inputYear-1))
+	#echo "trying $tryYear"
+	tmdbID=$(get_tmdb_id "$1" "$tryYear" "onedown")
+  fi
+  if [ "$tmdbID" == "null" ]; then
+	tryYear=$((inputYear+1))
+	#echo "trying $tryYear"
+	tmdbID=$(get_tmdb_id "$1" "$tryYear" "oneup")
+  fi
+ fi
+echo "$tmdbID"
+} #END get_tmdb_id
+
+#get_tmdb_id "$1" "$2"

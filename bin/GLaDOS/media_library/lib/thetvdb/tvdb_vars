@@ -1,0 +1,7 @@
+#Variables for accessing the API for thetvdb.com
+
+apikey="4B71B39C1AD74AC3"
+userkey="79C7E3B0BBA9CD73"
+username="skinforhair"
+URL="https://api.thetvdb.com/login"
+

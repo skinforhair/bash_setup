@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function info() {
+ if [ "$1" == "-n" ]; then
+  echo -en "${yellow}$2${NC}"
+ else
+  echo -e "${yellow}$1${NC}"
+ fi
+}
+
+function warn() {
+ info "$1" "$2"
+}
+
+

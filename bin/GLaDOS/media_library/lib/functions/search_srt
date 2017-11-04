@@ -1,0 +1,8 @@
+#!/bin/bash
+
+function search_srt() {
+
+ query="select id from $srt where movie_id = $1"
+
+
+}

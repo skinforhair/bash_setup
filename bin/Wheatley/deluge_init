@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function check_deluge(){
+   curr_daemon=$(ps afx |grep deluged |grep -v grep)
+   #if the port isn't specified in the current process, fix it
+   if [[ $curr_daemon != *"58846"* ]]; then
+      echo "FIXING DELUGE DAEMON..."
+      sudo killall deluged
+      /usr/bin/deluged -p 58846 &>/dev/null
+   fi
+}
+
+check_deluge
+

@@ -1,0 +1,110 @@
+#!/bin/bash
+if [ -a "$HOME/.bin/lib/ssh-tools" ]; then source $HOME/.bin/lib/ssh-tools; fi
+if [ -a "$HOME/.bin/lib/colors" ]; then source $HOME/.bin/lib/colors; C=1; else C=0; fi
+#source $HOME/.bin/lib/glados_tools
+
+if [ "${HOSTNAME:0:2}" == "tx" ] || [ "${HOSTNAME:0:2}" == "lp" ]; then
+    echo "NOPE."
+    exit 1;
+fi
+
+atWork=0
+atHome=0
+if [ "$HOSTNAME" == "DGPGMJ12" ]; then
+    tmpfile="/tmp/ipcfg.txt"
+    ipconfig |grep -B 4 IPv4 >> $tmpfile
+    IPS=`cat $tmpfile`
+    counter=0
+    while read line; do
+        #echo "$counter: $line"
+        #counter=$((counter+1))
+        if [ "${line:0:19}" == "Connection-specific" ]; then
+            #myNet="${line:$((${#line}-10)):10}"
+            colon=`expr index "$line" ':'`
+            myNet="${line:$(($colon+1))}"
+            myNet=${myNet,,}
+            if [ "$C" == "1" ]; then
+               echo -e "${red}Network is \"$myNet${NC}\""
+            else
+               echo "Network is \"$myNet\""
+            fi
+            case "$myNet" in
+                "co.ihc.com") atWork=1;atHome=0;;
+                "home") atWork=0;atHome=1;;
+            esac
+        fi
+    done < $tmpfile
+    rm $tmpfile
+    ssha
+elif [ "$HOSTNAME" == "Wheatley" ]; then
+	atHome=1
+fi
+
+
+
+
+REMOTEBOX="files.whosteppedingnome.com"
+if [ "$atWork" == "1" ]; then
+ #use the host name listed in ~/.ssh/config
+ REMOTEBOX="glados_from_work"
+fi
+if [ "$atHome" == "1" ]; then
+ #use a local address
+ REMOTEBOX="192.168.1.143"
+fi
+    if [ "$C" == "1" ]; then
+     echo -e "${yellow}Connecting to $REMOTEBOX${NC}"
+    else
+     echo "Connecting to $REMOTEBOX"
+    fi
+
+ REMOTEUSER="jar"
+ REMOTEPATH="/shares/incoming"
+ conn="$REMOTEUSER@$REMOTEBOX"
+
+
+
+if [ -z "$1" ]; then
+	#if no filename specified, then just ssh over
+	ssh $conn
+else
+	#if directory, then recursively copy that directory
+	if [[ -d "$1" ]]; then
+		scp -rp "$1" $conn:$REMOTEPATH
+	else
+		#if file, then copy that file
+		if [[ -e "$1" ]]; then
+			scp "$1" $conn:$REMOTEPATH
+        #if file extension, copy all files with that extension
+        elif [ "${1:0:1}" == "." ]; then
+            extension="${1:1:$((${#1}-1))}"
+	   #if there files of extension are here, copy them, otherwise, check remote
+	   count=`ls -1 *.$extension 2>/dev/null | wc -l`
+	   if [ $count != 0 ]; then
+            for i in *.$extension; do 
+		scp "$i" $conn:$REMOTEPATH
+  		  if [ $? = 0 ]; then
+		   if [ "$2" == "-d" ]; then
+			rm "$i"
+		   fi
+		  else
+		   if [ "$C" == "1" ]; then
+			echo -e "${red}Incomplete Copy!${nc}"
+		   else
+			echo "INCOMPLETE COPY!!"
+		   fi
+		  fi
+	    done
+	   else
+		scp $conn:"$REMOTEPATH/$1" . 
+	   fi
+        #if the file doesn't exist on this system, copy from remote
+        else
+			scp $conn:"$REMOTEPATH/$1" .
+		fi
+	fi
+fi
+
+
+
+#echo -e "at work is ${yellow}$atWork${NC}"

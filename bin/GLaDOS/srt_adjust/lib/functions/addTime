@@ -1,0 +1,75 @@
+#!/bin/bash
+function addTime() {
+ oT="$1"
+ nS="$2"
+ nN="$3"
+
+#parse original time
+#and remove leading zeroes
+sh=${oT:0:2}
+sm=${oT:3:2}
+ss=${oT:6:2}
+sn=${oT:9:3}
+
+while [ "${nS:0:1}" == "0" ]; do nS=${nS:1}; done
+if [ "$nS" == "" ]; then nS="0"; fi
+while [ "${nN:0:1}" == "0" ]; do nN=${nN:1}; done
+if [ "$nN" == "" ]; then nN="0"; fi
+
+while [ "${sh:0:1}" == "0" ]; do sh=${sh:1}; done
+if [ "$sh" == "" ]; then sh="0"; fi
+while [ "${sm:0:1}" == "0" ]; do sm=${sm:1}; done
+if [ "$sm" == "" ]; then sm="0"; fi
+while [ "${ss:0:1}" == "0" ]; do ss=${ss:1}; done
+if [ "$ss" == "" ]; then ss="0"; fi
+while [ "${sn:0:1}" == "0" ]; do sn=${sn:1}; done
+if [ "$sn" == "" ]; then sn="0"; fi
+
+
+
+nn=$(($nN+sn))
+ if [ $nn -ge 1000 ]; then
+        ss=$(($ss+1))
+        if [ $ss -ge 60 ]; then
+                sm=$(($sm+1))
+                ss=$(($ss-60))
+                if [ $sm -ge 60 ]; then
+                        sh=$(($sh+1))
+                        sm=$(($sm-60))
+                fi
+        fi
+        sn=$(($nn-1000))
+ else
+        sn=$nn
+ fi
+#echo "nano is now $sn"
+ns=$(($nS+ss))
+ if [ $ns -ge 60 ]; then
+        sm=$(($sm+1))
+        ss=$(($ns-60))
+        if [ $sm -ge 60 ]; then
+                sh=$(($sh+1))
+                sm=$(($sm-60))
+        fi
+ else
+        ss=$ns
+ fi
+
+ if [ ${#sh} -lt 2 ] && [ $sh -lt 10 ]; then
+        sh="0"$sh
+ fi
+ if [ ${#sm} -lt 2 ] && [ $sm -lt 10 ]; then
+        sm="0"$sm
+ fi
+ if [ ${#ss} -lt 2 ] && [ $ss -lt 10 ]; then
+        ss="0"$ss
+ fi
+ while [ ${#sn} -lt 3 ]; do
+        sn="0"$sn
+ done
+
+
+outputTime="$sh:$sm:$ss,$sn"
+echo "$outputTime"
+} #addTime
+

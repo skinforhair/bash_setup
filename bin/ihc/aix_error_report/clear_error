@@ -1,0 +1,46 @@
+#!/bin/bash
+
+OUTPUT=bob.txt
+serverlist=server.list
+i=$1
+e=$2
+
+
+function usage() {
+ echo "Usage: $0 [hostname] [error number]"
+ exit 0;
+}
+
+
+function SSH_Command(){
+  hostname="$1"
+  error="$2"
+  stringZ=`ssh -q $hostname "sudo errclear -j $error 0"`
+  if [ "$stringZ" != "" ]; then
+     echo "$i" >> $OUTPUT
+     echo "$stringZ" >> $OUTPUT
+     echo "" >> $OUTPUT
+  fi
+}
+
+if [ "$i" == "" ] || [ "$e" = "" ]; then
+    usage
+else
+
+ if [ "$i" == "all" ]; then
+     while read line; do
+        useme=`echo "$line" |grep "has ERRORS"`
+        if [ "$useme" != "" ]; then
+            i=$(echo "$line" |awk '{print $1}')
+            SSH_COMMAND "$i" "$e"
+        fi
+     done < $serverlist
+ else
+     SSH_COMMAND "$i" "$e"
+ fi #if i="all"
+fi
+
+if [ -f $OUTPUT ]; then
+ cat $OUTPUT
+ rm -f $OUTPUT
+fi

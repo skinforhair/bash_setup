@@ -1,0 +1,19 @@
+SSH_COM="$pLIB/single_command_ssh_function"
+if [ -a $SSH_COM ]; then
+ source $SSH_COM
+ 
+ alias bb8="single_command_ssh_function bb8"
+ alias r2d2="single_command_ssh_function r2d2"
+ alias eastgarage="single_command_ssh_function eastgarage"
+ alias westgarage="single_command_ssh_function westgarage "
+ alias wheatley="single_command_ssh_function wheatley"
+ alias spp="single_command_ssh_function spp"
+
+ alias rackspace="single_command_ssh_function rackspace"
+ alias byuvocalpoint="single_command_ssh_function rackspace"
+else
+ echo "can't find $SSH_COM"
+fi
+
+alias vocalpoint="ssh jar@byuvocalpoint.com"
+

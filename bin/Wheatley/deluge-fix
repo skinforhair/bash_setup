@@ -1,0 +1,15 @@
+#!/bin/bash
+for f in $pLIB/*; do source $f; done
+
+### - Find local path (See ~/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+
+echo "FIXING DELUGE DAEMON"
+sudo killall deluged
+/usr/bin/deluged -p 58846
+

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+outputfile=/etc/motd
+ NC='\033[0m' # no color
+ red='\033[0;31m'
+ green='\033[0;32m'
+ black='\e[0;30m'
+ white='\033[1;37m'
+ yellow='\033[1;33m'
+ cyan='\e[0;36m'
+ gray='\033[0;37m'
+ blue='\e[1;94m'
+ Bbg='\e[40m'
+b=$(perl -C -e "print chr 0x2589")
+
+echo -e "${yellow}+-----------  ${white}.,-:;//;:-,${NC}  ${yellow}----------------------------------------------------------------" > $outputfile
+echo -e "|         ${white}. :H000MM@M#H/.,+%;,     ${yellow}Wheatley:       WAN IP: ${cyan}$WAN${NC}" >> $outputfile
+echo -e "${yellow}+----  ${white},/X+ +M@@M@MM%=,-%HMMM@X/, ${yellow}---------------------------------------------------------" >> $outputfile
+echo -e "${yellow}|    ${white}-+@MM; SM@@MH+-,;XMMMM@MMMM@+-            ${yellow}Hosts                   Pi's ${NC}" >> $outputfile
+echo -e "${yellow}|   ${white};@M@@m- XM0X;. -+XXXXXHHH@M@M#@/. ${yellow}-----------------------------------------------------${NC}" >> $outputfile
+echo -e "${yellow}| ${white}%MM@@MH ,@%=${gray}$b$b$b$b$b$b$b$b$b$b$b$b${white}.---=-=:=,.     ${NC}Cortana    : $CortanaOnline   R2-D2      : $R2Online" >> $outputfile
+echo -e "${yellow}| ${white}=@#@@@MX .,${gray}$b$b$b$b$b$b$b$b$b$b$b$b$b$b${white} -%HXSS%%%+;    ${NC}Scholomance: $ScholoOnline   BB-8       : $BB8Online" >> $outputfile
+echo -e "${yellow}|${white}=-./@M@MS${gray}$b$b$b$b$b$b$b$b$b${blue}x${gray}$b$b$b$b$b$b$b$b${white}.;@MMMM@MM:   ${NC}Wheatley   : $WheatleyOnline   VPN WAN : $VPN_WAN" >> $outputfile
+echo -e "${yellow}|${white}X@/ -SMM/        ${blue}****${white}        .+MM@@@M:${yellow} ---------------------------------------------------${NC}" >> $outputfile
+echo -e "${white},@M@H: :0:      ${blue}[HHMMHH]${white}      . =X#@@@@-                   ${yellow}Cameras${NC}" >> $outputfile
+echo -e "${white},@@@MMX, .      ${blue}[HHMMHH]${white}      /H- ;@M@M= ${yellow}--------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}.H@@@@M@+${gray}$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b${white}%MM+..%#$.  ${NC}FrontPorch : $FP${NC}   EastGarage : $EG${NC}" >> $outputfile
+echo -e "${yellow}|${white}/MMM@MH/.${gray}$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b${white}.XM@MH; =;   ${NC}BackPorch  : $BP${NC}   WestGarage : $WG${NC}" >> $outputfile
+echo -e "${yellow}| ${white}/%+%XH@HS${gray}$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b$b${white}./H@@@@MX,    ${NC}BackYard   : $BY${NC}" >> $outputfile
+echo -e "${yellow}|- ${white}.=--------${gray}$b$b$b$b$b$b$b$b$b$b$b$b$b${white}%H.,@@@@@MX, ${yellow}----------------------------------------------------${NC}" >> $outputfile
+echo -e "${yellow}|  ${white}.%MM@@@HHHXXSSS%+- .:SMMX =M@@MM%.                      ${yellow}Services${NC}" >> $outputfile
+echo -e "${yellow}|--  ${white}=XMMM@MM@MM#H;,-+HMM@M+ /MMMX=  ${yellow}------------------------------------------------------${NC}" >> $outputfile
+echo -e "${yellow}|      ${white}-%@M@M#@S-.=S@MM@@@M; %M%-        ${NC}Apache : $APACHE${NC}       SMB : $SMB${NC}     MySQL : $MYSQL${NC}" >> $outputfile
+echo -e "${yellow}|        ${white},:+S+-,/H#MMMMMMM@- -,${NC}           ${white}Generated `date`${NC}" >> $outputfile
+echo -e "${yellow}+------------  ${white}=++%%%%+/:-.  ${yellow}--------------------------------------------------------------${NC}" >> $outputfile

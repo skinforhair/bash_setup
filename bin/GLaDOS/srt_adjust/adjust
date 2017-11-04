@@ -1,0 +1,172 @@
+#!/bin/bash
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+#############################
+### Libraries and Functions
+#############################
+#source $DIR/lib/vars
+for f in $DIR/lib/functions/*; do source $f; done
+OIFS=$IFS
+
+inputFile=$1
+oFile=temp.txt
+newFile="$inputFile"".new"
+addSec=
+if [ "$2" != "" ]; then
+	addSec="$2"
+else
+     while [ "$addSec" == "" ]; do
+	echo -n "Number of seconds to move: "
+	read addSec
+     done
+fi
+if [ "$3" != "" ]; then
+	addNan="$3"
+else
+	addNan="000"
+fi
+
+
+numLines=$(cat $inputFile |wc -l)
+fulltext=""
+perc=$(bc -l <<< $numLines/100)
+Point=`expr index "$perc" .`
+Perc=${perc:0:$((Point-1))}
+
+counter=0
+percentDone=0
+nextPerc=$((counter+Perc))
+
+if false; then
+echo -n "number of seconds to : "
+read newtime
+echo -n "should the text be $newtime seconds [e]arlier or [l]ater?: "
+read polarity
+fi
+
+
+
+## Read in all text and format carriage returns to be the same
+if [ -a $oFile ]; then rm $oFile; fi
+cp $inputFile $oFile
+echo "reading file..."
+## Read in the text. on a blank line, insert a delimiter, |
+## Replace carriage returns with delimiter, ++
+
+while read line; do
+	counter=$((counter+1))
+	if [ $counter -gt $nextPerc ]; then
+          percentDone=$((percentDone+1))
+          nextPerc=$((nextPerc+Perc))
+          echo -ne "${red}$percentDone %${NC}"\\r
+	fi 
+	if [[ "$line" == $'\r' ]] || [ "$line" == "" ] || [[ "$line" == $'\r\n' ]] || [[ "$line" == $'\n' ]]; then
+		cleanLine="|"
+#		echo "$counter"
+	else
+		cleanLine=`echo "$line" |sed "s;'';\";g"`
+		#cleanLine=`echo "$cleanLine" |sed "s;';'';g"`
+		cleanLine=`echo "$cleanLine" |sed 's;\r;\+\+;g'`
+#		cleanLine=$cleanLine"++"
+	fi
+#echo "adding $cleanLine"
+	fulltext="$fulltext$cleanLine"
+done < "$oFile"
+
+rm $oFile
+echo "$fulltext" >> $oFile
+
+## Read the new text into an array, arr
+IFS='|' read -ra arr <<<"$fulltext"
+
+## loop through the array, removing end delimiter, and changing
+## ++ to | on each item
+i=0
+while [ $i -lt ${#arr[@]} ]; do
+
+  stringZ="${arr[i]}"
+#echo "i is $i"
+#echo "working on"
+#echo "$stringZ"
+  stringZ=${stringZ:0:$((${#stringZ}-2))}
+  stringZ=`echo "$stringZ" |sed 's;\+\+;\|;g'`
+  arr[i]="$stringZ"
+#echo "now it is"
+#echo "$((i+1)):  ${arr[i]}"
+  i=$((i+1))
+#read testme
+done
+# At this point, the items in the array look something like this:
+# 1|00:00:04,000 --> 00:00:12,500|Preview text
+
+# Now we must divide items into index, start, stop, and text
+echo "Reading Lines: "
+i=0
+while [ $i -lt ${#arr[@]} ]; do
+ stringZ="${arr[i]}"
+ IFS='|' read -ra brr <<<"$stringZ"
+        count=${#brr[@]}
+	textLines=$((count-2))
+	index=${brr[0]}
+	startstop=${brr[1]}
+
+	## This Block converts the text portion to a | delimited line
+	txt=2
+	txtLine=""
+	while [ $textLines -gt 0 ]; do
+		txtLine="$txtLine${brr[$txt]}|"
+		txt=$((txt+1))
+		textLines=$((textLines-1))
+	done
+	if [ "$txtLine" != "" ]; then
+	  txtLine=${txtLine:0:$((${#txtLine}-1))}
+	fi
+
+	#clean inputs
+	#txtLine=`echo "$txtLine" | sed "s;\'\';\";g"`
+	#txtLine=`echo "$txtLine" | sed "s;\';\'\';g"`
+
+	## Split start and stop times
+	startTime=${startstop:0:12}
+	stopTime=${startstop:17:12}
+
+
+nS=$(addTime "$startTime" "$addSec" "$addNan")
+nE=$(addTime "$stopTime" "$addSec" "$addNan")
+
+#addTime "$stopTime" "$addSec" "$addNan"
+
+
+#	echo "$index : $startTime --> $stopTime <-----> $txtLine"
+#	echo "Becomes"
+#	echo "$index : $nS --> $nE <-----> $txtLine"
+#	echo ""
+#read testme
+
+
+  echo "$index" >> $newFile
+  echo "$nS --> $nE" >> $newFile
+
+nT=`echo "$txtLine" |sed "s;|;\n;g"`
+  echo "$nT" >> $newFile
+  echo "" >> $newFile
+
+ i=$((i+1))
+done
+
+rm $oFile
+#echo "$fulltext" >> $oFile
+
+echo ""

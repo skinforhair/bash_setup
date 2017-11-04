@@ -1,0 +1,14 @@
+#!/bin/bash
+
+tmpFile=output.txt
+if [ -f $tmpFile ]; then rm $tmpFile; fi
+
+security_cron=$(crontab -l |grep security_video_move)
+ if [ "$security_cron" == "" ]; then
+	 echo "## 11 pm" > $tmpFile 
+	 echo "0 23 * * * $lBIN/security_video_move" >> $tmpFile
+	 echo "Adding security_video_move to crontab at 11PM..."
+	 crontab $tmpFile
+	 rm $tmpFile
+ fi
+

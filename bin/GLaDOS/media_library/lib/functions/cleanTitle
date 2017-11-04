@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function cleanTitle(){
+ stringZ="$1"
+ #stringZ=${stringZ//./\ }
+ cutoff=`expr index "$stringZ" [^\(]`
+
+#if I found an open paren "(", then
+ if [ $cutoff -gt 1 ]; then
+  #eliminate things like (Part 1) and (1).
+  oneup=${stringZ:$cutoff:1}
+  twoup=${stringZ:$(($cutoff+1)):1}
+   if [ "$oneup" = "P" ] || [ "$twoup" = ")" ] || [ "$oneup" = "p" ]; then
+    #move up to the next "("
+    newString=${stringZ:$cutoff}
+    newcut=`expr index "$newString" [^\(]`
+    if [ $newcut -gt 1 ]; then
+        cutoff=$(($cutoff+$newcut))
+    fi
+   fi
+  stringZ=${stringZ:0:$(($cutoff-2))}
+ fi
+ stringZ=${stringZ//./\ }
+ echo "$stringZ"
+} #end cleanTitle
+

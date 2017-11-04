@@ -1,0 +1,75 @@
+#!/bin/bash
+for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
+
+tmp1=/tmp/avg-show-size1
+tmp2=/tmp/avg-show-size2
+tmp3=/tmp/avg-show-size3
+
+for i in {1..3}; do if [ -a "/tmp/avg-show-size$i" ]; then rm "/tmp/avg-show-size$i"; fi; done
+
+BASE="/shares/video/tv"
+if [ "$1" != "" ]; then
+ limit="$1"
+else
+ limit=350
+fi
+ 
+ls "$BASE"|grep -v lost >> $tmp1
+
+while read show; do
+ NumSeasons=$(ls "$BASE/$show/" |grep Season |grep -v jpg |grep -v nfo|wc -l)
+ c=1
+ echo "$show :"
+
+ while [ $c -lt $NumSeasons ]; do
+ #loop through each season, grabbing counts and size
+ if [ $c -lt 10 ]; then
+   CHKS="Season 0$c"
+ else
+   CHKS="Season $c"
+ fi
+
+  if [ -d "$BASE/$show/$CHKS" ]; then
+   NumAVI=$(ls -R "$BASE/$show/$CHKS/" |grep ".avi" |wc -l)
+    numMPG=$(ls -R "$BASE/$show/$CHKS/" |grep ".mpg" |wc -l)
+   NumMP4=$(ls -R "$BASE/$show/$CHKS/" |grep ".mp4" |wc -l)
+    numM4V=$(ls -R "$BASE/$show/$CHKS/" |grep ".m4v" |wc -l)
+   NumOther=$(($numMPG+$numM4V))
+   NumMKV=$(ls -R "$BASE/$show/$CHKS/" |grep ".mkv" |wc -l)
+   SeasonSize=$(du -s "$BASE/$show/$CHKS/" |awk '{print $1}')
+   NFiles=$(($NumAVI+$NumMP4+$NumMKV+$NumOther))
+    if [ "$NFiles" == 0 ]; then
+     AvgSeasonSize=0
+    else
+     AvgSeasonSize=$(($SeasonSize/$NFiles))
+     AvgSeasonSize=$(($AvgSeasonSize/1024))
+    fi
+  else
+   AvgSeasonSize=0
+  fi #if season exists
+    
+    if [ $AvgSeasonSize -ge $limit ]; then
+      stringZ="[$AvgSeasonSize] - ["
+       if [ $NumAVI = 0 ]; then
+        stringZ="$stringZ ${gray}"
+       elif [ $NumAVI -lt 5 ]; then
+        stringZ="$stringZ ${yellow}"
+       else
+        stringZ="$stringZ ${red}"
+       fi
+      stringZ="$stringZ $NumAVI avi${NC}] - ["
+       if [ $NumOther -gt 0 ]; then
+        stringZ="$stringZ ${yellow}"
+       fi
+      stringZ="$stringZ $NumOther other${NC}] - [$NumMKV mkv] - [$NumMP4 mp4] - $show $CHKS" 
+ 
+      echo -e "$stringZ"
+      echo -e "$stringZ" >> $tmp2
+      #echo "$show - $CHKS - avi [$NumAVI] - mkv [$NumMKV] - mp4 [$NumMP4] - Avg: [ $AvgSeasonSize ]" >> $tmp2
+    fi
+
+  c=$((c+1))
+ done
+done < $tmp1
+
+

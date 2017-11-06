@@ -37,6 +37,8 @@ trust_flag=0;
 kodi_flag=0;
 rss_flag=1;
 copy_flag=0;
+multipart_episode_numbers=1;
+
 inputFile="NO_FILE"
 while getopts ":f:htdkrlc" OPTION; do
  case $OPTION in
@@ -396,6 +398,11 @@ done
 	if [ "$EP" != "" ]; then
 		Season=${EP:1:2}
 		EN=${EP:4:2}
+                if [ "${EP:6:1}" == "E" ]; then
+                  multipart_episode_numbers=2  
+                fi
+          #echo "found $multipart_episode_numbers episodes: starting with $EN"
+          #echo "${EP:4:2} , ${EP:7:2}"
 	fi
 #echo "Season $Season, Episode $EN"
 else
@@ -479,120 +486,6 @@ promptForTitle() {
 
 } ##end promptForTitle
 
-readTitleFromOnline(){
-SHOWNAME=$1
-Season=$2
-Episode=$3
-URL="http://epguides.com/"
-PAGES="$DIR/epguides/pages/"
-#external function to get Page Dump of episode list
-if [ "$SHOWNAME" == "Mythbusters" ]; then
-  Season=$((Season+2002))
-fi
-#echo "season is $Season"
-#echo "episode is $Episode"
-PageDump=$(EpGuideName_local "$1" "$Season" "$3")
-
-#put it in an array
-arr=($PageDump)
-
-#echo "===="
-#echo $PageDump
-#echo "==="
-
-#search for a bracket to find the title in the line
-COUNTER=0
-TitlePos=$COUNTER
-Title=""
-while [ $COUNTER -lt ${#arr[@]} ]; do
-#echo "arrCounter $COUNTER is ${arr[$COUNTER]}"
-        if [ $TitlePos -eq 0 ]; then
-                pos=`expr index "${arr[$COUNTER]}" [`
-                if [ $pos -gt 0 ]; then
-                        TitlePos=$COUNTER
-                else
-                        COUNTER=$((COUNTER+1))
-                fi
-        else
-                Title="$Title${arr[$COUNTER]}."
-                COUNTER=$((COUNTER+1))
-        fi
-done
-if [ "$Title" == "" ]; then
- COUNTER=5
- TitlePos=5
- while [ $COUNTER -lt ${#arr[@]} ]; do
- #echo "arrCounter $COUNTER is ${arr[$COUNTER]}"
-     Title="$Title${arr[$COUNTER]}."
-     COUNTER=$((COUNTER+1))
- done
-fi
-if [ "$Title" == "" ]; then
-  echo "NO TITLE FOUND!"
-  exit 1
-fi
-#echo "Title is $Title"
-#echo "line is 521"
-AirDate="${arr[$((TitlePos-3))]}-${arr[$((TitlePos-2))]}-${arr[$((TitlePos-1))]}"
-#echo "AirDate is $AirDate"
-if [ ${#AirDate} -gt 9 ]; then
-  AirDate="${arr[$((TitlePos-1))]}"
-  #echo "AirDate is $AirDate"
-fi
-#replace slashes in date with dashes
-AirDate=${AirDate//\//-}
-
-#echo "AirDate is $AirDate"
-if [ "$AirDate" != "PAGE:" ]; then
-echo "Checking epguides.com page..."
-#cut off the leading brackets
-pos=`expr index "$Title" ]`
-Title=${Title:$pos}
-
-#echo "Title is $Title"
-
-#now cut off the end brackets if they exist
-pos=`expr index "$Title" [`
-if [ $pos -gt 0 ]; then
-        pos=$((pos-1))
-        Title=${Title:0:$pos}
-fi
-
-#remove commas from title
-Title=${Title//\,//}
-#remove quotes from title
-Title=${Title//\"/}
-#remove colons from title
-Title=${Title//\:/}
-#remove slashes from title
-Title=${Title//\//-}
-
-else
- echo "Pulling from local json..."
-line=$(get_next_episode_from_json "$1" "$2" "$3")
-#echo "line is $line"
-  AirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
-  Title=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
-fi #if AirDate != PAGE:
-
-if [ "$Title" == "FAIL" ]; then
-  echo "No episode name found in epguides or json for $1. exiting."
-  exit 1;
-fi
-
-#tack on the Air date
- if [ "${Title:$((${#Title}-1))}" == "." ];then 
-   Title="${Title:0:$((${#Title}-1))}"
- fi
- t="$Title"
- Title="$Title.($AirDate)"
- echo -e "${yellow}$1 ${NC}Season ${blue}$2 ${NC}Episode ${white}$3${NC}: (${yellow}$AirDate${NC}) - ${white}$t${NC}"
-   #error checking
-     if [ "$Title" == "()" ]; then
-           echo $URL
-           exit 1;
-     fi
-} ##end readTitleFromOnline
 
 MoveFile() {
 #	echo "mv" "$originalFile" "$1"
@@ -657,6 +550,8 @@ NewPath=`echo ${NewPath//[\\\]/}`
 EP="S$Season"
 EP=$EP"E$EN"
 #echo "New Path is $NewPath"
+#echo "EP is $EP"
+
 found=`find "$NewPath" -iname "*$EP*" |grep -v srt`
 if [ -z "$found" ]; then
 	promptForTitle "$FoundShowName" "$Season" "$EN"

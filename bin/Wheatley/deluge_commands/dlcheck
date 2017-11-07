@@ -51,15 +51,19 @@ function display_size(){
 function display_current(){
 seeds=0
 dls=0
+q=0
 
 i=1;while [ $i -le $NumDownloads ]; do
 echo "------------------------------------------------------------"
-if [ "${State[$i]}" != "Seeding" ]; then
+if [ "${State[$i]}" != "Seeding" ] && [ "${State[$i]}" != "Queued" ]; then
  dls=$((dls+1))
- echo -e "[${yellow}$i${NC}] - ${yellow}${Names[$i]}${NC}"
-else 
+ echo -e "[${red}$i${NC}] - ${red}${Names[$i]}${NC}"
+elif [ "${State[$i]}" != "Seeding" ]; then
+ q=$((q+1))
+ echo -e "[${blue}$i${NC}] - ${blue}${Names[$i]}${NC}"
+else
  seeds=$((seeds+1))
- echo -e "[${green}$i${NC}] - ${blue}${Names[$i]}${NC}"
+ echo -e "[${green}$i${NC}] - ${green}${Names[$i]}${NC}"
 fi
 
 display_size "${Size[$i]}" "${State[$i]}"
@@ -81,7 +85,7 @@ fi
 echo ""
 i=$((i+1))
 done
-echo -e "${white}$((seeds+dls))${NC} Downloads - ${green}$seeds${NC} seeds, ${red}$dls${NC} downloading"
+echo -e "${white}$((seeds+dls))${NC} Downloads - ${green}$seeds${NC} seeds, ${blue}$q${NC} queued, ${red}$dls${NC} downloading"
 } #display_current
 
 function remove_downloads(){

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cmd=$(which mediainfo)
+
+BAD=$($cmd "$1" |grep ibra|grep 265)
+if [ "$BAD" !=  "" ]; then
+  echo "$1 has H265 Encoding."
+fi

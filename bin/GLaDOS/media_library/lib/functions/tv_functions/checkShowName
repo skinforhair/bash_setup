@@ -1,0 +1,154 @@
+#!/bin/bash
+
+## For each existing show, count the number of words
+## in the title, then compare that many words from the
+## filename.
+
+function getShowName_fromDB(){
+ filename="$1"
+ extension="${filename##*.}"
+ filename="${filename%.*}"
+  #split filename by periods
+  IFS='.' read -a ShowNameArray <<< "$filename"
+  c=0
+  FSN=
+  fnd=0
+  wds="${ShowNameArray[$c]}"
+  cntquery="select count(*) from VideoLibrary.tvShows where showname like ";
+  query="select showname from VideoLibrary.tvShows where showname like ";
+  
+    while [ "$FSN" == "" ]; do
+      fnd=$(echo "$cntquery\"$wds%\"" |mysql -N)
+      if [ $fnd -eq 1 ]; then
+        FSN=$(echo "$query\"$wds%\""|mysql -N)
+      elif [ $fnd -gt 1 ]; then
+        c=$((c+1))
+         #be on the lookout for production year in title
+         nxt="${ShowNameArray[$c]}"
+          if [ "${nxt:0:2}" == "19" ] || [ "${nxt:0:2}" == "20" ]; then
+            nxt="($nxt)"
+          fi
+        wds="$wds $nxt"
+      elif [ $fnd -eq 0 ] && [ "${wds: -1}" == "s" ]; then
+        wds=${wds:0:$((${#wds}-1))}
+        wds="$wds""'s"
+      else
+        FSN="$fnd"
+      fi
+    done
+
+  echo "$FSN"
+} #getShowName_fromDB
+
+function getShowName_fromDirectory(){
+## For each existing show, count the number of words
+## in the title, then compare that many words from the
+## filename.
+filename="$1"
+
+extension="${filename##*.}"
+filename="${filename%.*}"
+IFS='.' read -a ShowNameArray <<< "$filename"
+
+
+counter=0
+while [ $counter -lt ${#DirArray[@]} ]; do
+        IFS=' ' read -a DirName <<< "${DirArray[$counter]}"
+        numwords=${#DirName[@]}
+#       echo "${DirArray[$counter]} has $numwords words"
+        loop=0
+        while [ $loop -lt $numwords ]; do
+                a=${ShowNameArray[$loop]}
+                b=${DirName[$loop]}
+
+                #special case names
+                 #change (year) into year (remove parenthesis)
+                if [ "${b:0:1}" == "(" ] && [ "${b:5}" == ")" ]; then
+                  b="${b:1:4}"
+                fi
+                case "$b" in
+                        "Grey's")
+                                b="Greys"
+                                ;;
+                        "It's")
+                                b="Its"
+                                ;;
+                        "Bob's")
+                                b="Bobs"
+                                ;;
+                        "Handmaid's")
+                                ;;
+                        "Gently's")
+                                b="Gentlys"
+                                ;;
+                        "Marvel's")
+                                b="Marvels"
+                                ;;
+                        "(2005)")
+                                b="2005"
+                                ;;
+                        "(2009)")
+                                b="2009"
+                                ;;
+                        "(2012)")
+                                b="2012"
+                                ;;
+                        "(2016)")
+                                b="2016"
+                                ;;
+                        "(2017)")
+                                b="2017"
+                                ;;
+                esac
+
+#               echo "Comparing $a to $b"
+
+                if [ "$a" == "" ] || [ ${a,,} != ${b,,} ]; then
+                        break
+                else
+                        let limit=$numwords-1
+#echo -e "Checking ${yellow}${DirArray[$counter]}${NC}, counter is $counter, loop is $loop while limit is $limit"
+                        if [ "${a,,}" = "csi" ] || [ $loop = $limit ]; then
+                                FSN=${DirArray[$counter]}
+                                break
+                        else
+#               echo "Comparing $a to $b"
+                                let loop=$loop+1
+                        fi
+                fi
+        done
+        let counter=$counter+1
+done
+
+echo "$FSN"
+
+} #getShowName_fromDirectory
+
+
+function checkShowName(){
+ FSN=$(getShowName_fromDB "$1")
+  if [ "$FSN" == "0" ]; then
+    echo "Not found in DB... checking directories"
+    FSN=$(getShowName_fromDirectory "$1")
+  fi
+## Verify the Show name found
+if [ "$FSN" = "" ]; then
+        MyNewName=
+        ##Replace these two lines
+        echo "No Series found automatically."
+        sizeDisplay "$FILESIZE"
+        while [ -z "$MyNewName" ]; do
+                read -p "Please enter the Series Name: " MyNewName
+        done
+        if [ "$MyNewName" == "quit" ] || [ "$MyNewName" == "exit" ]; then
+          exit 0;
+        fi
+        MyNewName=`echo "$MyNewName" |tr ' ' '.'`
+        echo checking "$MyNewName"
+        checkShowName "$MyNewName"
+else
+#   echo -e "  -Setting show to ${red}$FSN${NC}"
+  FoundShowName="$FSN"
+fi
+
+} #checkShowName 

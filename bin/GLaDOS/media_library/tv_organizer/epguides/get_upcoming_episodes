@@ -6,7 +6,7 @@ DIR="/root/.skinforhair_settings/bin/GLaDOS/media_library/tv_organizer/epguides"
 #############################
 source $DIR/lib/vars
 source $DIR/lib/db_connection
-for f in $DIR/lib/functions/*; do source $f; done
+for f in $DIR/lib/functions/*; do if [ -f $f ]; then source $f;fi; done
 source /root/.skinforhair_settings/lib/colors
 PAGES="$DIR/pages/"
 A="$DIR/tmp/Aired.txt"

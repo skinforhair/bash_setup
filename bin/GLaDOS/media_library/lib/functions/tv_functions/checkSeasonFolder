@@ -1,0 +1,42 @@
+#!/bin/bash
+
+## function to check if season folder exists
+## Assuming that all seasons have leading zeros
+checkSeasonFolder() {
+
+ cs_showPath=$3$1"/"
+ cs_seasonNum=$2
+ cs_found=`find "$cs_showPath" -iname Season\ $cs_seasonNum`
+ yesNo=
+ if [ ! -n "$cs_found" ]; then
+        echo "Season $cs_seasonNum not found. Existing season folders exist:"
+        echo ""
+        echo "   * $1 *"
+#        echo `ls "$cs_showPath"`
+        group=`find "$cs_showPath" -maxdepth 1 -type d ! -iname ".*"`
+        echo "$group"
+        echo ""
+        echo ""
+        while [ "${yesNo,,}" != "y" ] && [ "${yesNo,,}" != "n" ]; do
+        read -p "Would you like to create Season $2? [Y/n]: " yesNo
+                if [ -z $yesNo ]; then
+                        yesNo='y'
+                fi
+                if [ "${yesNo,,}" != "y" ] && [ "${yesNo,,}" != "n" ]; then
+                        yesNo=
+                fi
+        done
+        if [ "${yesNo,,}" == "n" ]; then
+                echo "Exiting..."
+                exit 0
+        else
+                fullpath=`echo $1 |sed 's/\ /\\\ /g'`
+                fullpath=$3$fullpath
+                fullpath="$fullpath/Season\ $2"
+                fullpath=`echo ${fullpath//[\\\]/}`
+                `mkdir "$fullpath"`
+        fi #if yesNo
+ fi #if season doesn't exist
+
+} #end checkSeasonFolder
+

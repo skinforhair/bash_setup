@@ -1,0 +1,76 @@
+#!/bin/bash
+
+promptForTitle() {
+        SHOWNAME=$1
+        #Special-case formatting for some shows
+        case "$SHOWNAME" in
+                "Greys Anatomy")
+                        SHOWNAME="Grey's Anatomy"
+                        ;;
+                "Bobs Burgers")
+                        SHOWNAME="Bob's Burgers"
+                        ;;
+                "The Handmaids Tale")
+                        SHOWNAME="The Handmaid's Tale"
+                        ;;
+                "Dirk Gentlys Holistic Detective Agency (2016)")
+                        SHOWNAME="Dirk Gently's Holistic Detective Agency (2016)"
+                        ;;
+                "Marvels Inhumans")
+                        SHOWNAME="Marvel's Inhumans"
+                        ;;
+
+        esac
+
+        season=$2
+        leadin=${season:0:1}
+        if [ "$leadin" == "0" ]; then
+                season=${season:1:1}
+        fi
+        get_episode_names "$SHOWNAME" "$season" "$3"
+        if [ "$Title" == "" ]; then 
+          readTitleFromOnline "$SHOWNAME" "$season" "$3"
+        fi
+        if [ "$trust_flag" == "1" ]; then
+                yesNo="y"
+        else
+                yesNo=
+        fi
+        while [ "${yesNo,,}" != "y" ] && [ "${yesNo,,}" != "n" ]; do
+                read -p "Use this Title? ([Y]es/[n]o/[v]iew Directory): " yesNo
+                        if [ -z $yesNo ]; then
+                        yesNo='y'
+                fi
+                if [ "${yesNo,,}" == "v" ]; then
+                        echo " Here is a listing of episodes:"
+                        echo `ls "$NewPath"`
+                        echo ""
+                fi
+                if [ "${yesNo,,}" != "y" ] && [ "${yesNo,,}" != "n" ]; then
+                        yesNo=
+                fi
+        done
+
+        if [ "${yesNo,,}" == "n" ]; then
+                TitleToo=
+                if [ "$4" != "" ]; then
+                        echo "using $4 as the title.."
+                        TitleToo=$4
+                else
+                while [ -z "$TitleToo" ]; do
+                        read -p "Please enter the Title of $SHOWNAME Season $2 Episode $3: " TitleToo
+                        #read -i "$Title " -e TitleToo
+
+                        if [ -z "$TitleToo" ]; then
+                                TitleToo=$Title
+                        fi
+                        TitleToo=`echo $TitleToo |tr ' ' '.'`
+                        TitleToo=$TitleToo".("$AirDate")"
+                done
+                fi
+                Title=$TitleToo
+        fi
+
+
+} ##end promptForTitle
+

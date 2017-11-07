@@ -1,0 +1,35 @@
+#!/bin/bash
+CreateRSS() {
+
+ newShowPath=${5:$pathlen:${#5}}
+ newShowPath=${newShowPath// /%20}
+ newShowPath="http://files.whosteppedingnome.com/video/tv/$newShowPath"
+
+## remove the filename from the path
+ newShowPath=${newShowPath%/*}
+ newShowPath=$newShowPath/
+
+## Put spaces back in the title
+myTitle=${3//./ }
+
+## update special characters
+myTitle=`echo "$myTitle" |sed 's/\&/\&amp;/g'`
+
+timeStamp=`date +"%a, %d %b %Y %T %Z"`
+
+if [ "$rss_flag" != "0" ]; then
+
+sed -i "10i\</item>\n" $RSS_Path
+sed -i "10i\ <pubDate>$timeStamp</pubDate>" $RSS_Path
+sed -i "10i\ <description>Ep $4: $myTitle -- Size:$FILESIZE </description>" $RSS_Path
+sed -i "10i\ <link>$newShowPath</link>" $RSS_Path
+sed -i "10i\ <title>$1 (Season $2)</title>" $RSS_Path
+sed -i "10i\<item>" $RSS_Path
+fi
+
+## Database Interaction
+QUERY="insert into rss_feeds.tv (title, season, link, episodenum, episodetitle, size, pubDate) values(\"$1\", \"$2\", \"$newShowPath\", \"$4\", \"$myTitle\", \"$FILESIZE\", \"$timeStamp\");"
+`echo $QUERY |mysql`
+
+} ## End CreateRSS
+

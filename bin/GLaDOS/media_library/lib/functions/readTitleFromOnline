@@ -80,7 +80,7 @@ echo "Checking epguides.com page..."
 pos=`expr index "$LocalTitle" ]`
 LocalTitle=${LocalTitle:$pos}
 
-#echo "LocalTitle is $LocalTitle"
+echo "LocalTitle is $LocalTitle"
 
 #now cut off the end brackets if they exist
 pos=`expr index "$LocalTitle" [`
@@ -98,6 +98,7 @@ LocalTitle=${LocalTitle//\:/}
 #remove slashes from title
 LocalTitle=${LocalTitle//\//-}
 
+
 else
  echo "Pulling from local json..."
 line=$(get_next_episode_from_json "$1" "$2" "$3")
@@ -106,10 +107,13 @@ line=$(get_next_episode_from_json "$1" "$2" "$3")
   LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
 fi #if LocalAirDate != PAGE:
 
+
 if [ "$LocalTitle" == "FAIL" ]; then
   echo "No episode name found in epguides or json for $1. exiting."
   exit 1;
 fi
+
+
 #tack on the Air date
  if [ "${LocalTitle:$((${#LocalTitle}-1))}" == "." ];then
    LocalTitle="${LocalTitle:0:$((${#LocalTitle}-1))}"

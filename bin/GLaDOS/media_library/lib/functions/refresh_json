@@ -1,0 +1,48 @@
+#!/bin/bash
+
+##pulls json from tvdb.api
+
+function refresh_json(){
+   NSN="$1"
+   TID="$2"
+   TKN="$3"
+  if [ "$4" == "-q" ]; then QUIET="1"; else QUIET="0";fi
+   TSJ="/tmp/seriesinfo.json"
+   TEJ="/tmp/episodeinfo.json"
+    if [ -a "$TSJ" ]; then rm -f "$TSJ"; fi
+    if [ -a "$TEJ" ]; then rm -f "$TEJ"; fi
+
+    if [ "$QUIET" == "0" ]; then echo "getting Series info for \"$NSN\"...";fi
+    SJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${TKN}" "https://api.thetvdb.com/series/${tvdbID}")
+    if [ "$QUIET" == "0" ]; then
+     echo "getting Episode info..."
+     echo "-------------------------------------------------------------------"
+    fi
+    c=1
+    EJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${TKN}" "https://api.thetvdb.com/series/${tvdbID}/episodes?page=$c")
+    if [ "${EJ:5:5}" == "Error" ]; then
+      echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
+      exit 1
+    fi
+
+#get additional pages of episodes if they exist
+ lastPage=$(echo "${EJ}"|jq '.links'|jq '.last')
+if [ $lastPage -gt $c ]; then
+ #cut off the end " ] }"
+ echo "${EJ:0:$((${#EJ}-4))}" >> $TEJ
+ while [ $c -lt $lastPage ]; do
+  c=$((c+1))
+   if [ "$QUIET" == "0" ]; then echo "getting Page $c...";fi
+  EJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${TKN}" "https://api.thetvdb.com/series/${tvdbID}/episodes?page=$c")
+  s=$(expr index "$EJ" "[")
+  nextpage="${EJ:$s}"
+  nextpage="${nextpage:0:$((${#nextpage}-4))}"
+  echo ", $nextpage" >> $TEJ
+ done
+ echo " ] }" >> $TEJ
+else
+  echo ${EJ} >> "$TEJ"
+fi
+  echo ${SJ} >> "$TSJ"
+} #refresh_json
+

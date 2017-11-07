@@ -1,0 +1,28 @@
+#!/bin/bash
+
+sizeDisplay(){
+ size="$1"
+ amt=`expr index "$size" B`
+ amt=$((amt-1))
+ GorM="${size:$((amt-1)):1}"
+ number="${size:0:$((amt-1))}"
+ echo -en "File size is "
+ if [ "$GorM" == "G" ]; then
+  echo -e "${red}$number GB ${NC}"
+ else
+  if [ $number -gt 600 ]; then
+   echo -en "${red}"
+  elif [ $number -gt 325 ]; then
+   echo -en "${yellow}"
+  else
+   echo -en "${green}"
+  fi
+  echo -en "$number "
+  if [ "$GorM" == "M" ]; then
+   echo -e "${green}MB${NC}"
+  else
+   echo -e "${yellow}$GorM""B${NC}"
+  fi
+ fi
+} #sizeDisplay
+

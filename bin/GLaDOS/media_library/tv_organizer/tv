@@ -23,7 +23,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 ### Libraries and Functions
 #############################
 source $DIR/lib/vars
-for f in $DIR/lib/functions/*; do source $f; done
+for f in $DIR/lib/functions/*; do if [ -f $f ]; then source $f;fi; done
 source $pLIB/colors
 
 ## Get Directories for Existing Shows

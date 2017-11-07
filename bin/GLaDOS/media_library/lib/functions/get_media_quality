@@ -37,23 +37,41 @@ function get_media_type() {
      esac
 }
 
+
+
 function get_media_length(){
+hours="00"
+minutes="00"
+seconds="00"
+
     MI=`/usr/bin/mediainfo "$1" |grep Duration |head -1`
     IFS=$" " read -a MediaSize <<< "$MI"
+
     firstnum=`echo "${MediaSize[2]}"`
-    secondnum=`echo "${MediaSize[3]}"`
-    lastChar="${firstnum:$((${#firstnum}-1)):1}"
-     if [ "$lastChar" = "h" ]; then
-	hours="${firstnum:0:$((${#firstnum}-1))}"
-        #echo "hours is $hours"
-        #minutes=$(($hours*60))
-	#echo "minutes is $minutes"
-	minutes=$(($minutes+${secondnum:0:$((${#secondnum}-2))})) 
-        seconds="00"
-     else
-	hours="00"
-	minutes="${firstnum:0:$((${#firstnum}-2))}"
-	seconds="${secondnum:0:$((${#secondnum}-1))}"
-     fi
- echo "$hours:$minutes:$seconds"
+    secondnum=`echo "${MediaSize[4]}"`
+    firstdelim=`echo "${MediaSize[3]}"`
+    seconddelim=`echo "${MediaSize[5]}"`
+
+    case "$firstdelim" in
+     "h"|"hr" ) hours="$firstnum";;
+     "m"|"min") minutes="$firstnum";;
+     "s"|"sec") seconds="$firstnum";;
+    esac
+    case "$seconddelim" in
+     "h"|"hr" ) hours="$secondnum";;
+     "m"|"min") minutes="$secondnum";;
+     "s"|"sec") seconds="$secondnum";;
+    esac
+
+    if [ $hours -lt 10 ] && [ ${#hours} -lt 2 ]; then
+      hours="0$hours"
+    fi
+    if [ $minutes -lt 10 ] && [ ${#minutes} -lt 2 ]; then
+      minutes="0$minutes"
+    fi
+    if [ $seconds -lt 10 ] && [ ${#seconds} -lt 2 ]; then
+      seconds="0$seconds"
+    fi
+
+echo "$hours:$minutes:$seconds"
 }

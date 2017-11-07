@@ -14,7 +14,7 @@ fi
 token=$(cat ${token_file})
 
 
-for f in $DIR/lib/functions/*; do source $f; done
+for f in $DIR/lib/functions/*; do if [ -f $f ]; then source $f;fi; done
 source $DIR/lib/vars
 
 selection=
@@ -111,45 +111,6 @@ while [ "$NEWSHOWNAME" == "" ]; do
 done
 } #scan_for_new_show
 
-function refresh_json(){
-    if [ -a "$TMPseriesjson" ]; then rm -f "$TMPseriesjson"; fi
-    if [ -a "$TMPepisodejson" ]; then rm -f "$TMPepisodejson"; fi
-    echo "getting Series info for \"$NEWSHOWNAME\"..."
-    SJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}")
-    echo "getting Episode info..."
-    echo "-------------------------------------------------------------------"
-    c=1
-    EJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes?page=$c")
-    if [ "${EJ:5:5}" == "Error" ]; then
-      echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
-      exit 1
-    fi
-
-#get additional pages of episodes if they exist
- lastPage=$(echo "${EJ}"|jq '.links'|jq '.last')
-if [ $lastPage -gt $c ]; then
- #cut off the end " ] }"
- echo "${EJ:0:$((${#EJ}-4))}" >> $TMPepisodejson
- while [ $c -lt $lastPage ]; do
-  c=$((c+1))
-   echo "getting Page $c..."
-  EJ=$(curl -s -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/series/${tvdbID}/episodes?page=$c")
-  s=$(expr index "$EJ" "[")
-  nextpage="${EJ:$s}"
-  nextpage="${nextpage:0:$((${#nextpage}-4))}"
-  echo ", $nextpage" >> $TMPepisodejson
- done
- echo " ] }" >> $TMPepisodejson
-else
-  #echo "creating $TMPepisodejson"
-  echo ${EJ} >> "$TMPepisodejson"
-fi
-
-
-#    echo "creating $TMPseriesjson"
-    echo ${SJ} >> "$TMPseriesjson"
-} #refresh_json
-
 function grab_from_tvdb(){
  #convert spaces in showname to %20
  showname=$(echo "$NEWSHOWNAME" |sed 's;\ ;%20;g')
@@ -212,7 +173,7 @@ if [ "$seriesStatus" == "Continuing" ]; then
 else
    currently_on_air="0"
 fi
-refresh_json
+refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
 seasons_aired=$(NS=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
 imdbID=$(cat $TMPseriesjson |jq '.data'|jq '.imdbId'|sed 's;";;g')
 } #grab_from_tvdb
@@ -227,7 +188,7 @@ function check_data(){
  fi
  sNums=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason') 
  if [ "$sNums" == "" ]; then
-  refresh_json
+  refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
   #echo "There seems to be a json problem..."
   #echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
   #exit 1
@@ -358,7 +319,7 @@ if [ "$id" != "" ]; then
  #if it is in the db, and on air or downloading, refresh json files
  if [ "$currently_on_air" == "1" ] || [ "$active_download" == "1" ] || [ ! -f "$seriesjson" ]; then
   #refresh json files
-   refresh_json
+   refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
  fi #if currently on air or downloading
 else
 #if it is NOT in the db, search thetvdb for it. download info.

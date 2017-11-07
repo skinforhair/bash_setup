@@ -1,0 +1,44 @@
+#!/bin/bash
+
+get_episode_names(){
+SHOWNAME=$1
+Season=$2
+Episode=$3
+Title=
+AirDate=
+
+ echo "Pulling from local json..."
+line=$(get_next_episode_from_json "$1" "$2" "$3")
+#echo "line is $line"
+  LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
+  LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
+
+#echo "LocalTitle is $LocalTitle"
+#remove commas from title
+LocalTitle=${LocalTitle//\,//}
+#remove quotes from title
+LocalTitle=${LocalTitle//\"/}
+LocalTitle=${LocalTitle//\'/}
+LocalTitle=${LocalTitle//\’/}
+#remove colons from title
+LocalTitle=${LocalTitle//\:/}
+#remove slashes from title
+LocalTitle=${LocalTitle//\//-}
+
+#echo "LocalTitle is $LocalTitle"
+if [ "$LocalTitle" == "FAIL" ]; then
+  echo "No episode name found in json for $1. exiting."
+else
+
+#tack on the Air date
+ if [ "${LocalTitle:$((${#LocalTitle}-1))}" == "." ];then
+   LocalTitle="${LocalTitle:0:$((${#LocalTitle}-1))}"
+ fi
+ t="$LocalTitle"
+ LocalTitle="$LocalTitle.($LocalAirDate)"
+ echo -e "${yellow}$1 ${NC}Season ${blue}$2 ${NC}Episode ${white}$3${NC}: (${yellow}$LocalAirDate${NC}) - ${white}$t${NC}"
+Title="$LocalTitle"
+AirDate="$LocalAirDate"
+fi
+} ##end get_episode_names
+

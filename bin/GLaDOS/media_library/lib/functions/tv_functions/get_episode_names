@@ -24,7 +24,7 @@ LocalTitle=${LocalTitle//\’/}
 LocalTitle=${LocalTitle//\:/}
 #remove slashes from title
 LocalTitle=${LocalTitle//\//-}
-
+LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
 #echo "LocalTitle is $LocalTitle"
 if [ "$LocalTitle" == "FAIL" ]; then
   echo "No episode name found in json for $1. exiting."

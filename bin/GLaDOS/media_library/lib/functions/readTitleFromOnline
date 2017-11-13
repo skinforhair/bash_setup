@@ -97,7 +97,8 @@ LocalTitle=${LocalTitle//\"/}
 LocalTitle=${LocalTitle//\:/}
 #remove slashes from title
 LocalTitle=${LocalTitle//\//-}
-
+#remove double periods
+LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
 
 else
  echo "Pulling from local json..."
@@ -105,6 +106,7 @@ line=$(get_next_episode_from_json "$1" "$2" "$3")
 #echo "line is $line"
   LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
   LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
+
 fi #if LocalAirDate != PAGE:
 
 
@@ -118,6 +120,7 @@ fi
  if [ "${LocalTitle:$((${#LocalTitle}-1))}" == "." ];then
    LocalTitle="${LocalTitle:0:$((${#LocalTitle}-1))}"
  fi
+LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
  t="$LocalTitle"
  LocalTitle="$LocalTitle.($LocalAirDate)"
  echo -e "${yellow}$1 ${NC}Season ${blue}$2 ${NC}Episode ${white}$3${NC}: (${yellow}$LocalAirDate${NC}) - ${white}$t${NC}"

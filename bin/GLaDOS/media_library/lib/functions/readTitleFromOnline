@@ -16,6 +16,7 @@ readTitleFromOnline(){
 SHOWNAME=$1
 Season=$2
 Episode=$3
+Multi=$4
 URL="http://epguides.com/"
 PAGES="$DIR/epguides/pages/"
 
@@ -101,8 +102,8 @@ LocalTitle=${LocalTitle//\//-}
 LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
 
 else
- echo "Pulling from local json..."
-line=$(get_next_episode_from_json "$1" "$2" "$3")
+ echo -e "Pulling from local json... ${gray}ReadTitleFromOnline${NC}"
+line=$(get_next_episode_from_json "$1" "$2" "$3" "$4")
 #echo "line is $line"
   LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
   LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')

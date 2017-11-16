@@ -4,14 +4,31 @@ get_episode_names(){
 SHOWNAME=$1
 Season=$2
 Episode=$3
+Multi=$4
 Title=
 AirDate=
 
- echo "Pulling from local json..."
+ echo -e "${white}Pulling from local json...${black}get_episode_names${NC}"
 line=$(get_next_episode_from_json "$1" "$2" "$3")
 #echo "line is $line"
-  LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
-  LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
+ LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
+ LocalTitle=$(echo "$line" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
+
+
+#echo "Multi is $Multi"
+if [ $Multi -gt 1 ]; then
+ c=2
+ e=$Episode
+ while [ $c -le $Multi ]; do
+  c=$((c+1))
+  e=$((e+1))
+  l2=$(get_next_episode_from_json "$1" "$2" "$e")
+  lt2=$(echo "$l2" |awk '{for(i=6;i<NF;i++)printf"%s",$i OFS;if(NF)printf"%s",$NF;printf ORS}' |tr ' ' '.')
+  LocalTitle="$LocalTitle-$lt2"
+ done
+fi 
+
+
 
 #echo "LocalTitle is $LocalTitle"
 #remove commas from title
@@ -36,7 +53,19 @@ else
  fi
  t="$LocalTitle"
  LocalTitle="$LocalTitle.($LocalAirDate)"
- echo -e "${yellow}$1 ${NC}Season ${blue}$2 ${NC}Episode ${white}$3${NC}: (${yellow}$LocalAirDate${NC}) - ${white}$t${NC}"
+ echo -en "${yellow}$1 ${NC}Season ${blue}$2 ${NC}Episode ${white}$3"
+  if [ $Multi -gt 1 ]; then
+   cntr=1
+   e2=$(($3+1))
+   while [ $cntr -lt $Multi ]; do
+     if [ $e2 -lt 10 ] && [ ${#e2} -lt 2 ]; then
+      e2="0$e2"
+     fi
+     echo -en "${NC}-${white}$e2"
+     cntr=$((cntr+1))
+   done
+  fi #if Multi
+ echo -e "${NC}: (${yellow}$LocalAirDate${NC}) - ${white}$t${NC}"
 Title="$LocalTitle"
 AirDate="$LocalAirDate"
 fi

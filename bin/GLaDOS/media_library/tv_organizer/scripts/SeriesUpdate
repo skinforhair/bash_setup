@@ -117,7 +117,7 @@ function grab_from_tvdb(){
 
  echo -e "Searching for ${yellow}$showname${NC}.."
  searchTVjson=$(curl -X GET --header "Accept: application/json" --header "Authorization: Bearer ${token}" "https://api.thetvdb.com/search/series?name=${showname}")
-
+#echo "curl -X GET --header \"Accept: application/json\" --header \"Authorization: Bearer ${token}\" \"https://api.thetvdb.com/search/series?name=${showname}\""
  sresult=$(echo "$searchTVjson" |awk '{print $2$3}')
  sresult="${sresult:2}"
  sresult="${sresult:0:$((${#sresult}-1))}"
@@ -228,6 +228,7 @@ echo -e "TVDB: $tvdbID     IMDB: $imdbID"
 else
  #new show
 echo -e "new show"
+echo "echo \"update VideoLibrary.tvShows set showname=\"$NEWSHOWNAME\" where id=\"$id\"|mysql -N"
 fi
 YesNo "continue?" Y
 if [ "$?" == "1" ]; then
@@ -267,6 +268,7 @@ function write_out_info(){
 
 echo "query: "
 echo "$query"
+#echo "$query" |mysql -N
 
 } #write_out_info
 

@@ -1,17 +1,26 @@
 #!/bin/bash
 
 function UpdateTVFeedDB() {
+ numEpisodes="$9"
  size="$5"
+ lastEpisodeNum="$3"
+ if [ $numEpisodes -gt 1 ]; then
+   cntr=1
+   while [ $cntr -lt $numEpisodes ]; do
+    lastEpisodeNum=$((lastEpisodeNum+1))
+    cntr=$((cntr+1))
+   done
+ fi
  size="${size:0:$((${#size}-2))}"
    showID=$(echo "select id from $tvshows where showname=\"$1\""| mysql $dbOptions)
- foundit=$(echo "select id from $tv_feed where showID=$showID and season=$2 and episode=$3" |mysql $dbOptions)
+ foundit=$(echo "select id from $tv_feed where showID=$showID and season=$2 and episode=$lastEpisodeNum" |mysql $dbOptions)
     title=$(cleanTitle "$4")
     airdate=$(airDate "$4")
         
     if [ "$foundit" != "" ]; then
-        query="Update $tv_feed set showID='$showID', season='$2', episode='$3', title='$title', airdate='$airdate', filesize='$5', quality='$6', length='$7', filetype='$8' where id='$foundit'"
+        query="Update $tv_feed set showID='$showID', season='$2', episode='$lastEpisodeNum', title='$title', airdate='$airdate', filesize='$5', quality='$6', length='$7', filetype='$8', numEpisodes='$9' where id='$foundit'"
     else
-        query="Insert into $tv_feed(id, showID, season, episode, title, airdate, filesize, quality, length, filetype) values ('','$showID','$2','$3','$title', '$airdate', '$5', '$6', '$7', '$8')"
+        query="Insert into $tv_feed(id, showID, season, episode, title, airdate, filesize, quality, length, filetype, numEpisodes) values ('','$showID','$2','$lastEpisodeNum','$title', '$airdate', '$5', '$6', '$7', '$8', '$9')"
     fi
         insert=$(echo $query |mysql $dbOptions)
         #echo "insert was $insert"

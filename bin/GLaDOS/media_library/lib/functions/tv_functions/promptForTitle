@@ -27,9 +27,9 @@ promptForTitle() {
         if [ "$leadin" == "0" ]; then
                 season=${season:1:1}
         fi
-        get_episode_names "$SHOWNAME" "$season" "$3"
+        get_episode_names "$SHOWNAME" "$season" "$3" "$4"
         if [ "$Title" == "" ]; then 
-          readTitleFromOnline "$SHOWNAME" "$season" "$3"
+          readTitleFromOnline "$SHOWNAME" "$season" "$3" "$4"
         fi
         if [ "$trust_flag" == "1" ]; then
                 yesNo="y"
@@ -53,9 +53,9 @@ promptForTitle() {
 
         if [ "${yesNo,,}" == "n" ]; then
                 TitleToo=
-                if [ "$4" != "" ]; then
-                        echo "using $4 as the title.."
-                        TitleToo=$4
+                if [ "$5" != "" ]; then
+                        echo "using $5 as the title.."
+                        TitleToo=$5
                 else
                 while [ -z "$TitleToo" ]; do
                         read -p "Please enter the Title of $SHOWNAME Season $2 Episode $3: " TitleToo

@@ -16,16 +16,23 @@ posterURL="posters/"
 #posterID="7"
 #fanartID="1"
 #bannerID="g"
-
-echo -en "enter the show Name: "
-read SHOWNAME
+if [ "$1" == "" ]; then 
+ echo -en "enter the show Name: "
+ read SHOWNAME
+else
+ SHOWNAME="$1"
+fi
 
 #query="select thetvdb_id from VideoLibrary.tvShows where showname=\"$SHOWNAME\""
 #SI=$(echo "$query" |mysql -N)
 #if [ "$SI" != "" ]; then
 # echo "query failed:  $query"
+if [ "$2" == "" ]; then
  echo -en "enter the id on thetvdb.com: "
  read ShowID
+else
+ ShowID="$2"
+fi
 #else
 # ShowID="$SI"
 #fi

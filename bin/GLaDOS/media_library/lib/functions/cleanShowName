@@ -63,6 +63,9 @@ case $SHOWNAME in
 	"ASeriesofUnfortunateEvents")
 		SHOWNAME="SeriesofUnfortunateEvents"
 		;;
+	"M*A*S*H")
+		SHOWNAME="MASH"
+		;;
 esac
 
 

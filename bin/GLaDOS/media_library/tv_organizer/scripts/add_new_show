@@ -353,4 +353,4 @@ grab_from_tvdb
 finalize_info
 ##test_out_info
 ##write_out_info
-
+get_images "$NEWSHOWNAME" "$tvdbID"

@@ -114,6 +114,7 @@ done
 #This should take the input file and rename for appropriate use
 inputFile=$(formatFileName "$inputFile")
 
+echo -e "${black}---------------------------------------------------------${NC}"
 echo "Parsing $originalFile..."
  extension="${inputFile##*.}"
 
@@ -167,8 +168,9 @@ done
                 if [ "${EP:6:1}" == "E" ]; then
                   multipart_episode_numbers=2  
                 fi
-          #echo "found $multipart_episode_numbers episodes: starting with $EN"
-          #echo "${EP:4:2} , ${EP:7:2}"
+          if [ $multipart_episode_numbers != 1 ]; then
+           echo -e "found ${white}$multipart_episode_numbers${NC} episodes: ${white}${EP:4:2}${NC} ,${white}${EP:7:2}${NC}"
+	  fi
 	fi
 #echo "Season $Season, Episode $EN"
 else
@@ -177,8 +179,7 @@ fi
 
 
 ### At this point, we should have a show name, a season, and an episode number
-echo ""
-echo -en "Checking ${yellow}$FoundShowName ${NC} Season ${blue}$Season${NC} ... "
+echo -en "${gray}--Checking ${yellow}$FoundShowName ${NC} Season ${blue}$Season${NC} ... "
 sizeDisplay "$FILESIZE"
 #create the new season if it doesn't exist
 checkSeasonFolder "$FoundShowName" "$Season" "$showpath"
@@ -195,7 +196,6 @@ let len=$len-2
 NewPath=${NewPath:0:$len}
 NewPath="$NewPath/Season\ $Season/"
 
-echo ""
 ## Now check for existing show in that path
 NewPath=`echo ${NewPath//[\\\]/}`
 EP="S$Season"
@@ -203,18 +203,30 @@ EP=$EP"E$EN"
 
 found=`find "$NewPath" -iname "*$EP*" |grep -v srt`
 if [ -z "$found" ]; then
-	promptForTitle "$FoundShowName" "$Season" "$EN"
+	promptForTitle "$FoundShowName" "$Season" "$EN" "$multipart_episode_numbers"
 	MyNewFileName=`echo $FoundShowName |tr ' ' '.'`
 	case "$MyNewFileName" in
 		"CSI.-.Crime.Scene.Investigation")
 			MyNewFileName="CSI"
 			;;
 	esac
+        if [ $multipart_episode_numbers -gt 1 ]; then
+         cntr=1
+         e2=$EN
+         while [ $cntr -lt $multipart_episode_numbers ]; do
+          e2=$((e2+1))
+          cntr=$((cntr+1))
+           if [ $e2 -lt 10 ] && [ ${#e2} -lt 2 ]; then
+             e2="0$e2"
+           fi
+          EP=$EP"E"$e2
+         done
+        fi
 	MyNewFileName=$MyNewFileName"."$EP"."$Title"."$extension
 	NewPath=$NewPath$MyNewFileName
 #echo "moving to $NewPath"
 	CreateRSS "$FoundShowName" "$Season" "$Title" "$EN" "$NewPath"
-	UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType"
+	UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType" "$multipart_episode_numbers"
 	MoveFile "$NewPath"
 else
 	echo "$FoundShowName Season $Season Episode $EN already exists!"
@@ -256,7 +268,8 @@ let len=${#Title}-4
 Title=${Title:0:$len}
 Title=`echo $Title |tr '.' ' '`
 
-		promptForTitle "$FoundShowName" "$Season" "$EN" "$Title"
+#		promptForTitle "$FoundShowName" "$Season" "$EN" "$multipart_episode_numbers" "$Title"
+		promptForTitle "$FoundShowName" "$Season" "$EN" "$multipart_episode_numbers"
 #		fi
 	       	MyNewFileName=`echo $FoundShowName |tr ' ' '.'`
 	       	MyNewFileName=$MyNewFileName"."$EP"."$Title"."$extension
@@ -264,7 +277,7 @@ Title=`echo $Title |tr '.' ' '`
 	       	NewPath=$NewPath$MyNewFileName
 		
 		CreateRSS "$FoundShowName" "$Season" "$Title" "$EN" "$NewPath"
-		UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType"
+		UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType" "$multipart_episode_numbers"
 	        MoveFile "$NewPath"
                 if [ "$found" != "$NewPath" ]; then
 	          if [ "$copy_flag" == "0" ]; then
@@ -289,3 +302,4 @@ if [ "$kodi_flag" == "1" ]; then
 fi
 
 clean_thumbs "$originalFile" "$FILESIZE" "$quality" "$duration" "$mType"
+echo -e "${black}---------------------------------------------------------${NC}"

@@ -1,15 +1,69 @@
 #!/bin/bash
 
-echo "Original:"
-echo "Files:"
-ls "/cortana/Move/Convert/$1" |wc -l |awk '{print $1}'
-echo "Size:"
-du -sh "/cortana/Move/Convert/$1"
-echo ------------
-echo "Converted:"
-echo "Files:"
-ls "/cortana/Move/RunningConvert/$1" |wc -l |awk '{print $1}'
-echo "Size:"
-du -sh "/cortana/Move/RunningConvert/$1"
-echo ""
-echo ""
+source "$pLIB/colors"
+cFolder="/cortana/Move/Convert"
+rFolder="/cortana/Move/RunningConvert"
+
+if ! [ -d "$cFolder/$1" ] || ! [ -d "$rFolder/$1" ]; then
+	exit 1
+fi
+
+oF=$(ls "$cFolder/$1" |wc -l |awk '{print $1}')
+oS=$(du -sh "$cFolder/$1"|awk '{print $1}')
+RoS=$(du -s "$cFolder/$1"|awk '{print $1}')
+
+cF=$(ls "$rFolder/$1" |wc -l |awk '{print $1}')
+cS=$(du -sh "$rFolder/$1"|awk '{print $1}')
+RcS=$(du -s "$rFolder/$1"|awk '{print $1}')
+
+#set the color based on values
+if [ $oF -gt $cF ]; then
+	oF="$yellow$oF$NC"
+	cF="$red$cF$NC"
+elif [ $oF -eq $cF ]; then
+	oF="$green$oF$NC"
+	cF="$green$cF$NC"
+else
+	oF="$BRed$oF - ERROR$NC"
+	cF="$BRed$cF - Too Many Files$NC"
+fi
+
+if [ $RoS -gt $RcS ]; then
+        CoS="$green$oS$NC"
+        CcS="$green$cS$NC"
+elif [ $RoS -eq $RcS ]; then
+        CoS="$yellow$oS$NC"
+        CcS="$yellow$cS$NC"
+else
+        CoS="$BRed$oS - ERROR$NC"
+        CcS="$BRed$cS - Converted is Bigger!$NC"
+fi
+
+if [ $oF == $cF ] && [ $RcS -lt $RoS ]; then
+	Ready="\t  ${On_Purple}$rFolder/$1$NC\n\t\t  ${On_Purple}READY FOR MOVE$NC"
+else
+	Ready=""
+fi
+
+#color the input folder
+colorInput="$BBlue"
+slash=$(echo `expr index "$1" /`)
+if [ $slash -ne 0 ]; then
+	firstword=${1:0:$((slash-1))}
+        secondword=${1:$slash}
+ colorInput="$BBlue$firstword$NC/$Purple$secondword$white"
+else
+ colorInput="$NC$1"
+fi
+
+
+echo -e "$white               ---=== $colorInput ===---$NC"
+echo -e "    Original:\t\t |\t\tConverted:"
+echo -e "  $blue${cFolder:14}/$1$NC\t |\t  $blue${rFolder:14}/$1$NC"
+echo -e "    Files:  $oF\t\t |\t\tFiles:   $cF"
+echo -en "    Size:   $CoS\t"
+if [ ${#oS} -lt 4 ]; then
+	echo -en "\t"
+fi
+echo -e " |\t\tSize:    $CcS"
+echo -e "$Ready"

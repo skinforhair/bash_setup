@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#input should be a root folder in /cortana/Move/Convert and /cortana/Move/RunningConvert
+if [ "$2" == "" ]; then first=1;else first="$2";fi
+if [ "$3" == "" ]; then last=100;else last="$3";fi
+
+if [ "$1" == "" ]; then
+ echo "missing argument"
+ exit 1
+fi
+
+seperatorLine="----------------------------------------------------------------"
+
+rFolder="$1"
+echo "$seperatorLine"
+c=$first
+while [ $c -le $last ]; do
+ if [ -d "$rFolder/s$c" ]; then
+  compare_converted_seasons "$rFolder/s$c"
+  if [ "$?" == 0 ]; then
+         echo "$seperatorLine"
+  fi
+ else
+   compare_converted_seasons "$rFolder/S$c"
+   if [ "$?" == 0 ]; then
+         echo "$seperatorLine"
+   fi
+ fi
+ c=$((c+1))
+done

@@ -27,7 +27,10 @@ promptForTitle() {
         if [ "$leadin" == "0" ]; then
                 season=${season:1:1}
         fi
+        #pull episode info from json files
         get_episode_names "$SHOWNAME" "$season" "$3" "$4"
+
+        #if nothing from json, try using the old epguides.com pages
         if [ "$Title" == "" ]; then 
           readTitleFromOnline "$SHOWNAME" "$season" "$3" "$4"
         fi

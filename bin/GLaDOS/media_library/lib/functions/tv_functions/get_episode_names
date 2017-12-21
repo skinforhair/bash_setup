@@ -9,6 +9,11 @@ Title=
 AirDate=
 
  echo -e "${white}Pulling from local json...${black}get_episode_names${NC}"
+#check freshness of the json file. if more than 3 days old, refresh it.
+episodeJSON="/shares/video/tv/$SHOWNAME/.showdata/episodeinfo.json"
+#echo -e "checking ${yellow}$SHOWNAME${NC}  .. ${red}$episodeJSON${NC}"
+#find "$episodeJSON" -mmin +4320 -exec $DIR/scripts/SeriesUpdate "$SHOWNAME" \;
+
 line=$(get_next_episode_from_json "$1" "$2" "$3")
 #echo "line is $line"
  LocalAirDate=$(echo "$line" |awk '{print $3"-"$4"-"$5}')
@@ -45,6 +50,8 @@ LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
 #echo "LocalTitle is $LocalTitle"
 if [ "$LocalTitle" == "FAIL" ]; then
   echo "No episode name found in json for $1. exiting."
+  #$DIR/scripts/SeriesUpdate "$1"
+  exit 1;
 else
 
 #tack on the Air date

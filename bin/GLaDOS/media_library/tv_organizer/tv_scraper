@@ -165,7 +165,7 @@ done
 	if [ "$EP" != "" ]; then
 		Season=${EP:1:2}
 		EN=${EP:4:2}
-                if [ "${EP:6:1}" == "E" ]; then
+                if [ "${EP:6:1}" == "E" ] || [ "${EP:6:1}" == "e" ]; then
                   multipart_episode_numbers=2  
                 fi
           if [ $multipart_episode_numbers != 1 ]; then

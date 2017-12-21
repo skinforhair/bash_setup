@@ -7,10 +7,14 @@
 for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 
 DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
+#if token does not exist, create it
 token_file="$DIR/lib/thetvdb/current_token"
 if [ "$(cat $token_file)" == "" ]; then
  $DIR/lib/thetvdb/generate_token
 fi
+#if token is more than 23 hours old, refresh it.
+find "$token_file" -mmin 1380 -exec $DIR/lib/thetvdb/generate_token \;
+
 token=$(cat ${token_file})
 
 
@@ -194,8 +198,10 @@ function check_data(){
   #exit 1
  fi
  IFS=$'\n'
- seasons_aired=$(echo "${sNums[*]}" | sort -nr | head -n1)
+# seasons_aired=$(echo "${sNums[*]}" | sort -nr | head -n1)
 # seasons_aired=$(IFS=$'\n' s=(${sNums[0]});echo "${s[*]}" |sort -nr |head -n1)
+ seasons_aired=$(NS=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason');IFS=$'\n' s=(${NS[0]});echo "${s[*]}" |sort -nr |head -n1)
+
  imdbID=$(cat "$TMPseriesjson" |jq '.data'|jq '.imdbId'|sed 's;";;g')
  seriesStatus=$(cat "$TMPseriesjson" |jq '.data' |jq '.status' |sed 's/\"//g')
   if [ "$seriesStatus" == "Continuing" ]; then
@@ -246,6 +252,7 @@ function move_json_files(){
        mv "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson"
      else
        rm "$TMPseriesjson"
+       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
     fi
     if ! cmp "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson" >/dev/null 2>&1
      then
@@ -253,6 +260,7 @@ function move_json_files(){
        mv "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson"
      else
        rm "$TMPepisodejson"
+       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
     fi
 } #move_json_files
 
@@ -266,11 +274,36 @@ function write_out_info(){
     query="INSERT into $dbTable (id,showname,seasons_owned,seasons_aired,size_on_disk,currently_on_air,active_download,thetvdb_id,imdb_id) VALUES ('','$MSHOWNAME','$seasons_owned','$seasons_aired','$size_on_disk','$currently_on_air','$active_download','$tvdbID','$imdbID')"
   fi #if in DB
 
-echo "query: "
-echo "$query"
-#echo "$query" |mysql -N
+#echo "query: "
+#echo "$query"
+echo "$query" |mysql -N
 
 } #write_out_info
+
+function rename_show() {
+ oP=$tvPath/"$2"
+ nP=$tvPath/"$3"
+ mv "$oP" "$nP"
+ echo "update $dbTable set showname=\"$3\" where id=\"$1\"" |mysql -N
+} #rename_show
+
+function showname_db_v_json(){
+
+  NM=$(echo "select showname from $dbTable where id=\"$1\""|mysql -N)
+   myINPUT="x"
+  while [ "${myINPUT,,}" != "d" ] && [ "${myINPUT,,}" != "r" ] && [ "${myINPUT,,}" != "n" ]; do
+    echo -e "DB has ${yellow}$2${NC} , but json reads as ${blue}$3${NC}."
+    echo -en "[${yellow}D${NC}]B,[${blue}R${NC}]ename (match json),[${green}N${NC}]ew show?"
+    read -p "[D/R/N]: " myINPUT
+  done
+  case "$myINPUT" in
+     "d") NEWSHOWNAME="$2";;
+     "n") id="";;
+     "r") rename_show "$1" "$2" "$3";;
+  esac
+
+} #compare db to json
+
 
 #####################################
 ###### MAIN 
@@ -292,12 +325,63 @@ fi
 
 #now we should have a NEWSHOWNAME. See if it is already in the DB:
  #Use apostrophe's appropriately for mysql
- MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
+ MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;\*;;g"`
+# MSHOWNAME=`echo "$NEWSHOWNAME" | sed "s;';'';"`
+# MSHOWNAME=`echo "$MSHOWNAME" | sed "s;:;;"`
  query="select id from $dbTable where showname=\"$MSHOWNAME\""
  id=$(echo "$query"|mysql -N)
 
+
+
+ if [ "$id" == "" ]; then
+   echo -e "$red $MSHOWNAME $NC not found: $purple $query$nc"
+  NSHOWNAME=`echo "$MSHOWNAME" | sed "s;:;;"`
+  ct=0
+  IFS=' ' read -r -a mfs <<< "$NSHOWNAME"
+  word=${mfs[$ct]}
+  sQ="select count(*) from $dbTable where showname like"
+  c=$(echo "$sQ \"$word%\""|mysql -N)
+  if [ "$c" == "0" ]; then
+   echo "not found"
+   echo -e "${yellow}$sQ \"$word%\"${NC}"
+  else
+   while [ $c -ge 1 ]; do
+    if [ $c -eq 1 ]; then
+      id=$(echo "select id from $dbTable where showname like \"$word%\""|mysql -N)
+#      NM=$(echo "select showname from $dbTable where showname like \"$word%\""|mysql -N)
+#      myINPUT="x"
+#      while [ "${myINPUT,,}" != "d" ] && [ "${myINPUT,,}" != "r" ] && [ "${myINPUT,,}" != "n" ]; do
+#       echo -e "DB has ${yellow}$NM${NC} , but json reads as ${blue}$MSHOWNAME${NC}."
+#       echo -en "[${yellow}D${NC}]B,[${blue}R${NC}]ename (match json),[${green}N${NC}]ew show?"
+#       read -p "[D/R/N]: " myINPUT
+#      done
+#      case "$myINPUT" in
+#       "d") MSHOWNAME="$NM";;
+#       "n") id="";;
+#       "r") rename_show "$id" "$NM" "$MSHOWNAME";;
+#      esac
+      showname_db_v_json "$id" "$NM" "$MSHOWNAME"
+      c=0
+    else
+     ct=$((ct+1))
+     word="$word ${mfs[$ct]}"
+     c=$(echo "$sQ \"$word%\""|mysql -N)
+   echo -e "currently $red $c $nc matches to $yellow $word $nc"
+    fi
+   done
+  fi
+ fi #search for id
 #grab db values
 if [ "$id" != "" ]; then
+ NM=$(echo "select showname from $dbTable where id='$id'"|mysql -N)
+# echo "---------------------------------------------------------------"
+# echo "NM is $NM"
+# echo "MSHOW is $MSHOWNAME"
+# echo "nSHOW is $NEWSHOWNAME"
+# echo "---------------------------------------------------------------"
+  if [ "$NM" != "$NEWSHOWNAME" ]; then
+    showname_db_v_json "$id" "$NM" "$NEWSHOWNAME"
+  fi
  seasons_owned=$(echo "select seasons_owned from $dbTable where id='$id'" |mysql -N)
  seasons_aired=$(echo "select seasons_aired from $dbTable where id='$id'" |mysql -N)
  episodes_owned=$(echo "select episodes_owned from $dbTable where id='$id'" |mysql -N)

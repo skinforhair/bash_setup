@@ -1,0 +1,48 @@
+#!/bin/bash
+for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
+
+DIR="$pBIN/GLaDOS/media_library/tv_organizer/scripts"
+output_file="$DIR/latest_episodes.txt"
+
+if [ -f $output_file ]; then
+ echo -e "$gray removing $output_file $NC"
+ rm $output_file
+fi
+
+while read line
+do
+ ActiveShowArray+=("$line")
+done < <(echo "select id from VideoLibrary.tvShows where active_download=1"|mysql -N)
+
+LatestEpisodes[0]="id S E Title"
+
+for show in "${ActiveShowArray[@]}"; do
+
+showName=$(echo "select showname from VideoLibrary.tvShows where id=$show"|mysql -N)
+latest_show_id=$(echo "select max(id) from VideoLibrary.TV_feed where showID=$show"|mysql -N)
+latest_season=$(echo "select season from VideoLibrary.TV_feed where id=$latest_show_id"|mysql -N)
+latest_episode=$(echo "select episode from VideoLibrary.TV_feed where id=$latest_show_id"|mysql -N)
+latest_title=$(echo "select title from VideoLibrary.TV_feed where id=$latest_show_id"|mysql -N)
+
+if [ $latest_season -lt 10 ] && [ ${#latest_season} -lt 2 ]; then
+ latest_season="0"$latest_season
+fi
+
+if [ $latest_episode -lt 10 ] && [ ${#latest_episode} -lt 2 ]; then
+ latest_episode="0"$latest_episode
+fi
+
+LatestEpisodes[$show]="$show $latest_season $latest_episode $showName"
+
+done
+
+if [ "$1" == "" ]; then
+ for show in "${LatestEpisodes[@]}"; do
+  SN=$(echo "$show"|awk '{$1=$2=$3=""; print $0}'|awk '{$1=$1}1')
+# echo "$SN"
+  echo $show >> $output_file
+ done
+else
+ echo "looking for $1..."
+fi
+

@@ -222,7 +222,15 @@ function check_same_file() {
  files_are_same="true"
  for i in {2..5}; do
    if [ "${searchTerms[$i]}" != "${dbTerms[$i]}" ]; then
-    files_are_same="false"
+    if [ "$i" == "4" ]; then
+     if [ ${searchTerms[4]} -gt ${dbTerms[4]} ] && [ $((${searchTerms[4]}-${dbTerms[4]})) -lt 2 ]; then
+      files_are_same="true"
+     elif [ ${dbTerms[4]} -gt ${searchTerms[4]} ] && [ $((${dbTerms[4]}-${searchTerms[4]})) -lt 2 ]; then
+      files_are_same="true"
+     else
+      files_are_same="false"
+     fi
+    fi
    fi
  done
  echo "$files_are_same"

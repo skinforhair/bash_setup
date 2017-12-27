@@ -3,7 +3,7 @@
 function ReadInNewShowName() {
  echo -en "Enter new Show Name: "
  read NEWSHOWNAME
- if [ -d "$tvPath/$NEWSHOWNAME" ]; then
+ if [ -d "$tvPath$NEWSHOWNAME" ]; then
    echo "$NEWSHOWNAME already exists!!"
   exit 0
  else

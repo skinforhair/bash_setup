@@ -1,0 +1,197 @@
+#!/bin/bash
+##############################
+### NFO Updater
+### December 2017
+### Author: Jeremiah Jackson
+##############################
+
+###############################################################
+### This section sets the DIR variable to the current path
+### allowing the script to run from anywhere on the filesystem
+### as long as the directory structure within this app stays
+### intact.
+###############################################################
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+DIR="$pBIN/active/media_library/movie_organizer"
+
+#############################
+### Libraries and Functions
+#############################
+source $DIR/lib/vars
+
+for f in $DIR/lib/functions/*; do source $f; done
+OIFS=$IFS
+
+#Initialize Arrays
+nameArray=
+build_array_reference
+searchTerms=
+if [ "$tempPath" != "" ]; then
+ [ "$(ls -A $tempPath)" ] && rm $tempPath/*
+fi
+
+jsonFile=$tempPath/current.json
+if [ -a $jsonFile ]; then rm $jsonFile; fi
+
+#######################################################
+### Parse the filename and search online for the movie
+### Prompt the user for verification
+#######################################################
+
+
+#Because Files are often near files with the same name, sometimes
+#tab completion leaves off the file extension. Check for that.
+if ! [ -a "$1" ]; then
+  if [ -a "$1mp4" ]; then
+	checkName="$1mp4"
+  elif [ -a "$1m4v" ]; then
+	checkName="$1m4v"
+  elif [ -a "$1avi" ]; then
+	checkName="$1avi"
+  elif [ -a "$1mkv" ]; then
+	checkName="$1mkv"
+  else
+	checkName="$1"
+  fi
+else
+  checkName="$1"
+fi
+
+#Parse the remaining filename. Return an array with [title][year][filetype][size][quality]
+echo -e "Parsing ${red}$checkName${NC}..."
+sTerms=$(parseFilename "$checkName")
+#parseFilename "$checkName"
+#exit 0
+IFS='|' read -a searchTerms <<< "$sTerms"
+
+#if a movie was found in the db, but name doesn't quite match, verify it:
+if [ "${searchTerms[0]}" != "" ]; then
+ checkTitle=$(echo "select title from $movieTable where id='${searchTerms[0]}'"|mysql $dbOptions)
+ if [ "$checkTitle" != "${searchTerms[1]}" ]; then
+  YesNo "Verify: I found ${yellow}$checkTitle${NC} in the DB. Is this correct?" "y"
+  if [ "$?" == "0" ]; then
+    searchTerms[0]=
+  fi
+ fi
+fi
+
+
+#We'll use this variable going forward to indicate if the movie is already in the local db
+dbID="${searchTerms[0]}"
+
+##############################
+### if movie is in db, verify
+### that it is correct and 
+### populate the array
+##############################
+if [ "$dbID" != "" ]; then
+   foundyear=
+   foundID=
+
+   #if title was found under a different year, this catches it
+   checkpoint=${dbID:$((${#dbID}-5)):1}
+    if [ "$checkpoint" == "_" ]; then
+     foundyear=${dbID:$((${#dbID}-4)):4}
+     foundID=${dbID:0:$((${#dbID}-5))}
+     dbID=$foundID
+    fi #found checkpoint
+   populate_dbTerms "$dbID"
+
+   echo -e "I found : ${yellow} ${dbTerms[1]} ${NC}(${yellow}${dbTerms[2]}${NC}) ${yellow}${dbTerms[6]} minutes${NC} in the database..."
+   #verify if it is a different movie with the same title
+   #This happens when a new movie comes out with the same name as an old one
+    if [ "$foundyear" != "" ]; then
+     YesNo "The year ($foundyear) is different than the DB version (${dbTerms[2]}). Is this a new movie?" "n"
+     if [ "$?" = "1" ]; then
+ 	 dbID=
+	 searchTerms[0]=""
+     else
+	dbID=$foundID
+ 	searchTerms[0]="$dbID"
+	searchTerms[2]=$foundyear
+     fi #YesNo
+    fi #if foundyear != ""
+
+ #NOW, if we still have a dbID, compare the new movie with the DB version
+   if [ "$dbID" != "" ]; then
+    populate_dbTerms "$dbID"
+
+  populate_from_db "${searchTerms[0]}"
+  echo -e "Pulling data from ${cyan}Local Database${NC}..."
+  existingJSON=$(echo "${searchTerms[28]}" |sed "s;:\ ;-\ ;g")
+  existingJSON=$(echo "$existingJSON" |sed "s;\ ;.;g")
+  existingJSON=${existingJSON:0:4}
+  JSON=$(cat "${searchTerms[21]}/"$existingJSON*.json)
+  echo $JSON > $jsonFile
+
+   fi #if dbid != ""
+fi #if found in the local db.
+
+if [ "$dbID" == "" ]; then
+  echo -e "${red}Didn't find Movie!${NC}"
+  exit 1
+
+ #Get the JSON for the movie from tmdb and store it in a text file
+ JSON=$(get_movie_json "${searchTerms[27]}")
+ echo "$JSON" > $jsonFile
+ populate_from_json
+
+fi #if in database
+
+
+#Title.Year.Quality
+searchTerms[28]=$(my_filename "${searchTerms[1]}" "${searchTerms[2]}" "${searchTerms[5]}")
+
+## At this point, the array should be complete. Now we 
+##########################################
+### Set all the Paths
+##########################################
+ searchTerms[21]=$(build_paths)
+ searchTerms[22]=$(build_paths "url")
+
+##########################################
+### Merge Genres, Keywords, and Tags from 
+### Collection and Shelf
+##########################################
+for i in {15..17}; do
+ searchTerms[$i]=$(merge_terms "${nameArray[$i]}" "${searchTerms[$i]}" "$RIFFTAG")
+done
+
+searchTerms[29]="none"
+
+
+##################################
+### Check the data before writing
+##################################
+#edit_array
+searchTerms[28]=$(my_filename "${searchTerms[1]}" "${searchTerms[2]}" "${searchTerms[5]}")
+
+#####################################
+### If the movie was in the db, see 
+### if anything has changed
+#####################################
+#if Movie is new, build an nfo file
+ build_nfo "${searchTerms[28]}"
+
+T="$(echo "${searchTerms[28]}" |sed 's;\:;-;g')"
+oP="$(echo "${searchTerms[21]}" |sed 's;\:;-;g')"
+orig="$oP/$T"".nfo"
+newbie="$tempPath/$T"".nfo"
+isNew=$(/usr/bin/diff "$orig" "$newbie")
+
+if [ "$isNew" != "" ]; then
+ echo "updating NFO..."
+ mv $tempPath/$T.nfo "$oP/"
+# echo "mv $tempPath/${searchTerms[28]}.nfo \"${searchTerms[21]}\""
+else
+ echo "Nothing to update."
+ rm $tempPath/${searchTerms[28]}.nfo
+fi
+ rm $tempPath/current.json
+IFS=$OIFS

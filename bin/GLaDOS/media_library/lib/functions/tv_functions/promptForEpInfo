@@ -7,8 +7,8 @@ PromptForEpInfo() {
         p_epNum=
         echo "Directory Listing for $FoundShowName:"
         echo ""
-        echo `ls "$showpath$FoundShowName"`
-#       find "$showpath$FoundShowName" -maxdepth 1 -type d
+        echo `ls "$tvPath$FoundShowName"`
+#       find "$tvPath$FoundShowName" -maxdepth 1 -type d
         echo "------"
         echo $inputFile 
         while ! [[ $p_seasonNum =~ $numbers ]]; do

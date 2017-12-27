@@ -24,10 +24,11 @@ promptForTitle() {
 
         season=$2
         leadin=${season:0:1}
-        if [ "$leadin" == "0" ]; then
+        if [ "$season" != "0" ] && [ "$leadin" == "0" ]; then
                 season=${season:1:1}
         fi
         #pull episode info from json files
+echo "1"
         get_episode_names "$SHOWNAME" "$season" "$3" "$4"
 
         #if nothing from json, try using the old epguides.com pages

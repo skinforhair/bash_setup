@@ -156,7 +156,8 @@ function build_nfo() {
         echo "  <plot>${searchTerms[8]}</plot>" >> $outputNFO
         echo "  <runtime>${searchTerms[6]}</runtime>" >> $outputNFO
         echo "  <id>${searchTerms[26]}</id>" >> $outputNFO
-	echo "  <tmdb_id>${searhTerms[27]}</tmdb_id>" >> $outputNFO
+	echo "  <tmdb_id>${searchTerms[27]}</tmdb_id>" >> $outputNFO
+        echo "  <local_id>${searchTerms[0]}</local_id>" >> $outputNFO
         echo "  <tagline>${searchTerms[9]}</tagline>" >> $outputNFO
         echo "  <mpaa>${searchTerms[7]}</mpaa>" >> $outputNFO
         NFOActors "${searchTerms[10]}" "${searchTerms[11]}" "$outputNFO"

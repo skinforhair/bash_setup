@@ -26,7 +26,6 @@ json_array=
 db_array=
 
 
-
 #read -ra var_id <<< $(echo "select local_path from movies" |mysql $dbOptions)
 #for i in "${var_id[@]}"; 
 #    do
@@ -63,7 +62,8 @@ IFS='|' read -a searchTerms <<< "$sTerms"
 
 
 
-dbID=$(get_local_id "${searchTerms[0]}" "${searchTerms[1]}")
+#dbID=$(local_id "${searchTerms[0]}" "${searchTerms[1]}")
+dbID=${searchTerms[0]}
 #echo "dbid is $dbID from ${searchTerms[0]} - ${searchTerms[1]}"
 
 if [ "$dbID" != "" ]; then
@@ -85,12 +85,12 @@ oldfile="${searchTerms[21]}/$tyq.nfo"
 NFO_has_changed=$(diff "$oldfile" "$newfile")
  if [ "$NFO_has_changed" != "" ]; then
   #echo "mv \"$newfile\" \"$oldfile\""
-  mv "$newfile" "$oldfile"
+#  mv "$newfile" "$oldfile"
   echo -e "${green}NFO UPDATED${NC}"
  else
   echo -e "${gray}NFO Hasn't Changed.${NC}-- deleting $newfile"
   #echo "rm $newfile"
-  rm "$newfile"
+#  rm "$newfile"
  fi
 
 else

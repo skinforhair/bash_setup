@@ -4,7 +4,7 @@
 ############################
 
  moviePath="/shares/video/movies"
- tvPath="/shares/video/tv"
+ tvPath="/shares/video/tv/"
  webPath="http://files.whosteppedingnome.com/video/movies"
  myCountry="US"
  tempPath="$DIR/temp"

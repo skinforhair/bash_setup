@@ -111,8 +111,8 @@ line=$(get_next_episode_from_json "$1" "$2" "$3" "$4")
 fi #if LocalAirDate != PAGE:
 
 
-if [ "$LocalTitle" == "FAIL" ]; then
-  echo "No episode name found in epguides or json for $1. exiting."
+if [ "${LocalTitle:0:4}" == "FAIL" ]; then
+  echo -e "${red}ERROR.${NC} No episode name found in epguides or json for $1. exiting."
   exit 1;
 fi
 

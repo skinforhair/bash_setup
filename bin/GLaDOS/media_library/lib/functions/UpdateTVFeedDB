@@ -3,7 +3,12 @@
 function UpdateTVFeedDB() {
  numEpisodes="$9"
  size="$5"
- lastEpisodeNum="$3"
+ if [ "$3" == "Special" ]; then
+  lastEpisodeNum=0
+ else 
+  lastEpisodeNum="$3"
+ fi
+ 
  if [ $numEpisodes -gt 1 ]; then
    cntr=1
    while [ $cntr -lt $numEpisodes ]; do
@@ -17,7 +22,7 @@ function UpdateTVFeedDB() {
     title=$(cleanTitle "$4")
     airdate=$(airDate "$4")
         
-    if [ "$foundit" != "" ]; then
+    if [ "$foundit" != "" ] && [ "$lastEpisodeNum" != "0" ]; then
         query="Update $tv_feed set showID='$showID', season='$2', episode='$lastEpisodeNum', title='$title', airdate='$airdate', filesize='$5', quality='$6', length='$7', filetype='$8', numEpisodes='$9' where id='$foundit'"
     else
         query="Insert into $tv_feed(id, showID, season, episode, title, airdate, filesize, quality, length, filetype, numEpisodes) values ('','$showID','$2','$lastEpisodeNum','$title', '$airdate', '$5', '$6', '$7', '$8', '$9')"

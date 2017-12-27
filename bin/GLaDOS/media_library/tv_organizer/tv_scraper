@@ -30,19 +30,17 @@ source $pLIB/colors
 dl_flag=0;
 trust_flag=0;
 kodi_flag=0;
-rss_flag=1;
 copy_flag=0;
 multipart_episode_numbers=1;
 
 inputFile="NO_FILE"
-while getopts ":f:htdkrlc" OPTION; do
+while getopts ":f:htdklc" OPTION; do
  case $OPTION in
    h) tv_usage; exit 1;;
    f) inputFile=$OPTARG;;
    d) echo "set download flag";dl_flag=1;;
    t) trust_flag=1;;
    k) kodi_flag=1;;
-   r) rss_flag=0;;
    l) kodi_flag=1;dl_flag=1;;
    c) copy_flag=1;;
  esac
@@ -56,9 +54,8 @@ if [ "$inputFile" == "NO_FILE" ]; then
 	exit 1;
 fi
 
-showpath="/shares/video/tv/"
-pathlen=${#showpath}
-DirArray=($showpath*/)
+pathlen=${#tvPath}
+DirArray=($tvPath*/)
 if [ ! -f "$inputFile" ]; then
 #	echo "Didn't find $inputFile!"
 	inputFile=`find . -iname "$inputFile"*`
@@ -93,9 +90,6 @@ quality=$(get_media_quality "$inputFile")
 duration=$(get_media_length "$inputFile")
 mType=$(get_media_type "$inputFile")
 
-
-## RSS Path and Variables
-RSS_Path="/shares/filesystem/apache/rss/tv/tv.rss"
 
 ## Remove leading path from Direcotry path
 counter=0
@@ -163,15 +157,20 @@ while [ "${EP:0:1}" != "S" ] && [ "${EP:0:1}" != "s" ]; do
 	fi
 done
 	if [ "$EP" != "" ]; then
-		Season=${EP:1:2}
-		EN=${EP:4:2}
-                if [ "${EP:6:1}" == "E" ] || [ "${EP:6:1}" == "e" ]; then
-                  multipart_episode_numbers=2  
-                fi
+	  Season=${EP:1:2}
+          if [ "${EP:$((${#EP}-7)):7}" == "Special" ]; then
+            #echo -e "${red} Checking ${EP:$((${#EP}-7)):7}s...${NC}"
+            EN="Special"
+          else #found a Special
+	    EN=${EP:4:2}
+            if [ "${EP:6:1}" == "E" ] || [ "${EP:6:1}" == "e" ]; then
+               multipart_episode_numbers=2  
+            fi #found 2 episode numbers
+          fi #not a Special
           if [ $multipart_episode_numbers != 1 ]; then
-           echo -e "found ${white}$multipart_episode_numbers${NC} episodes: ${white}${EP:4:2}${NC} ,${white}${EP:7:2}${NC}"
-	  fi
-	fi
+               echo -e "found ${white}$multipart_episode_numbers${NC} episodes: ${white}${EP:4:2}${NC} ,${white}${EP:7:2}${NC}"
+	  fi #if more than one episode
+	fi #EP is not blank
 #echo "Season $Season, Episode $EN"
 else
 	PromptForEpInfo
@@ -179,15 +178,19 @@ fi
 
 
 ### At this point, we should have a show name, a season, and an episode number
-echo -en "${gray}--Checking ${yellow}$FoundShowName ${NC} Season ${blue}$Season${NC} ... "
+if [ "$EN" == "Special" ]; then
+  echo -en "${gray}--Checking ${yellow}$FoundShowName ${blue}Specials${NC} ... "
+else
+  echo -en "${gray}--Checking ${yellow}$FoundShowName ${NC} Season ${blue}$Season${NC} ... "
+fi
 sizeDisplay "$FILESIZE"
 #create the new season if it doesn't exist
-checkSeasonFolder "$FoundShowName" "$Season" "$showpath"
+checkSeasonFolder "$FoundShowName" "$Season" "$tvPath"
 
 
 
 ## Build the path
-NewPath="$showpath"
+NewPath="$tvPath"
 for word in ${DirName[@]}; do
 	NewPath="$NewPath$word\ "
 done
@@ -199,11 +202,17 @@ NewPath="$NewPath/Season\ $Season/"
 ## Now check for existing show in that path
 NewPath=`echo ${NewPath//[\\\]/}`
 EP="S$Season"
-EP=$EP"E$EN"
+
 
 found=`find "$NewPath" -iname "*$EP*" |grep -v srt`
-if [ -z "$found" ]; then
+if [ -z "$found" ] || [ "$EN" == "Special" ] ; then
+      if [ "$EN" == "Special" ]; then
+        EP=$EP".$EN"
+        promptForTitle "$FoundShowName" "0" "$Season"
+      else
+        EP=$EP"E$EN"
 	promptForTitle "$FoundShowName" "$Season" "$EN" "$multipart_episode_numbers"
+      fi
 	MyNewFileName=`echo $FoundShowName |tr ' ' '.'`
 	case "$MyNewFileName" in
 		"CSI.-.Crime.Scene.Investigation")
@@ -225,13 +234,12 @@ if [ -z "$found" ]; then
 	MyNewFileName=$MyNewFileName"."$EP"."$Title"."$extension
 	NewPath=$NewPath$MyNewFileName
 #echo "moving to $NewPath"
-	CreateRSS "$FoundShowName" "$Season" "$Title" "$EN" "$NewPath"
 	UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType" "$multipart_episode_numbers"
 	MoveFile "$NewPath"
 else
 	echo "$FoundShowName Season $Season Episode $EN already exists!"
         #get original file name
-	OrFN=$(ls "$showpath$FoundShowName/Season $Season" |grep "E$EN")
+	OrFN=$(ls "$tvPath$FoundShowName/Season $Season" |grep "E$EN")
 	if [ $trust_flag == 1 ]; then
   	 yesNo="y"
         else
@@ -276,7 +284,6 @@ Title=`echo $Title |tr '.' ' '`
 	        MyNewFileName=`echo $MyNewFileName |tr ' ' '.'`
 	       	NewPath=$NewPath$MyNewFileName
 		
-		CreateRSS "$FoundShowName" "$Season" "$Title" "$EN" "$NewPath"
 		UpdateTVFeedDB "$FoundShowName" "$Season" "$EN" "$Title" "$FILESIZE" "$quality" "$duration" "$mType" "$multipart_episode_numbers"
 	        MoveFile "$NewPath"
                 if [ "$found" != "$NewPath" ]; then

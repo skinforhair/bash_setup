@@ -94,10 +94,10 @@ currName="$1"
    else
 
 
-     tCount=$(echo "select count(*) from $myTable where name LIKE '%$inputName%'"|mysql $dbOptions)
-     tID=$(echo "select id from $myTable where name LIKE '%$inputName%'" |mysql $dbOptions)
+     tCount=$(echo "select count(*) from $myTable where name LIKE \"%$inputName%\""|mysql $dbOptions)
+     tID=$(echo "select id from $myTable where name LIKE \"%$inputName%\"" |mysql $dbOptions)
      if [ $tCount -gt 1 ]; then
-        nID=$(echo "select id from $myTable where name = '$inputName'" |mysql $dbOptions)
+        nID=$(echo "select id from $myTable where name = \"$inputName\"" |mysql $dbOptions)
         if [ "$nID" = "" ]; then
           echo -e "Multiple entries found for $myType named $myColor$inputName${NC}!"
                 #echo -e "before, tid is ${red}$tID${NC}"
@@ -117,8 +117,8 @@ currName="$1"
 #          something=$(echo "insert into $myTable(id, name, path, tmdb_id, keywords, genres) VALUES (NULL, '$inputName', '$inputName', '', '', '')" |mysql $dbOptions)
 #          returnID=$(echo "select id from $myTable where name = '$inputName'" |mysql $dbOptions)
         else
-          something=$(echo "insert into $myTable(id, name, path, keywords, genres) VALUES (NULL, '$inputName', '$inputName', '', '')" |mysql $dbOptions)
-          returnID=$(echo "select id from $myTable where name = '$inputName'" |mysql $dbOptions)
+          something=$(echo "insert into $myTable(id, name, path, keywords, genres) VALUES (NULL, \"$inputName\", \"$inputName\", '', '')" |mysql $dbOptions)
+          returnID=$(echo "select id from $myTable where name = \"$inputName\"" |mysql $dbOptions)
         fi
      else
         returnID=$tID

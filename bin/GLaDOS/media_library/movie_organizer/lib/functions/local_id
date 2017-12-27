@@ -7,6 +7,9 @@ function countQueryLoop() {
  inputYear="$2"
  if [ ${#inputTitle} -gt 3 ]; then
   letterCount=3
+  if [ "${inputTitle:2:1}" == "'" ]; then
+   letterCount=4
+  fi
  else
   letterCount=${#inputTitle}
  fi
@@ -17,7 +20,7 @@ function countQueryLoop() {
    andYear=" and year='$inputYear'"
  fi
 
-Query="from $movieTable where title like '${inputTitle:0:$letterCount}%'$andYear"
+Query="from $movieTable where title like \"${inputTitle:0:$letterCount}%\"$andYear"
 Qcount=$(echo "select count(*) $Query"|mysql $dbOptions)
 if [ "$Qcount" -eq 1 ]; then
   #found a single match, take it and quit the loop
@@ -25,7 +28,7 @@ if [ "$Qcount" -eq 1 ]; then
    nameCheck=$(echo "select title from $movieTable where id = '$outputID'" |mysql $dbOptions)
 fi
 while [ $letterCount -lt ${#inputTitle} ]; do
- Query="from $movieTable where title like '${inputTitle:0:$letterCount}%'$andYear"
+ Query="from $movieTable where title like \"${inputTitle:0:$letterCount}%\"$andYear"
  Qcount=$(echo "select count(*) $Query"|mysql $dbOptions)
  if [ $Qcount -eq 1 ]; then
    #found a single match, take it and quit the loop

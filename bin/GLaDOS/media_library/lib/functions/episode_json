@@ -7,6 +7,7 @@ function get_next_episode_from_json(){
  newseason="$4"
 
  episodeJSON="/shares/video/tv/$showName/.showdata/episodeinfo.json"
+
  #check recursively for new season
  if [ "$newseason" == "1" ]; then
   curSeason=$((curSeason+1))
@@ -14,12 +15,19 @@ function get_next_episode_from_json(){
  fi
 
 #echo "looking for $1  S $curSeason  E $curEpisode .."
-
-# EpTitle=$(cat "$episodeJSON" |jq -r --arg s "$curSeason" --arg e "$curEpisode" '.data[]|select(.airedSeason==$s)|select(.airedEpisodeNumber==$e)'|jq '.episodeName')
-# AD=$(cat "$episodeJSON" |jq -r --arg s "$curSeason" --arg e "$curEpisode" '.data[]|select(.airedSeason==$s)|select(.airedEpisodeNumber==$e)'|jq '.firstAired')
-
-EpTitle=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.airedEpisodeNumber==$curEpisode)|.episodeName")
-AD=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.airedEpisodeNumber==$curEpisode)|.firstAired")
+#check for specials
+ if [ "$curSeason" == "0" ]; then
+   if [ "$3" == "d" ]; then
+    AD="$4"
+    EpTitle=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.firstAired==\"$AD\")|.episodeName")
+   else
+    EpTitle="$4"
+    AD=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.episodeName==\"$EpTitle\")|.firstAired")          
+   fi #if date
+ else
+    EpTitle=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.airedEpisodeNumber==$curEpisode)|.episodeName")
+    AD=$(cat "$episodeJSON" |jq -r ".data[]|select(.airedSeason==$curSeason)|select(.airedEpisodeNumber==$curEpisode)|.firstAired")
+ fi #if special or not
 
  if [ "$EpTitle" == "" ]; then
    if [ "$newseason" != "1" ]; then

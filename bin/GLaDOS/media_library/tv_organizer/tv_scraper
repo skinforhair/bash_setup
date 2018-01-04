@@ -203,8 +203,10 @@ NewPath="$NewPath/Season\ $Season/"
 NewPath=`echo ${NewPath//[\\\]/}`
 EP="S$Season"
 
+#echo "looking for $EP$EN"
+found=`find "$NewPath" -iname "*$EP$EN*" |grep -v srt`
+#echo "found is $found"
 
-found=`find "$NewPath" -iname "*$EP*" |grep -v srt`
 if [ -z "$found" ] || [ "$EN" == "Special" ] ; then
       if [ "$EN" == "Special" ]; then
         EP=$EP".$EN"

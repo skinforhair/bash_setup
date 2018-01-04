@@ -112,7 +112,7 @@ fi #if LocalAirDate != PAGE:
 
 
 if [ "${LocalTitle:0:4}" == "FAIL" ]; then
-  echo -e "${red}ERROR.${NC} No episode name found in epguides or json for $1. exiting."
+   echo -e "${red}ERROR.${NC} No episode name found in epguides or json for $1. exiting."
   exit 1;
 fi
 

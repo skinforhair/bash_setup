@@ -65,10 +65,16 @@ LocalTitle=${LocalTitle//\:/}
 LocalTitle=${LocalTitle//\//-}
 LocalTitle=$(echo "$LocalTitle" |sed 's;\.\.;\.;g')
 #echo "LocalTitle is $LocalTitle"
-if [ "${LocalTitle:0:4}" == "FAIL" ]; then
-  echo "No episode name found in json for $1. exiting."
-  echo "Try running $0 -m to manually override this."
-  #$DIR/scripts/SeriesUpdate "$1"
+if [ "${LocalTitle:0:4}" == "FAIL" ] || [ "${LocalTitle:0:4}" == "null" ]; then
+  showdata="$tvPath$1/.showdata/"
+  episode=$(find "$showdata" -mtime +10 |grep episode)
+  if [ "$episode" != "" ]; then
+   echo -e "${red}No episode name found.${NC} Refreshing ${red}$1${NC} and Exiting."
+   $DIR/scripts/SeriesUpdate "$1"
+  else
+   echo -e "${red}ERROR.${NC} No episode name found in epguides or json for $1. exiting."
+   echo "Try running $0 -m to manually override this."
+  fi
   exit 1;
 else
 

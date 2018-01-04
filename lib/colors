@@ -26,6 +26,10 @@ Blue='\e[0;36m'         # Cyan
 cyan='\e[0;36m'         # Cyan
 blue='\e[0;36m'         # Cyan
 White='\e[0;37m'        # White
+Orange='\e[38;5;214m'   # Orange
+orange='\e[38;5;214m'   # Orange
+Tan='\e[38;5;101m'      # Tan
+tan='\e[38;5;101m'      # Tan
 
 # Bold
 BBlack='\e[1;30m'       # Black

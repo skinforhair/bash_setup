@@ -28,7 +28,6 @@ promptForTitle() {
                 season=${season:1:1}
         fi
         #pull episode info from json files
-echo "1"
         get_episode_names "$SHOWNAME" "$season" "$3" "$4"
 
         #if nothing from json, try using the old epguides.com pages

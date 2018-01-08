@@ -10,6 +10,7 @@ case "$cmd" in
  "conv") DL_DIR="/cortana/Move/Convert";;
  "running") DL_DIR="/cortana/Running";;
  "rc") DL_DIR="/cortana/Move/RunningConvert";;
+ "mg") DL_DIR="/cortana/Completed/magnets";;
  "bin") DL_DIR="$pBIN";;
  *) usage;;
 esac
@@ -33,5 +34,6 @@ alias mvv="file_move_function mvv"
 alias srt="file_move_function srt"
 alias conv="file_move_function conv"
 alias rc="file_move_function rc"
+alias mg="file_move_function mg"
 alias running="file_move_function running"
 alias bin="file_move_function bin"

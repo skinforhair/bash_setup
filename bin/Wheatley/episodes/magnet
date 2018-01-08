@@ -1,8 +1,21 @@
 #!/bin/bash
 source $pLIB/YesNo
+tmpfile=.garbage.tmp
 
 usage() {
  echo "Usage: $0 <file.magnet>"
+} ##usage
+
+function process_magnet_file() {
+	URL=$(cat "$1")
+	echo -en "Processing $1"
+	echo -en "...  "
+	deluge-console add $URL
+        rm "$1"
+} ##process_magnet_file
+
+function deleteTMP() {
+	if [ -a $tmpfile ]; then rm -f $tmpfile; fi
 }
 
 if [ "$1" == "" ]; then
@@ -10,11 +23,18 @@ if [ "$1" == "" ]; then
 	exit 1
 fi
 
-URL=$(cat "$1")
-
-deluge-console add $URL
-#YesNo "Remove $1?" "y"
-# if [ $? == "1" ]; then
-echo "removing $1"
-	rm "$1"
-# fi
+if [ "$1" == "all" ]; then
+  files=$(find . -type f -name "*.magnet")
+  if [ "$files" != "" ]; then
+	  deleteTMP
+   find . -type f -name "*.magnet" >> $tmpfile
+   while read line; do
+	   process_magnet_file "$line"
+   done<$tmpfile
+          deleteTMP
+  else
+   echo "no magnet files found!"
+  fi
+else
+  process_magnet_file "$1"
+fi

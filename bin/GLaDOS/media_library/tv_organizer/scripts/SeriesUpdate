@@ -9,11 +9,11 @@ for f in $pLIB/*; do if [ -f $f ]; then source $f;fi; done
 DIR="$pBIN/GLaDOS/media_library/tv_organizer/"
 #if token does not exist, create it
 token_file="$DIR/lib/thetvdb/current_token"
-if [ "$(cat $token_file)" == "" ]; then
+#if [ "$(cat $token_file)" == "" ]; then
  $DIR/lib/thetvdb/generate_token
-fi
+#fi
 #if token is more than 23 hours old, refresh it.
-find "$token_file" -mmin 1380 -exec $DIR/lib/thetvdb/generate_token \;
+#find "$token_file" -mmin 1380 -exec $DIR/lib/thetvdb/generate_token \;
 
 token=$(cat ${token_file})
 
@@ -171,7 +171,6 @@ elif [ $nResults -gt 1 ]; then
   fi
  done
 fi
-
 if [ "$seriesStatus" == "Continuing" ]; then
    currently_on_air="1"
 else
@@ -183,6 +182,7 @@ imdbID=$(cat $TMPseriesjson |jq '.data'|jq '.imdbId'|sed 's;";;g')
 } #grab_from_tvdb
 
 function check_data(){
+ quiet="$1"
  if [ -d "$tvPath/$NEWSHOWNAME" ]; then
   size_on_disk=$(du -sh "$tvPath/$NEWSHOWNAME" |awk '{print $1}' |rev|cut -c 2-|rev)
   seasons_owned=$(ls "$tvPath/$NEWSHOWNAME" |grep "Season" |grep -v "Season 00"|wc -l)
@@ -192,7 +192,11 @@ function check_data(){
  fi
  sNums=$(cat $TMPepisodejson |jq '.data[]' |jq '.airedSeason') 
  if [ "$sNums" == "" ]; then
-  refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
+  if [ "$quiet" == "1" ]; then
+   refresh_json "$NEWSHOWNAME" "$tvdbID" "$token" "-q"
+  else
+   refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
+  fi
   #echo "There seems to be a json problem..."
   #echo -e "Try running ${yellow}$DIR/lib/thetvdb/generate_token${NC}"
   #exit 1
@@ -209,63 +213,69 @@ function check_data(){
   else
     currently_on_air=0
   fi
-if [ "$id" != "" ]; then
- echo -e "${green}$NEWSHOWNAME${NC} -- Updating ID: ${yellow}$id${NC}"
- diffInSeasons=$(($seasons_aired-$seasons_owned))
- if [ $diffInSeasons -ge 2 ]; then
-  echo -en "${red}"
- elif [ $diffInSeasons -ge 1 ]; then
-  echo -en "${yellow}"
+if [ "$quiet" != "1" ]; then
+ if [ "$id" != "" ]; then
+  echo -e "${green}$NEWSHOWNAME${NC} -- Updating ID: ${yellow}$id${NC}"
+  diffInSeasons=$(($seasons_aired-$seasons_owned))
+  if [ $diffInSeasons -ge 2 ]; then
+   echo -en "${red}"
+  elif [ $diffInSeasons -ge 1 ]; then
+   echo -en "${yellow}"
+  else
+   echo -en "${green}"
+  fi
+  echo -e "$seasons_owned / ${NC}$seasons_aired  Owned."
+  if [ "$currently_on_air" == "1" ]; then
+    echo -en "${green}Current${NC}"
+  else
+    echo -en "${red}Ended${NC}"
+  fi
+  if [ "$active_download" == "1" ]; then
+    echo -e "   ${green}Downloading${NC}"
+  else
+    echo -e "   ${red}Inactive${NC}"
+  fi
+  echo -e "TVDB: $tvdbID     IMDB: $imdbID"
  else
-  echo -en "${green}"
- fi
- echo -e "$seasons_owned / ${NC}$seasons_aired  Owned."
- if [ "$currently_on_air" == "1" ]; then
-   echo -en "${green}Current${NC}"
- else
-   echo -en "${red}Ended${NC}"
- fi
- if [ "$active_download" == "1" ]; then
-   echo -e "   ${green}Downloading${NC}"
- else
-   echo -e "   ${red}Inactive${NC}"
- fi
-echo -e "TVDB: $tvdbID     IMDB: $imdbID"
-else
  #new show
-echo -e "new show"
-echo "echo \"update VideoLibrary.tvShows set showname=\"$NEWSHOWNAME\" where id=\"$id\"|mysql -N"
-fi
+  echo -e "new show"
+  echo "echo \"update VideoLibrary.tvShows set showname=\"$NEWSHOWNAME\" where id=\"$id\"|mysql -N"
+ fi
 YesNo "continue?" Y
 if [ "$?" == "1" ]; then
  write_out_info
 else
  echo "NO."
 fi
+else
+ write_out_info "-q"
+fi #if not quiet mode
 } #check_data
 
 function move_json_files(){
   #if new files are updated, then replace the old ones
-    if ! cmp "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson" >/dev/null 2>&1
-     then
-       echo "Updating series json"
+#    if ! cmp "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson" >/dev/null 2>&1
+#     then
+#       echo "Updating series json"
        mv "$TMPseriesjson" "$tvPath/$NEWSHOWNAME/$seriesjson"
-     else
-       rm "$TMPseriesjson"
-       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
-    fi
-    if ! cmp "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson" >/dev/null 2>&1
-     then
-       echo "Updating episode json"
+#     else
+#       rm "$TMPseriesjson"
+#       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
+#    fi
+#    if ! cmp "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson" >/dev/null 2>&1
+#     then
+#       echo "Updating episode json"
        mv "$TMPepisodejson" "$tvPath/$NEWSHOWNAME/$episodejson"
-     else
-       rm "$TMPepisodejson"
-       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
-    fi
+#     else
+#       rm "$TMPepisodejson"
+#       touch "$tvPath/$NEWSHOWNAME/$seriesjson"
+#    fi
 } #move_json_files
 
 function write_out_info(){
+ if [ "$1" != "-q" ]; then
   echo "Updating path for \"$tvPath/$NEWSHOWNAME\"..."
+ fi
   mkdir -p "$tvPath/$NEWSHOWNAME/.showdata"
   move_json_files
   if [ "$id" != "" ]; then
@@ -399,19 +409,26 @@ if [ "$id" != "" ]; then
    echo -e "${red}ERROR:${NC} local json has ID of ${yellow}$otherid${NC} while db has ${yellow}$tvdbID${NC}"
    exit 1
   fi #if downloading or active
- else
-   echo -e "no JSON found localy... Continuing."
+ #else
+   #echo -e "no JSON found localy... Continuing."
  fi #if json file exists
  #if it is in the db, and on air or downloading, refresh json files
  if [ "$currently_on_air" == "1" ] || [ "$active_download" == "1" ] || [ ! -f "$seriesjson" ]; then
   #refresh json files
-   refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
+   if [ "$2" == "-q" ]; then
+    refresh_json "$NEWSHOWNAME" "$tvdbID" "$token" "-q"
+   else
+    refresh_json "$NEWSHOWNAME" "$tvdbID" "$token"
+   fi
  fi #if currently on air or downloading
 else
 #if it is NOT in the db, search thetvdb for it. download info.
  grab_from_tvdb
 fi #if in local db
 
-
-check_data
+if [ "$2" == "-q" ]; then
+ check_data "1"
+else
+ check_data
+fi
 #rm /tmp/*.json

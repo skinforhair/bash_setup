@@ -1,13 +1,23 @@
 #!/bin/bash
 
 current_token_file="$pBIN/GLaDOS/media_library/lib/thetvdb/current_token"
+
+#only update if current token is older than x minutes
+x=720
+oldFile=$(find "$current_token_file" -mmin +$x)
+
+if [ "$oldFile" != "" ] || [ "$1" == "-f" ]; then
+
 t=$(curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
   "apikey": "4B71B39C1AD74AC3",
   "userkey": "79C7E3B0BBA9CD73",
   "username": "skinforhair"
 }' 'https://api.thetvdb.com/login')
 
-
 myToken=`echo "$t" |jq '.token' |sed 's/\"//g'`
 echo $myToken > $current_token_file
-
+#else
+#echo "Checking token is current..."
+#echo "current token is less than $x minutes old!"
+#echo "use -f to force."
+fi

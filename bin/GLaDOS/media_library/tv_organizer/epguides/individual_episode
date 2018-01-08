@@ -23,12 +23,11 @@ source /root/.skinforhair_settings/lib/colors
 PAGES="$DIR/pages/"
 
 outfile="available_episodes.txt"
-remotepath="/home/jar/Downloads/"
 number='^[0-9]+$'
 
 maxlen="$2"
 if [ "$maxlen" == "" ]; then
-	maxlen=35
+	maxlen=40
 fi
 i=0
 c=1
@@ -52,14 +51,17 @@ E=$((E+1))
 if [ "$S" == "" ]; then
  S=1; E=1
 fi
-t=$(EpGuideName_local "$SN" "$S" "$E")
+#swapped for json instead of epguides
+#t=$(EpGuideName_local "$SN" "$S" "$E")
+t=$(get_next_episode_from_json "$SN" "$S" "$E")
 today=$(date +"%y%m%d")
 
 
 if [ "${t:0:3}" == "URL" ]; then
 	S=$((S+1))
 	E=1
-	t=$(EpGuideName_local "$SN" "$S" "$E")
+        t=$(get_next_episode_from_json "$SN" "$S" "$E")
+	#t=$(EpGuideName_local "$SN" "$S" "$E")
 fi
 
 if [ "${t:0:3}" == "ERR" ]; then

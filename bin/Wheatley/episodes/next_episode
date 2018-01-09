@@ -3,6 +3,7 @@
 WORKINGDIR="$lBIN/episodes"
 
 source "$WORKINGDIR/lib/next_episode.conf"
+source $pLIB/colors
 strArray=
 ### MAIN ###
 Option="$1"

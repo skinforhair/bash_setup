@@ -17,7 +17,7 @@ function CheckFolders() {
 	foundFile="Cortana - Completed"
    else
     for i in "Move" "Move/get_srt" "Move/Convert"; do
-     foundFile=$(find /cortana/$i -maxdepth 1 -type f \( ! -name "*.nfo" \) -iname "$2")
+     foundFile=$(find /cortana/$i -type f \( ! -name "*.nfo" \) -iname "$2")
       if [ "$foundFile" != "" ]; then
        foundFile="Cortana - $i"
 	break
@@ -41,6 +41,7 @@ function CheckDownloaded() {
  sn=$(echo "$sn" |sed "s;';;g")
  sn=$(echo "$sn" |sed "s;(;;g")
  sn=$(echo "$sn" |sed "s;);;g")
+ sn=$(echo "$sn" |sed "s;:;;g")
  searchName="*""$sn""*""$EP""*"
 
  #allow for Episode name to be just numbers, IE 517 instead of s05e17

@@ -14,8 +14,9 @@ function getShowName_fromDB(){
   FSN=
   fnd=0
   wds="${ShowNameArray[$c]}"
-  cntquery="select count(*) from VideoLibrary.tvShows where showname like ";
-  query="select showname from VideoLibrary.tvShows where showname like ";
+  #1/10/18 - the replace in here ignores colons in the show name ie, Ink Master: Redemption
+  cntquery="select count(*) from VideoLibrary.tvShows where replace(showname, ':', '') like ";
+  query="select showname from VideoLibrary.tvShows where replace(showname, ':', '') like ";
   
     while [ "$FSN" == "" ]; do
       fnd=$(echo "$cntquery\"$wds%\"" |mysql -N)
@@ -23,7 +24,6 @@ function getShowName_fromDB(){
         FSN=$(echo "$query\"$wds%\""|mysql -N)
       elif [ $fnd -gt 1 ]; then
         c=$((c+1))
-         #be on the lookout for production year in title
          nxt="${ShowNameArray[$c]}"
           if [ "${nxt:0:2}" == "19" ] || [ "${nxt:0:2}" == "20" ]; then
             nxt="($nxt)"

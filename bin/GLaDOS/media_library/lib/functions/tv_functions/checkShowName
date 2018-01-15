@@ -20,18 +20,35 @@ function getShowName_fromDB(){
   
     while [ "$FSN" == "" ]; do
       fnd=$(echo "$cntquery\"$wds%\"" |mysql -N)
+#echo "$c : checking $wds gives $fnd"
       if [ $fnd -eq 1 ]; then
         FSN=$(echo "$query\"$wds%\""|mysql -N)
       elif [ $fnd -gt 1 ]; then
         c=$((c+1))
          nxt="${ShowNameArray[$c]}"
+#echo "adding '$nxt'"
           if [ "${nxt:0:2}" == "19" ] || [ "${nxt:0:2}" == "20" ]; then
             nxt="($nxt)"
           fi
-        wds="$wds $nxt"
-      elif [ $fnd -eq 0 ] && [ "${wds: -1}" == "s" ]; then
+         nfnd=$(echo "$cntquery\"$wds $nxt%\""|mysql -N)
+         if [ "$nfnd" -eq 0 ]; then
+          query="select showname from VideoLibrary.tvShows where replace(showname, ':', '') = "
+          FSN=$(echo "$query\"$wds\""|mysql -N)
+#echo "grabbed $FSN"
+         else
+#echo -n "moving $wds"
+          wds="$wds $nxt"
+#echo " to '$wds'"
+         fi
+      elif [ $fnd -eq 0 ];then 
+       if [ "${wds: -1}" == "s" ]; then
         wds=${wds:0:$((${#wds}-1))}
         wds="$wds""'s"
+#       else
+#        wds=$(echo "$wds"|sed '$s/\w*$//')
+#        query="select showname from VideoLibrary.tvShows where replace(showname, ':', '') = "
+#        FSN=$(echo "$query\"$wds\""|mysql -N)
+       fi
       else
         FSN="$fnd"
       fi
@@ -147,8 +164,11 @@ if [ "$FSN" = "" ]; then
         echo checking "$MyNewName"
         checkShowName "$MyNewName"
 else
-#   echo -e "  -Setting show to ${red}$FSN${NC}"
+   echo -e "  -Setting show to ${red}$FSN${NC}"
   FoundShowName="$FSN"
 fi
 
 } #checkShowName 
+
+getShowName_fromDB "$1"
+#checkShowName "$1"

@@ -16,7 +16,7 @@ fi
 
 #get which host setup
 case "$(hostname)" in 
- "Wheatley" | "GLaDOS" ) HN="$(hostname)";;
+ "Wheatley" | "GLaDOS" | "shodan" ) HN="$(hostname)";;
  *) HN="ihc";;
 esac
 

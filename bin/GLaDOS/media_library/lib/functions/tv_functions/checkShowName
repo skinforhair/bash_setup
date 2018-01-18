@@ -170,5 +170,5 @@ fi
 
 } #checkShowName 
 
-getShowName_fromDB "$1"
+#getShowName_fromDB "$1"
 #checkShowName "$1"

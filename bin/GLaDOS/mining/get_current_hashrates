@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#list of servers:
+#cortana: (not  yet)
+
+servers[0]="SHODAN"
+IPs[0]="23.253.236.121"
+
+servers[1]="Van"
+IPs[1]="52.224.232.125"
+
+servers[2]="SpaceSphere"
+IPs[2]="104.210.33.227"
+
+van="52.224.232.125"
+spacesphere="104.210.33.227"
+shodan="23.253.236.121"
+
+c=0
+runningCur=0
+
+while [ $c -lt ${#servers[@]} ]; do
+ echo -en "${servers[c]}: "
+ #echo "${IPs[c]}"
+ Hashes=$(ssh jar@${IPs[c]} "tail -50 /var/log/xmrig.log|grep \"H/s\"|tail -1")
+  cur=$(echo "$Hashes" |awk '{print $5}')
+  max=$(echo "$Hashes" |awk '{print $10}')
+  runningCur=$(bc <<< $runningCur+$cur)
+ echo -e "$cur  - Max: $max\t Total: $runningCur"
+ c=$((c+1))
+done
+
+echo "--- $runningCur ---"

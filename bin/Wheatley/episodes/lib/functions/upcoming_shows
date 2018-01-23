@@ -43,6 +43,11 @@ function upcoming_shows() {
      str_to_array "$line"
      if [ $(get_days_away "${strArray[4]}" "${strArray[5]}" "${strArray[6]}") -le $limit ]; then 
        compDate="${strArray[6]}${strArray[5]}${strArray[4]}"
+#       echo "compDate is $compDate"
+#       echo "${strArray[6]}"
+#       echo "${strArray[5]}"
+#       echo "${strArray[4]}"
+#       echo "today is `date +%Y%m%d`"
        if [ $compDate -eq `date +%Y%m%d` ] && [ $todayshows -lt 1 ]; then
 	date_display "${strArray[4]}" "${strArray[5]}" "${strArray[6]}"
 	todayshows=$((todayshows+1))

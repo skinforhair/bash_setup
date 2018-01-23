@@ -11,13 +11,17 @@ function str_to_array() {
     Remainder=${line:$E}
     Air=$(echo $Remainder |grep -o -E '[0-9]+/' |head -1 |sed -e 's/^0\+//')
     A=$(echo $Remainder |grep -b -o $Air|awk 'BEGIN {FS=":"}{print $1}')
-    EpisodeTitle=${Remainder:0:$((A-1))}
+#    echo "A is $A"
+    EpisodeTitle=${Remainder:0:$A}
     AirDate=${Remainder:$A}
 
     E=`expr index "$AirDate" /`
     AirDay=${AirDate:0:$((E-1))}
-     if [ $AirDay -lt 10 ]; then
+     if [ $AirDay -lt 10 ] && [ "${AirDay:0:1}" != "0" ]; then
 	AirDay="0$AirDay"
+     fi
+     if [ "${AirDay:0:1}" == " " ]; then
+	     AirDay=${AirDay:1}
      fi
     AirDate=${AirDate:$E}
     E=`expr index "$AirDate" /`

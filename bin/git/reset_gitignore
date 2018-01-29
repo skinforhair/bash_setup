@@ -1,9 +1,0 @@
-cd $profileDir
-
-#to delete ALL cached files,
-#git rm -r --cached .
-
-#however, if you're just adding one $line to .gitignore, then
-#git rm --cached $line
-
-

@@ -1,9 +1,0 @@
-#!/bin/bash
-cd $profileDir
-rm $profileDir/bin/active
-rm $profileDir/env/active
-rm $profileDir/aliases/active
-
-git pull origin master
-
-skinforhair_setup

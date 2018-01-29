@@ -21,7 +21,7 @@
 
 #Run custom login scripts
  if [ -d "$pENV/startup_scripts/$(hostname)" ]; then
-   for f in $pENV/startup_scripts/$(hostname)/*;do if [ ! -d $f ]; then `$f`;fi;done
+   for f in $pENV/startup_scripts/$(hostname)/*;do if [ ! -d $f ]; then $f;fi;done
  fi
 
 #set up color command prompt

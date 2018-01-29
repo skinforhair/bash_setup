@@ -16,6 +16,8 @@ if [ -a $SSH_COM ]; then
  alias van="single_command_ssh_function van"
  alias Van="single_command_ssh_function van"
  alias space="single_command_ssh_function SpaceSphere"
+ alias rick="single_command_ssh_function AdventureSphere"
+ alias adventure="single_command_ssh_function AdventureSphere"
  alias shodan="single_command_ssh_function rackspace"
 else
  echo "can't find $SSH_COM"

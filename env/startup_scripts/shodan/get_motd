@@ -1,0 +1,3 @@
+#!/bin/bash
+
+miner_motd "ME" "Rackspace"

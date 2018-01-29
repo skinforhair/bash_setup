@@ -22,9 +22,9 @@ output="$DIR/tmp/$outfile"
 daysOld=15
 
 function cleanTMP() {
-if [ -f $A ]; then rm $A; fi
-if [ -f $U ]; then rm $U; fi
-if [ -f $N ]; then rm $N; fi
+if [ -f $A ]; then rm $A -rf; fi
+if [ -f $U ]; then rm $U -rf; fi
+if [ -f $N ]; then rm $N -rf; fi
 if [ -f $Ltmp ]; then rm $Ltmp; fi
 }
 cleanTMP
@@ -121,11 +121,11 @@ DT=`date "+%Y%m%d (%A)"`
 
 echo "Generated $DT" > $output
                 echo -e "\n---- Available ----\n" >> $output
-                cat "$A" >> $output
+                if [ -f $A ]; then cat "$A" >> $output;fi
                 echo -e "\n---- Upcoming ----\n" >> $output
-                cat "$U" >> $output
+                if [ -f $U ]; then cat "$U" >> $output;fi
                 echo -e "\n---- No Future Episodes listed ----\n" >> $output
-                cat "$N" >> $output
+                if [ -f $N ]; then cat "$N" >> $output;fi
 
 
 #update NOT FOUND list with current season
@@ -137,9 +137,9 @@ while read line; do
 done < $N
 mv temp $N
 
-echo "Generated $DT" | cat - $A > temp && mv temp $A
-echo "Generated $DT" | cat - $U > temp && mv temp $U
-echo "Generated $DT" | cat - $N > temp && mv temp $N
+if [ -f $A ]; then echo "Generated $DT" | cat - $A > temp && mv temp $A; fi
+if [ -f $U ]; then echo "Generated $DT" | cat - $U > temp && mv temp $U; fi
+if [ -f $N ]; then echo "Generated $DT" | cat - $N > temp && mv temp $N; fi
 
 function upload_to_wheatley(){
    ssh cavejohnson@wheatley "if [ -a $remotepath$outfile ]; then rm $remotepath$outfile; fi;if [ -a $remotepath$A ]; then rm $remotepath$A; fi;if [ -a $remotepath$U ]; then rm $remotepath$U; fi;if [ -a $remotepath$N ]; then rm $remotepath$N; fi"
@@ -150,6 +150,9 @@ function upload_to_wheatley(){
                         mv $output $DIR/archive/$outfile.$stamp
                 fi
 }
+touch $A
+touch $U
+touch $N
 
 upload_to_wheatley
 

@@ -20,12 +20,12 @@
   for f in $lALS/*;do if [ ! -d $f ]; then source $f;fi;done
 
 #Run custom login scripts
- if [ -d "$pENV/active/startup_scripts" ]; then
-   for f in $pENV/active/startup_scripts/*;do if [ ! -d $f ]; then `$f`;fi;done
+ if [ -d "$pENV/active/startup_scripts/$(hostname)" ]; then
+   for f in $pENV/active/startup_scripts/$(hostname)/*;do if [ ! -d $f ]; then `$f`;fi;done
  fi
 
 #set up color command prompt
  source $pENV/color_command_prompt
  
  #set PATH
- PATH=$PATH:$lBIN:$pBIN/global:$pBIN/networking:$pBIN/password
+ PATH=$PATH:$lBIN:$pBIN/global:$pBIN/global/networking:$pBIN/global/password:$pBIN/global/git

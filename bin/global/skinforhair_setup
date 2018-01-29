@@ -17,7 +17,7 @@ fi
 #get which host setup
 case "$(hostname)" in 
  "Wheatley" | "GLaDOS" | "shodan" ) HN="$(hostname)";;
- *) HN="ihc";;
+ *) HN="global";;
 esac
 
 source "$pD/lib/colors"
@@ -38,11 +38,11 @@ for i in "bin" "aliases" "env"; do
 done
 
 
-envScripts="$pD/env/$(hostname)/environment_scripts"
-if [ -d "$envScripts" ]; then
-	echo -e "..Running setup scripts for ${red}$(hostname)${NC} ..."
-	for i in `ls $envScripts`; do $envScripts/$i;done
-fi
+#envScripts="$pD/env/$(hostname)/environment_scripts"
+#if [ -d "$envScripts" ]; then
+#	echo -e "..Running setup scripts for ${red}$(hostname)${NC} ..."
+#	for i in `ls $envScripts`; do $envScripts/$i;done
+#fi
 
 echo -e "..Setting up ${red}Bashrc${NC}..."
 mv $HOME/.bashrc $HOME/.bashrc_old

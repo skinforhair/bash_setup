@@ -46,6 +46,6 @@ done
 
 echo -e "..Setting up ${red}Bashrc${NC}..."
 mv $HOME/.bashrc $HOME/.bashrc_old
-ln -s "$pD/env/bashrc" "$HOME/.bashrc"
+ln -s "$pD/env/global/bashrc" "$HOME/.bashrc"
 source $HOME/.bashrc
 

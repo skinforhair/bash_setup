@@ -22,15 +22,15 @@ maxSpeed=$(echo "$CurSpeed" |awk '{print $10}')
 #echo "Max: $maxSpeed"
 
 case "$1" in
- "IHC") LOC=${red}IHC${NC};;
- "ME") LOC=${white}Personal${NC};;
- *) LOC=${yellow}HOME${NC};;
+ "IHC") LOC="${red}IHC${NC}";;
+ "ME") LOC="${white}Personal${NC}";;
+ *) LOC="${yellow}HOME${NC}";;
 esac
 
 case "$2" in
- "Azure") DC=${blue}Azure${NC} Account;;
- "Rackspace") DC=${red}Rackspace${NC} Account;;
- *) DC=${yellow} ${NC};;
+ "Azure") DC="${blue}Azure${NC} Account";;
+ "Rackspace") DC="${red}Rackspace${NC} Account";;
+ *) DC="${yellow} ${NC}";;
 esac
 
 clear

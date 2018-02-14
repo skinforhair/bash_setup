@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SOURCE="/shares/video/movies/"
+DEST="/moviebox/movies/"
+
+while read line; do
+ if ! [ -d "${DEST}${line}" ]; then
+  mkdir "${DEST}${line}"
+ fi
+  rsync -avz --delete "${SOURCE}$line/" "${DEST}$line"
+done < $1

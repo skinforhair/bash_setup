@@ -1,0 +1,10 @@
+#!/bin/bash
+
+function set_default_wrapper(){
+ localBox=$(hostname)
+ case "${localBox,,}" in
+  "glados") echo "aperture";;
+  "wheatley") echo "cake";;
+  *) echo "tux";;
+ esac 
+} ##set_default_wrapper

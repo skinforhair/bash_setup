@@ -1,0 +1,212 @@
+#!/bin/bash
+
+RunningTotal=0
+tmpJSON="/tmp/mining_workers_JSON"
+tmpAcctJSON="/tmp/mining_acct_JSON"
+outputfile="/etc/motd"
+ NC='\033[0m' # no color
+ red='\033[0;31m'
+ green='\033[0;32m'
+ black='\e[0;30m'
+ white='\033[1;37m'
+ yellow='\033[1;33m'
+ cyan='\e[0;36m'
+ gray='\033[0;37m'
+ blue='\e[0;34m'
+
+WAN=$(dig +short myip.opendns.com @resolver1.opendns.com)
+WheatWAN=`ssh -q cavejohnson@wheatley "dig +short myip.opendns.com @resolver1.opendns.com;exit"`
+if [ "$WAN" == "$WheatWAN" ]; then
+ VPN_WAN="${red}$WheatWAN${NC}"
+else
+ VPN_WAN="${cyan}$WheatWAN${NC}"
+fi
+
+function get_miners(){
+  Hashes=$(ssh jar@$1 "tail -50 /var/log/xmrig.log|grep \"H/s\"|tail -1")
+  cur=$(echo "$Hashes" |awk '{print $5}')
+  max=$(echo "$Hashes" |awk '{print $10}')
+  #RunningTotal=$(bc <<< $RunningTotal+$cur)
+  echo -en "$cur $max"
+} ##end get_miners
+
+function print_miners(){
+  echo -en "${blue}$1${NC} : "
+ if [ "$2" != "." ]; then
+  echo -en "${green}$2${NC}/"
+ fi
+ if [ "$4" != "." ]; then
+  echo -en "${yellow}$4${NC}/"
+ fi
+ if [ "$3" != "." ]; then
+  echo -en "${gray}$3${NC}"
+ fi
+} ##end print_miners
+
+function get_pool_workers(){
+ wallet="etnk6L7QGdGPNWqMkwtNmkAFVRpvdF7HgRRxnvZn22Z8bqCHmkjWmaLF3soYx9v9CnGA1jKED2u4sb3gHeJMeaoQ4pejCDNR9z"
+ if [ -f "$tmpJSON" ]; then rm -rf "$tmpJSON"; fi
+ if [ -f "$tmpAcctJSON" ]; then rm -rf "$tmpAcctJSON"; fi
+ workerJSON=$(curl -s -X GET --header "Accept: application/json" "https://api.etn.spacepools.org/v1/stats/workerStats/$wallet")
+ echo "$workerJSON" >> $tmpJSON
+ workerJSON=$(curl -s -X GET --header "Accept: application/json" "https://api.etn.spacepools.org/v1/stats/address/$wallet")
+ echo "$workerJSON" >> $tmpAcctJSON
+} ##end get_pool_workers
+
+function check_ssh() {
+if (exec 3<>/dev/tcp/$1/22) 2> /dev/null; then
+ echo 0
+else
+ echo 2
+fi
+} ##end check_ssh
+
+function check_ping() {
+ ping -c 1 $1 &> /dev/null; echo $?
+} ##end check_ping
+
+function check_host_online () {
+ if [ "$2" == "ping" ]; then
+  host_status="$(check_ping $1)"
+ else
+  host_status="$(check_ssh $1)"
+ fi
+ if [ "$host_status" == "0" ]; then
+  echo -en "${green}Online ${NC}"
+ else
+  echo -en "${red}Offline${NC}"
+ fi
+} ##end check_host_online
+
+function check_service_status() {
+ serviceName="$1"
+ processName="$2"
+ SSTAT=$(ps -ef |grep $processName |grep -v grep)
+ [ "$SSTAT" == "" ] && echo -e "${red}DN${NC}" || echo -e "${green}UP${NC}"
+} ##end check_service_status
+
+
+get_pool_workers
+echo -e $(date "+%b %d %H:%M:%S") $(whoami) $0
+
+######### LAN DEVICES #############
+NOW=$(date "+%b %d %H:%M:%S")
+echo -en "  [$NOW] Checking Local Devices."
+START=$(date +%s)
+CortanaOnline="$(check_host_online 'cortana' 'ping')"
+echo -en "."
+R2Online="$(check_host_online 'r2d2' 'ssh')"
+echo -en "."
+ScholoOnline="$(check_host_online 'scholomance' 'ssh')"
+echo -en "."
+BB8Online="$(check_host_online 'bb8' 'ssh')"
+echo -en "."
+WheatleyOnline="$(check_host_online 'wheatley' 'ssh')"
+END=$(date +%s)
+echo -e " [$((END-START)) seconds]"
+######### LAN DEVICES #############
+
+######### CAMERAS #################
+NOW=$(date "+%b %d %H:%M:%S")
+echo -en "  [$NOW] Checking Local Cameras."
+START=$(date +%s)
+FP="$(check_host_online 'frontporch' 'ping')"
+echo -en "."
+EG="$(check_host_online 'eastgarage' 'ssh')"
+echo -en "."
+BP="$(check_host_online 'backporch' 'ping')"
+echo -en "."
+WG="$(check_host_online 'westgarage' 'ping')"
+echo -en "."
+BY="$(check_host_online 'backyard' 'ping')"
+END=$(date +%s)
+echo -e " [$((END-START)) seconds]"
+######### CAMERAS #################
+
+######### SERVICES ################
+NOW=$(date "+%b %d %H:%M:%S")
+echo -en "  [$NOW] Checking Services..."
+START=$(date +%s)
+APACHE="$(check_service_status 'Apache' 'httpd')"
+echo -en "."
+SMB="$(check_service_status 'Samba' 'smb')"
+echo -en "."
+MYSQL="$(check_service_status 'MySQL' 'mysql')"
+END=$(date +%s)
+echo -e " [$((END-START)) seconds]"
+######### SERVICES ################
+
+######### ETN MINING ##############
+NOW=$(date "+%b %d %H:%M:%S")
+echo -en "  [$NOW] Checking Miners..."
+START=$(date +%s)
+zVAN=$(get_miners "52.224.232.125")
+ cur=$(echo $zVAN |awk '{print $1}')
+ max=$(echo $zVAN |awk '{print $2}')
+ pool=$(cat $tmpJSON |jq -r '.workers[]|select(.rigId=="Van")|.hashRate')
+ pool=$(echo "$pool" |awk '{print $1}')
+ VAN=$(print_miners "Van" "$cur" "$max" "$pool")
+ RunningTotal=$(bc <<< $RunningTotal+$cur)
+echo -en "."
+zSHODAN=$(get_miners "23.253.236.121")
+ cur=$(echo $zSHODAN |awk '{print $1}')
+ max=$(echo $zSHODAN |awk '{print $2}')
+ pool=$(cat $tmpJSON |jq -r '.workers[]|select(.rigId=="Shodan")|.hashRate')
+ pool=$(echo "$pool" |awk '{print $1}')
+ SHODAN=$(print_miners "Shodan" "$cur" "$max" "$pool")
+ RunningTotal=$(bc <<< $RunningTotal+$cur)
+echo -en "."
+zSPACE=$(get_miners "104.210.33.227")
+ cur=$(echo $zSPACE |awk '{print $1}')
+ max=$(echo $zSPACE |awk '{print $2}')
+ pool=$(cat $tmpJSON |jq -r '.workers[]|select(.rigId=="SpaceSphere")|.hashRate')
+ pool=$(echo "$pool" |awk '{print $1}')
+ SPACE=$(print_miners "SpaceS" "$cur" "$max" "$pool")
+ RunningTotal=$(bc <<< $RunningTotal+$cur)
+echo -en "."
+ pool=$(cat $tmpJSON |jq -r '.workers[]|select(.rigId=="Cortana")|.hashRate')
+ pool=$(echo "$pool" |awk '{print $1}')
+ cur=$(bc <<< $pool*0.7)
+CORTANA=$(print_miners "Cortana" "$cur" "." "$pool")
+ if [ "$cur" != "" ]; then RunningTotal=$(bc <<< $RunningTotal+$cur); fi
+echo -en "."
+ pool=$(cat $tmpJSON |jq -r '.workers[]|select(.rigId=="iPhone")|.hashRate')
+  pool=$(echo "$pool" |awk '{print $1}')
+  cur=$(bc <<< $pool*0.7)
+ iPhone=$(print_miners "iPhone" "$cur" "." "$pool")
+  if [ "$cur" != "" ]; then RunningTotal=$(bc <<< $RunningTotal+$cur); fi
+END=$(date +%s)
+echo -e " [$((END-START)) seconds]"
+######### ETN MINING ##############
+
+echo "Creating File...." 
+echo -e "${white}+-----------  ${yellow}.,-:;//;:-,  ${white}----------------------------------------------------------------" > $outputfile
+echo -e "|         ${yellow}. :H000MM@M#H/.,+%;,     ${white}Welcome to GLaDOS       WAN IP: ${cyan}$WAN${NC}" >> $outputfile
+echo -e "${white}+----  ${yellow},/X+ +M@@M@MM%=,-%HMMM@X/, ${white}---------------------------------------------------------" >> $outputfile
+echo -e "${white}|    ${yellow}-+@MM; SM@@MH+-,;XMMMM@MMMM@+-            ${white}Hosts                   Pi's ${NC}" >> $outputfile
+echo -e "${white}|   ${yellow};@M@@m- XM0X;. -+XXXXXHHH@M@M#@/. ${white}-----------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}| ${yellow}%MM@@MH ,@%=            .---=-=:=,.     ${NC}Cortana    : $CortanaOnline   R2-D2      : $R2Online" >> $outputfile
+echo -e "${white}| ${yellow}=@#@@@MX .,              -%HXSS%%%+;    ${NC}Scholomance: $ScholoOnline   BB-8       : $BB8Online" >> $outputfile
+echo -e "${white}|${yellow}=-./@M@MS                  .;@MMMM@MM:   ${NC}Wheatley   : $WheatleyOnline   VPN WAN : $VPN_WAN" >> $outputfile
+echo -e "${white}|${yellow}X@/ -SMM/                    .+MM@@@M:${white} ---------------------------------------------------${NC}" >> $outputfile
+echo -e "${yellow},@M@H: :0:                    . =X#@@@@-                   ${white}Cameras${NC}" >> $outputfile
+echo -e "${yellow},@@@MMX, .                    /H- ;@M@M= ${white}--------------------------------------------------${NC}" >> $outputfile
+echo -e "${yellow}.H@@@@M@+,                    %MM+..%#$.  ${NC}FrontPorch : $FP${NC}   EastGarage : $EG${NC}" >> $outputfile
+echo -e "${white}|${yellow}/MMMM@MMH/.                  XM@MH; =;   ${NC}BackPorch  : $BP${NC}   WestGarage : $WG${NC}" >> $outputfile
+echo -e "${white}| ${yellow}/%+%SXHH@S=              , .H@@@@MX,    ${NC}BackYard   : $BY${NC}" >> $outputfile
+echo -e "${white}|- ${yellow}.=--------.           =%H.,@@@@@MX, ${white}----------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}|  ${yellow}.%MM@@@HHHXXSSS%+- .:SMMX =M@@MM%.                      ${white}Services${NC}" >> $outputfile
+echo -e "${white}|--  ${yellow}=XMMM@MM@MM#H;,-+HMM@M+ /MMMX=  ${white}------------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}|      ${yellow}-%@M@M#@S-.=S@MM@@@M; %M%-        ${NC}Apache : $APACHE${NC}       SMB : $SMB${NC}     MySQL : $MYSQL${NC}" >> $outputfile
+echo -e "${white}|        ${yellow},:+S+-,/H#MMMMMMM@- -,${NC}           ${black}Generated `date`${NC}" >> $outputfile
+
+echo -e "${white}+------------  ${yellow}=++%%%%+/:-.  ${white}--------------------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}+------------------------------------------------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}+                                    Mining Rigs                                            ${NC}" >> $outputfile
+echo -e "${white}+------------------------------------------------------------------------------------------${NC}" >> $outputfile
+echo -e "${white}+-     $VAN     $CORTANA         ${NC}Total:${white} $RunningTotal H/s" >> $outputfile
+echo -e "${white}+-  $SHODAN      $SPACE        $iPhone" >> $outputfile
+echo -e "${white}+------------------------------------------------------------------------------------------${NC}" >> $outputfile
+
+cat $outputfile
+

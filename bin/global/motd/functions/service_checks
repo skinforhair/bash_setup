@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function serviceStatus() {
+ case "${1,,}" in
+  "apache" | "http" | "httpd") processName="httpd";;
+  "samba" | "smb") processName="smb";;
+  "mysql" | "sql") processName="mysql";;
+ esac
+
+ SSTAT=$(ps -ef |grep $processName |grep -v grep)
+ if [ "$2" == "simple" ]; then
+  [ "$SSTAT" == "" ] && echo -e "${red}$DownArrow ${processName^^}${NC}" || echo -e "${green}$UpArrow ${processName^^}${NC}"
+ else
+  [ "$SSTAT" == "" ] && echo -e "${NC}$1 : ${red}DN $DownArrow${NC}" || echo -e "${NC}$1 : ${green}UP $UpArrow${NC}"
+ fi
+} ##serviceStatus
+

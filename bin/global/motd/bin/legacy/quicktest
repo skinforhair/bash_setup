@@ -1,0 +1,23 @@
+#!/bin/bash
+DIR="/shares/filesystem/motd"
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+TMPDir="$DIR/tmp"
+
+MOTD="/etc/motd"
+INFO="$TMPDir/info.txt"
+LAN="$TMPDir/lan.txt"
+CAM="$TMPDir/cameras.txt"
+SVC="$TMPDir/services.txt"
+RIG="$TMPDir/mining_rigs.txt"
+ETN="$TMPDir/ETN_stats.txt"
+Aperture="$TMPDir/aperture.txt"
+LOGFILE="$TMPDir/motd.log"
+WIDTH=112
+
+#colors for Aperture Logo
+ AC1="$(echo $white)"
+ AC2="$(echo $yellow)"
+
+
+merge_files

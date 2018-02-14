@@ -1,0 +1,41 @@
+#!/bin/bash
+
+function loadStats(){
+ UpDays=$(getUpDays)
+ NumCPUs=$(getNumCPUs)
+ loadOne=$(getLoad 1)
+ loadFive=$(getLoad 5)
+ loadFifteen=$(getLoad 15)
+
+ if [ $UpDays -le 30 ]; then upColor="$white"; elif [ $UpDays -le 90 ]; then upColor="$yellow"; else upColor="$red";fi
+ if [ $(echo "$loadOne < 0.2" |bc -l) ]; then loadColor="$white"; elif [ $(echo "loadOne <= 1"|bc -l) ]; then loadColor="$yellow"; else loadColor="$red";fi
+
+
+ stringZ=
+ [ "$1" == "centered" ] && stringZ="cENTERED"
+ stringZ="$stringZ${white}$NumCPUs${NC} CPUs Available - Up ${upColor}$UpDays${NC} Days - Load: ${loadColor}$loadOne${NC}"
+ echo -e "$stringZ"
+} ##loadStats
+
+function getUpDays(){
+echo $(uptime |awk '{print $3}')
+} ##UpDays
+
+function getNumCPUs(){
+ NumC=$(($(cat /proc/cpuinfo |grep processor|tail -1|awk '{print $3}')+1))
+ echo -e "$NumC"
+} ##NumCPUs
+
+function getLoad(){
+ loadOne=$(uptime |awk '{print $10}')
+   loadOne=${loadOne:0:$((${#loadOne}-1))}
+ loadFive=$(uptime |awk '{print $11}')
+ loadFifteen=$(uptime |awk '{print $12}')
+ case "$1" in
+  "1") echo -e "$loadOne";;
+  "5") echo -e "$loadFive";;
+ "15") echo -e "$loadFifteen";;
+  *) echo -e "$loadOne";;
+ esac
+} ##getLoad
+

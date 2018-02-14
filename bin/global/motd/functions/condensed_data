@@ -1,0 +1,65 @@
+#!/bin/bash
+
+function build_local_condensed(){
+ echo "Local Stats..."
+ outFile="$1"
+ echo "$(getLoad 1)" > $outFile
+ echo "$(getNumCPUs)" >> $outFile
+ echo "$(getUpDays)" >> $outFile
+ echo "$(serviceStatus HTTPD simple)">> $outFile
+ echo "$(serviceStatus MySQL simple)">> $outFile
+ echo "$(serviceStatus SMB simple)">> $outFile
+} ##build_local_condensed
+
+function build_lan_condensed(){
+ echo "LAN..."
+ outFile="$1"
+ echo "$(CondensedisOnline vpn)" > $outFile
+ echo "$(CondensedisOnline Cortana)" >> $outFile
+ echo "$(CondensedisOnline Wheatley)" >> $outFile
+ echo "$(CondensedisOnline BB8)" >> $outFile
+ echo "$(CondensedisOnline R2D2)" >> $outFile
+ echo "$(CondensedisOnline Scholomance)" >> $outFile
+ echo "$(CondensedisOnline Shodan)" >> $outFile
+} ##build_lan_condensed
+
+function build_camera_condensed(){
+ echo "Cameras..."
+ outFile="$1"
+ echo "$(CondensedisOnline Frontporch)" > $outFile
+ echo "$(CondensedisOnline Backporch)" >> $outFile
+ echo "$(CondensedisOnline BackYard)" >> $outFile
+ echo "$(CondensedisOnline WestGarage)" >> $outFile
+ echo "$(CondensedisOnline EastGarage)" >> $outFile
+} ##build_camera_condensed
+
+function build_rigs_condensed(){
+ echo "Mining Rigs...."
+ outFile="$1"
+ echo "$(CondensedisOnline Shodan)" > $outFile
+ echo "$(hashrate Shodan simple)" >> $outFile
+ echo "$(CondensedisOnline Van)" >> $outFile
+ echo "$(hashrate Van simple)" >> $outFile
+ echo "$(CondensedisOnline Space)" >> $outFile
+ echo "$(hashrate Space simple)" >> $outFile
+} ##build_rigs_condensed
+
+function build_ETN_condensed(){
+ echo "ETN values..."
+ outFile="$1"
+ dl_etnstats_json
+ echo "$(etn_current etn-usd)" > $outFile
+ echo "$(etn_current etn-day)" >> $outFile
+ echo "$(etn_current etn-week)" >> $outFile
+ echo "$(etn_current etn-hour)" >> $outFile
+ echo "$(etn_current etn-btc)" >> $outFile
+} ##build_ETN_condensed
+
+function build_spacepools_condensed(){
+ echo "Spacepools account"
+ outFile="$1"
+ dl_etn_account_json
+ echo "$(etn_account total_mined)" > $outFile
+ echo "$(etn_account pending)" >> $outFile
+ echo "$(etn_account hashrate)" >> $outFile
+} ##build_spacepools_condensed

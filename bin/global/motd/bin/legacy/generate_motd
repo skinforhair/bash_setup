@@ -1,0 +1,12 @@
+#!/bin/bash
+DIR="/shares/filesystem/motd"
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+destination="/etc/motd"
+outputfile="$DIR/jartest.output"
+
+print_out_motd
+
+mv $outputfile $destination
+
+

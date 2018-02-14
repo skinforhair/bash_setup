@@ -1,0 +1,41 @@
+#!/bin/bash
+
+### Get local path ###
+SOURCE="${BASH_SOURCE[0]}"
+# While $SOURCE is a symlink, resolve it
+while [ -h "$SOURCE" ]; do
+ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+ SOURCE="$( readlink "$SOURCE" )"
+ # If $SOURCE was a relative symlink (no "/" as prefix, need to resolve it relative to the symlink base directory
+ [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+##move up one, because of the /bin directory
+DIR="$(dirname "$DIR")"
+
+### Source Variables ###
+for f in $DIR/lib/*.cfg; do source $f; done
+
+### Source functions ###
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+#read in arguments
+for var in "$@"; do
+ case "${var,,}" in
+  "tux") LOGO="tux";;
+  "aperture") LOGO="aperture";;
+  "cake") LOGO="cake";;
+  "all") LOGO="all";;
+  *) LOGO=0;;
+ esac
+done
+
+case "${LOGO,,}" in
+ "aperture") print_aperture_tmpfile;;
+ "tux") print_tux_tmpfile;;
+ "cake") print_cake_tmpfile;;
+ "all") print_aperture_tmpfile;print_tux_tmpfile;print_cake_tmpfile;;
+ *) echo "Error. Please specify a wrapper to update: aperture, tux, cake"
+esac
+
+

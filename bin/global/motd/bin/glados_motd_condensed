@@ -1,0 +1,124 @@
+#!/bin/bash
+
+### Get local path ###
+SOURCE="${BASH_SOURCE[0]}"
+# While $SOURCE is a symlink, resolve it
+while [ -h "$SOURCE" ]; do
+ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+ SOURCE="$( readlink "$SOURCE" )"
+ # If $SOURCE was a relative symlink (no "/" as prefix, need to resolve it relative to the symlink base directory
+ [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+##move up one, because of the /bin directory
+DIR="$(dirname "$DIR")"
+
+### Source Variables ###
+for f in $DIR/lib/*.cfg; do source $f; done
+
+### Source functions ###
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+
+[ -f $KF_TMP ] && rm $KF_TMP
+OUT="condensed.txt"
+LANs="$CONDENSED/lan.values"
+LOCAL="$CONDENSED/local.values"
+CAMS="$CONDENSED/cam.values"
+MINING="$CONDENSED/mining_rigs.values"
+ETN_VALUES="$CONDENSED/etn.values"
+SPACEPOOLS="$CONDENSED/spacepools.values"
+
+minutes=60
+for type in $LAN $LOCAL $CAMS $ETN_VALUES $SPACEPOOLS; do
+ [ "$(find $type -mmin +$minutes)" != "" ] && rm $type
+done
+
+[ ! -f $LANs ] && build_lan_condensed $LANs
+[ ! -f $LOCAL ] && build_local_condensed $LOCAL
+[ ! -f $CAMS ] && build_camera_condensed $CAMS
+#[ ! -f $MINING ] && build_rigs_condensed $MINING
+[ ! -f $ETN_VALUES ] && build_ETN_condensed $ETN_VALUES
+[ ! -f $SPACEPOOLS ] && build_spacepools_condensed $SPACEPOOLS
+
+
+LOAD="$(head -1 $LOCAL)"
+NCPU="$(head -2 $LOCAL|tail -1)"
+Days="$(head -3 $LOCAL|tail -1)"
+HTP_STAT="$(head -4 $LOCAL|tail -1)"
+SQL_STAT="$(head -5 $LOCAL|tail -1)"
+SMB_STAT="$(head -6 $LOCAL|tail -1)"
+
+WANIP="$(localWAN)"
+VPNIP="$(head -1 $LANs)"
+CortanaUp="$(head -2 $LANs|tail -1)"
+WheatleyUp="$(head -3 $LANs|tail -1)"
+BB8Up="$(head -4 $LANs|tail -1)"
+R2D2Up="$(head -5 $LANs|tail -1)"
+ScholoUp="$(head -6 $LANs|tail -1)"
+
+FPorch="$(head -1 $CAMS)"
+BPorch="$(head -2 $CAMS|tail -1)"
+BYard="$(head -3 $CAMS|tail -1)"
+WGar="$(head -4 $CAMS|tail -1)"
+EGar="$(head -5 $CAMS|tail -1)"
+
+
+ShodanUP="$(head -1 $MINING)"
+ShodanHS="$(head -2 $MINING|tail -1)"
+VanUP="$(head -3 $MINING|tail -1)"
+VanHS="$(head -4 $MINING|tail -1)"
+SpaceUP="$(head -5 $MINING|tail -1)"
+SpaceHS="$(head -6 $MINING|tail -1)"
+added_miners=$(echo "scale=2; $VanHS+$ShodanHS+$SpaceHS" |bc)
+
+ETN_VAL="$(head -1 $ETN_VALUES)"
+ETN_day="$(head -2 $ETN_VALUES|tail -1)"
+ETN_week="$(head -3 $ETN_VALUES|tail -1)"
+
+ETN_Mined="$(head -1 $SPACEPOOLS)"
+etn_pending="$(head -2 $SPACEPOOLS|tail -1)"
+EST_Hashrate="$(head -3 $SPACEPOOLS|tail -1)"
+
+ETN_VAL_NUM=$(stripcolors "$ETN_VAL")
+ ETN_VAL_NUM=${ETN_VAL_NUM:1}
+mined_val=$(echo "scale=2; $ETN_Mined*$ETN_VAL_NUM" |bc)
+ETN_Total=$(echo "scale=2; $ETN_Mined+$ExtraETN" |bc)
+total_etn_val=$(echo "scale=2; $ETN_Total*$ETN_VAL_NUM" |bc)
+
+iPhoneUp="${red}↓iPhone${NC}"
+iPhoneHS="0"
+CortanaHS="0"
+api_etn=$(echo "scale=2; $iPhoneHS+$CortanaHS" |bc)
+Hashrate_total=$(echo "scale=2; $api_etn+$added_miners" |bc)
+
+
+
+TVTable="VideoLibrary.TV_feed"
+
+TVDate=$(echo "select added from $TVTable where id=(select max(id) from $TVTable)" |mysql -s -r -N)
+TVaddedDate=$(echo "$TVDate" |awk '{print $1}')
+NumTVadded=$(echo "select count(*) from $TVTable where added like \"$TVaddedDate%\"" |mysql -s -r -N)
+
+MovieTable="VideoLibrary.movies"
+MovieDate=$(echo "select added from $MovieTable where id=(select max(id) from $MovieTable)" |mysql -s -r -N)
+MovieAddedDate=$(echo "$MovieDate" |awk '{print $1}')
+NumMoviesadded=$(echo "select count(*) from $MovieTable where added like \"$MovieAddedDate%\"" |mysql -s -r -N)
+
+NewShows=$(get_new_shows)
+
+TODO="randomized message,color grid script,overwrite style of motd"
+
+COLS=$(tput cols)
+#COLS=57
+widescreen="99"
+narrowscreen="57"
+QUOTE=$(quote_from_file $KF_RULES)
+
+
+if [ $COLS -ge $widescreen ]; then
+ print_glados_wide
+else
+ print_glados_narrow
+fi
+

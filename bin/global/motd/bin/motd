@@ -1,0 +1,85 @@
+#!/bin/bash
+
+### Get local path ###
+SOURCE="${BASH_SOURCE[0]}"
+# While $SOURCE is a symlink, resolve it
+while [ -h "$SOURCE" ]; do
+ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+ SOURCE="$( readlink "$SOURCE" )"
+ # If $SOURCE was a relative symlink (no "/" as prefix, need to resolve it relative to the symlink base directory
+ [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+##move up one, because of the /bin directory
+DIR="$(dirname "$DIR")"
+
+### Source Variables ###
+for f in $DIR/lib/*.cfg; do source $f; done
+
+### Source functions ###
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+
+CHG=0
+#read in arguments
+for var in "$@"; do
+ case "${var,,}" in
+  "lan") LAN=1;CHG=1;;
+  "cam") CAM=1;CHG=1;;
+  "svc") SVC=1;CHG=1;;
+  "tux") LOGO="tux";CHG=1;;
+  "aperture") LOGO="aperture";CHG=1;;
+  "cake") LOGO="cake";CHG=1;;
+  "rig") RIG=1;CHG=1;;
+  "etn") ETN=1;CHG=1;;
+  "merge") MERGE=1;CHG=1;;
+  "all") LAN=1;CAM=1;SVC=1;LOGO="aperture";RIG=1;ETN=1;CHG=1;;
+  #"") cat $MOTD;exit 0;;
+ esac
+done
+
+
+if [ "$LOGO" == "0" ]; then LOGO="$(set_default_wrapper)";fi
+
+if [ "$CHG" == 1 ]; then
+#Open the log file
+log_start
+
+header
+
+if [ "$LAN" == "1" ]; then
+ build_table "Cortana,Scholomance,Wheatley,R2D2,BB8,VPN" "LAN Machines" "1"
+ MERGE=1
+fi
+
+if [ "$CAM" == "1" ]; then
+ build_table "FrontPorch,EastGarage,BackPorch,WestGarage,BackYard" "Cameras" "2"
+ MERGE=1
+fi
+
+if [ "$SVC" == "1" ]; then
+ build_table "Apache,SMB,MySQL" "Services" "3" "3"
+ MERGE=1
+fi
+
+if [ "$RIG" == "1" ]; then
+ #[ $LOGO == "tux" ] && cols=3 || cols=4
+ cols=3
+ build_table "Van,Shodan,SpaceSphere" "Mining Rigs" "4" "$cols"
+ MERGE=1
+fi
+
+if [ "$ETN" == "1" ]; then
+ titleSpace="                       "
+ build_table "\t\t,ETN Value,Today,This Week,\t,ETN-ACT,\t\t,ETN-USD,ETN-DAY,ETN-WEEK,\t,ETN-CUR-USD" "ETN Value${titleSpace}ETN Balance" "5" "6"
+ MERGE=1
+fi
+
+if [ "$MERGE" == "1" ]; then
+ merge_files "$WRAPPERS/${LOGO}.wrapper"
+fi
+
+log_stop
+else
+cat $MOTD
+fi

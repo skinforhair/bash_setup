@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+function banner(){
+ if [ "$3" == "centered" ]; then
+   echo -en "cENTERED" >> $2
+ fi
+ echo -e "${white}$1${NC}" >> $2
+ echo -e "${white}+------------------------------------------------------------------------------------------" >> $2
+} ##banner
+

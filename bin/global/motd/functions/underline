@@ -1,0 +1,20 @@
+#!/bin/bash
+
+function underline(){
+ SpaceUsed="$1"
+ LineWidth=$(($MOTD_WIDTH-$SpaceUsed))
+ l=$AC1
+ if [ $SpaceUsed -eq 0 ]; then
+  l="${l}+"
+  c=1
+ else
+  #l="$SpaceUsed"
+  c=0
+ fi
+ while [ $c -le $LineWidth ]; do
+  l="${l}-"
+  c=$((c+1))
+ done
+ echo -en "$l" 
+} ##underline
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+function header(){
+ s=$(log_action "Header" "start")
+ echo -en "$(tail -1 $LOGFILE)"
+
+UpDays=$(uptime |awk '{print $3}')
+NumCPUs=$(($(cat /proc/cpuinfo |grep processor|tail -1|awk '{print $3}')+1))
+loadFive=$(uptime |awk '{print $10}')
+loadTen=$(uptime |awk '{print $11}')
+loadFifteen=$(uptime |awk '{print $12}')
+
+ if [ "$1" != "" ]; then
+  output="$1"
+ else
+  output="$HEAD"
+ fi
+  echo -e "${white}+------------------------------------------------------------------------------------------" > $output
+ 
+ if [ "$2" == "centered" ]; then
+   echo -en "cENTERED" >> $output
+ fi
+ echo -e "${white}Welcome to $(hostname)        $(Print_localWAN)${NC}" >> $output
+ [ "$2" == "centered" ] && echo $(loadStats centered) >> $output || echo $(loadStats) >>$output
+ echo -e "${white}+------------------------------------------------------------------------------------------" >> $output
+ t=$(($(date +%s)-$s))
+ e=$(log_action "[$t seconds]" "end")
+ RunningTime=$(($RunningTime+$t))
+ echo -e "[Done] ($t seconds)"
+} ##header
+

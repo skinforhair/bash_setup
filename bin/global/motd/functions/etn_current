@@ -1,0 +1,51 @@
+#!/bin/bash
+
+function dl_etnstats_json(){
+ #worker=$(curl -s -X GET --header "Accept: application/json" "https://api.etn.spacepools.org/v1/price")
+ # sArray=(${worker[@]})
+ # firstLine=$(echo "${sArray[0]}")
+ # if [ "${firstLine:0:6}" == "<html>" ]; then
+ #  worker=$(curl -s -X GET --header "Accept: application/json" "https://api.nanopool.org/v1/etn/prices")
+ # fi
+ 
+hours=3
+ minutes=$(($hours*60))
+if ! [ -f $ETN_STATS ] || [ "$(find $ETN_STATS -mmin +$minutes)" != "" ]; then
+ worker=$(curl -s -X GET --header "Accept: application/json" "https://api.coinmarketcap.com/v1/ticker/electroneum/")
+ echo "$worker" > $ETN_STATS
+fi
+} ##dl_etn_json
+
+
+function etn_current(){
+   dl_etnstats_json
+ USD=$(cat $ETN_STATS|jq -r '.[]|.price_usd')
+  dec=$(expr index $USD .)
+  dollas=${USD:0:$dec}
+  cents=${USD:$dec:3}
+  roundUSD=$dollas$cents
+ BTC=$(cat $ETN_STATS|jq -r '.[]|.price_btc')
+ Hour=$(cat $ETN_STATS|jq -r '.[]|.percent_change_1h')
+ Day=$(cat $ETN_STATS|jq -r '.[]|.percent_change_24h')
+ Week=$(cat $ETN_STATS|jq -r '.[]|.percent_change_7d')
+ case "${1,,}" in
+  "etn-usd") echo -en "${white}$""$roundUSD${NC}";;
+  "etn-val") echo -en "$roundUSD";;
+  "etn-btc") echo -en "$BTC BTC";;
+  "etn-hour") echo -en "$(ArrowColor $Hour)${NC}";;
+  "etn-day") echo -en "$(ArrowColor $Day)${NC}";;
+  "etn-week") echo -en "$(ArrowColor $Week)${NC}";;
+ esac
+} ##etn_current
+
+function ArrowColor(){
+ if [ "${1:0:1}" == "-" ]; then
+  arrow=$DownArrow
+  color="${red}"
+ else
+  arrow=$UpArrow
+  color="${green}"
+ fi
+  echo -en "${color}$arrow$1${NC}"
+} ##ArrowColor
+

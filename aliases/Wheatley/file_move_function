@@ -10,7 +10,7 @@ case "$cmd" in
  "conv") DL_DIR="/cortana/Move/Convert";;
  "running") DL_DIR="/cortana/Running";;
  "rc") DL_DIR="/cortana/Move/RunningConvert";;
- "mg") DL_DIR="/cortana/Completed/magnets";;
+ "mg") DL_DIR="/cortana/magnets";;
  "bin") DL_DIR="$pBIN";;
  *) usage;;
 esac

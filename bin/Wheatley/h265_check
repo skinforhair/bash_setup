@@ -2,7 +2,14 @@
 
 cmd=$(which mediainfo)
 
-BAD=$($cmd "$1" |grep ibra|grep 265)
-if [ "$BAD" !=  "" ]; then
-  echo "$1 has H265 Encoding."
+
+if [ "$1" != "" ]; then
+ BAD=$($cmd "$1" |grep ibra|grep 265)
+else
+ for i in `ls |grep -E '(mp4|mkv)'`; do
+  BAD=$($cmd "$i" |grep ibra|grep 265)
+  if [ "$BAD" !=  "" ]; then
+   echo "$i has H265 Encoding."
+  fi
+ done
 fi

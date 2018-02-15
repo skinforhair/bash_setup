@@ -1,0 +1,1 @@
+refactor of motd generator (host specific)

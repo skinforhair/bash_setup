@@ -1,0 +1,50 @@
+#!/bin/bash
+
+function cake_logo(){
+case "$1" in
+ "1") o="${2}+----------  ${brown}.:/+/-  ${2}$(underline 21)${NC}";;
+ "2") o="${2}|           ${brown}/M/${pink}              .,-=;//;-   ${NC}";;
+ "3") o="${2}|       ${red}.:/=;MH/, ${pink}    ,=/+%$XH@MM#@:      ${NC}";;
+ "4") o="${2}|      ${red}-$##@+$###@HB-${pink}MM#######H;.${3}    -/H#  ${NC}";;
+ "5") o="${2}| ${pink}.,H@H@ ${red}X######@${pink} -H#####@+-${3}     -+H###@X  ${NC}";;
+ "6") o="${2}|  ${pink}.,@##H;=-__-=+XM##M/,${3}     =%@###@X;- |  ${NC}";;
+ "7") o="${2}|${white}X${3}%${white}-  ${pink}:M##########S.${3}    .:%M###@%:         ${NC}";;
+ "8") o="${2}|${white}M${3}##${white}H,   ${pink}+H@@@$/-.${3}  ,;$M###@%,          - |  ${NC}";;
+ "9") o="${2}|${white}M${3}####M${white}=,,___,.-${3}%%H####M$:          ,+@##  ${NC}";;
+"10") o="${2}|${white}@${3}##################@/.         :%H##@S-|  ${NC}";;
+"11") o="${2}|${white}M${3}###############${white}H,${3}         ;HM##M$=       ${NC}";;
+"12") o="${2}|${white}#${3}###############${white}#.${3}    .=SM##MS=        |  ${NC}";;
+"13") o="${2}|${white}#${3}###############${white}H.${3}.;XM##M$=          .:+  ${NC}";;
+"14") o="${2}|${white}M${3}###################@%=           =+@MH%  ${NC}";;
+"15") o="${2}|${white}@${3}################${white}M/.${3}          =+H#X%=     ${NC}";;
+"16") o="${2}|${white}=+M${3}##############${white}M,${3}       -/X#X+;.        ${NC}";;
+"17") o="${2}|  ${white}.;XM${3}##########${white}H=${3}   ,/X#H+:,            ${NC}";;
+"18") o="${2}|     ${white}.=+HM${3}######${white}M+${3}/+HM@+=. ${white}THERE WILL BE  ${NC}";;
+"19") o="${2}|         ${white},:/%XM${3}####H/.         ${white} CAKE      ${NC}";;
+"20") o="${2}+------------${3}  ,.:=-.  ${2}$(underline 23)${NC}";;
+*) o="";; 
+esac
+echo -e "$o"
+} ##cake_logo
+
+function print_cake_tmpfile(){
+ wrap="$WRAPPERS/cake.wrapper"
+ if [ "$1" == "" ]; then
+  color1="$(echo ${white})"
+  color2="$(echo ${yellow})"
+ elif [ "$2" == "" ]; then
+  color1="$1"
+  color2="$(echo ${yellow})"
+ else
+  color1="$1"
+  color2="$2"
+ fi
+ s=$(log_action "Cake Wrapper" "start")
+ echo -en "$(tail -1 $LOGFILE)"
+  cake_logo "1" "$color1" "$color2" > $wrap
+  for i in {2..20}; do cake_logo "$i" "$color1" "$color2" >> $wrap ; done
+ t=$(($(date +%s)-$s))
+ e=$(log_action "[$t seconds]" "end")
+ RunningTime=$(($RunningTime+$t))
+ echo -e "[Done] ($t seconds)"
+} ##print_cake_tmpfile

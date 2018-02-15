@@ -1,0 +1,105 @@
+#!/bin/bash
+
+#check_tcp uses tcp to see if a port is open on remote machine
+function check_tcp(){
+ host="$(hostAddress $1)"
+ case "$2" in
+  "") port="22";;
+  *)  port="$2";;
+ esac
+if (exec 3<>/dev/tcp/$host/$port) 2> /dev/null; then
+ echo 0
+else
+ echo 2
+fi
+} ##end check_tcp
+
+
+#check ssh just checks port 22
+function check_ssh() {
+ check_tcp "$1" "22"
+} ##end check_ssh
+
+#ping check
+function check_ping() {
+ host=$(hostAddress $1)
+ ping -c 1 $host &> /dev/null; echo $?
+} ##end check_ping
+
+
+function check_host_online () {
+ if [ "$2" == "ping" ]; then
+  host_status="$(check_ping $1)"
+ else
+  host_status="$(check_ssh $1)"
+ fi
+ if [ "$host_status" == "0" ]; then
+  echo -en "${green}Online ${NC}"
+ else
+  echo -en "${red}Offline${NC}"
+ fi
+} ##end check_host_online
+
+function print_colorHost(){
+  if [ "$2" == "ping" ]; then
+  host_status="$(check_ping $1)"
+ else
+  host_status="$(check_ssh $1)"
+ fi
+ if [ "$host_status" == "0" ]; then
+  echo -en "${green}$UpArrow$1${NC}"
+ else
+  echo -en "${red}$DownArrow$1${NC}"
+ fi
+} ##print_colorHost
+
+
+### VPN on Wheatley ###
+function check_vpn(){
+ case "${1,,}" in
+  "wheatley") RemoteWAN=`ssh -q cavejohnson@wheatley "dig +short myip.opendns.com @resolver1.opendns.com;exit"`;;
+  *) RemoteWAN="$(localWAN)";;
+ esac
+ if [ "${2,,}" == "printout" ]; then
+  echo -en "${NC}VPN WAN : "
+ fi
+ if [ "$RemoteWAN" == "$(localWAN)" ]; then
+   echo -e "${red}$RemoteWAN${NC}"
+ else
+   echo -e "${cyan}$RemoteWAN${NC}"
+ fi
+} ##check_vpn
+
+
+function spacing(){
+ LIM=11
+ stringZ="$1"
+ len=${#stringZ}
+ SP=$(($LIM-$len))
+   while [ $SP -gt 0 ]; do
+    stringZ="$stringZ "
+    SP=$(($SP-1))
+   done
+ stringZ="$stringZ: "
+ echo -en "$stringZ"
+} ##spacing
+
+
+function hostAddress() {
+ case "${1,,}" in
+  "cortana") echo "192.168.1.141";;
+  "wheatley") echo "192.168.1.142";;
+  "frontporch") echo "192.168.1.210";;
+  "backporch") echo "192.168.1.211";;
+  "backyard") echo "192.168.1.213";;
+  "eastgarage") echo "192.168.1.145";;
+  "westgarage") echo "192.168.1.144";;
+  "r2d2") echo "192.168.1.146";;
+  "bb8") echo "192.168.1.8";;
+  "van") echo "52.224.232.125";;
+  "shodan") echo "23.253.236.121";;
+  "spacesphere"|"space") echo "104.210.33.227";;
+  "adventuresphere"|"rick") echo "192.168.1.15";;
+  *) echo "$1";;
+ esac
+} ##hostAddress

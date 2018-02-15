@@ -1,0 +1,56 @@
+#!/bin/bash
+
+
+COLS=$(tput cols)
+### Get local path ###
+SOURCE="${BASH_SOURCE[0]}"
+# While $SOURCE is a symlink, resolve it
+while [ -h "$SOURCE" ]; do
+ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+ SOURCE="$( readlink "$SOURCE" )"
+ # If $SOURCE was a relative symlink (no "/" as prefix, need to resolve it relative to the symlink base directory
+ [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+##move up one, because of the /bin directory
+DIR="$(dirname "$DIR")"
+
+### Source Variables ###
+for f in $DIR/lib/*.cfg; do source $f; done
+### localized config
+cfg2=$(hostname)
+cfg2="${cfg2,,}.cfg"
+if [ -f "$DIR/lib/host_rules/${cfg2}" ]; then source "$DIR/lib/host_rules/${cfg2}"; fi
+
+
+### Source functions ###
+for f in $DIR/functions/*; do if [ -f $f ]; then source $f;fi;done
+
+for var in "$@"; do
+ case "${var,,}" in
+  "refresh") REFRESH=1;;
+  "small") NARROW=1;;
+  *) HN=${var};;
+ esac
+done
+
+[ $REFRESH -eq 1 ] && find "$DDir" -mindepth 1 -delete
+[ $COLS -lt $widescreen ] && NARROW=1
+ 
+build_cpu_values
+case "${HN,,}" in
+ "glados") 
+   build_service_values "HTTPD" "MYSQL" "SMB"
+   build_lan_values "$LANs" "VPN" "Cortana" "Wheatley" "BB8" "R2D2" "Scholomance" "Shodan"
+   build_lan_values "$CAMS" "Frontporch" "Backporch" "BackYard" "EastGarage" "WestGarage"
+   build_ETN_values
+   build_spacepools_values
+   GLADOS_Vars
+   QUOTE=$(quote_from_file $KF_RULES)
+   if [ $REFRESH -eq 0 ]; then
+    [ $NARROW -eq 0 ] && print_glados_wide || print_glados_narrow
+   fi
+   ;;
+  *) echo "I didn't find a config for $1 !";;
+esac
+

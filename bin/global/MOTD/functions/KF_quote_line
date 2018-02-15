@@ -1,0 +1,31 @@
+#!/bin/bash
+
+function kungfu_quote(){
+Q="$1"
+#Q="2 - Be honest and fair; show love for your country and respect for your parents."
+QL=$(echo ${Q:$(expr index "$Q" "-")})
+if [ "${2^^}" == "NUM" ]; then
+  n=$(echo "$Q" |awk '{print $1}')
+  if [ $n -lt 10 ] && [ ${#n} -lt 2 ]; then
+    n="0$n"
+  fi
+  outString="$n"
+else
+[ "$2" == "" ] && fnd=1 || fnd="$2"
+[ "$3" == "" ] && w=19 || w="$3"
+SZ=$(echo "$QL" |fold -s -w$w|wc -l)
+if [ $fnd -gt $SZ ]; then 
+ outString=" "
+else
+ outString=$(echo "$QL" |fold -s -w$w|head -$fnd|tail -1)
+fi
+#space at the end
+ if [ "$outString" != "" ]; then
+  while [ ${#outString} -lt $w ]; do
+   outString="${outString} "
+  done
+ fi
+fi #if $2 is NUM
+echo "$outString"
+} ## kungfu_quote
+

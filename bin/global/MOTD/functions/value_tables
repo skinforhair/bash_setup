@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function build_cpu_values(){
+ [ -f $CPU ] && rm $CPU
+ if [ $LOGGING -eq 1 ]; then s=$(log_action "Checking CPU stats" "start");fi
+  echo "$(getLoad 1)" >> $CPU
+  echo "$(getNumCPUs)" >> $CPU
+  echo "$(getUpDays)" >> $CPU
+ #t=$(($(date +%s)-$s))
+ [ $LOGGING -eq 1 ] && log_end $s q
+} ##build_local_condensed
+
+function build_service_values(){
+ [ -f $SERVICES ] && rm $SERVICES
+ if [ $LOGGING -eq 1 ]; then s=$(log_action "Checking services" "start"); fi
+ for svc in "$@"; do
+  echo "$(serviceStatus $svc simple)">> $SERVICES
+ done
+ [ $LOGGING -eq 1 ] && log_end $s q
+} ##build_service_values
+
+function build_lan_values(){
+ clean_values "5" "$1"
+ if [ ! -f "$1" ]; then
+  argstring=
+   for i in ${@:2}; do argstring="${argstring} $i";done
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "Checking LAN ($argstring)" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+   #get all arguments except the first
+  for host in "${@:2}"; do
+   echo "$(isOnline $host)">> "$1"
+  done
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_lan_values

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+## Returns a string with no color information
+function stripcolors(){
+ new=$(echo -e "$1"|sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
+ echo $new
+} ##stripcolors
+
+## Returns the LENGTH of a string disregarding color information
+
+function greyLength(){
+ new=$(stripcolors "$1")
+ echo "${#new}"
+} ##greyLength
+
+#greyLength "$1"

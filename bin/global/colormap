@@ -1,0 +1,34 @@
+#!/bin/bash
+
+W=$(tput cols)
+C=$(($W / 5 ))
+[ $C -gt 10 ] && C=$((C-3))
+
+prefix='\x1B['
+cline='38;5;'
+
+clr="${prefix}${cline}"
+
+#set no color
+NC="${prefix}0m"
+
+clear
+echo 'To set a color, create a variable like this: name=\x1B[38;5;Number'
+echo "ie: magenta='"'\x1B[38;5;200'"'"
+
+c=1;while [ $c -le 256 ]; do
+ if [ $c -lt 10 ] && [ ${#c} -lt 2 ]; then
+   n="00$c"
+ elif [ $c -lt 100 ] && [ ${#c} -lt 3 ];then
+   n="0$c"
+ else
+   n=$c
+ fi
+ echo -en "${clr}${c}m${n}${NC}"
+ if [ $((c % $C)) -eq 0 ] || [ $c -eq 256 ]; then
+   echo -e ""
+ else
+   echo -en "  "
+ fi
+ c=$((c+1))
+done

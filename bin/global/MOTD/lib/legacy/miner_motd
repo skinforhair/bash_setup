@@ -1,0 +1,46 @@
+#!/bin/bash
+
+ nc='\033[0m' # no color
+ NC='\033[0m' # no color
+ white='\033[1;37m'
+ red='\033[0;31m'
+ green='\033[0;32m'
+ yellow='\033[1;33m'
+ blue='\e[0;34m'
+
+CurSpeed=$(tail -100 /var/log/xmrig.log |grep "H/s" |tail -1)
+
+twoS=$(echo "$CurSpeed" |awk '{print $5}')
+min=$(echo "$CurSpeed" |awk '{print $6}')
+fifteen=$(echo "$CurSpeed" |awk '{print $7}')
+maxSpeed=$(echo "$CurSpeed" |awk '{print $10}')
+
+#echo "Currently:"
+#echo "2.5s: $twoS"
+#echo "60s: $min"
+#echo "15m: $fifteen"
+#echo "Max: $maxSpeed"
+
+case "$1" in
+ "IHC") LOC="${red}IHC${NC}";;
+ "ME") LOC="${white}Personal${NC}";;
+ *) LOC="${yellow}HOME${NC}";;
+esac
+
+case "$2" in
+ "Azure") DC="${blue}Azure${NC} Account";;
+ "Rackspace") DC="${red}Rackspace${NC} Account";;
+ *) DC="${yellow} ${NC}";;
+esac
+
+clear
+echo "###################################################################
+#### Welcome to $(hostname)"
+echo "###################################################################"
+echo -e "####### This box is currently at $LOC $DC #######"
+echo "###################################################################"
+echo "####            Current Mining Speeds:"
+echo -e "#### ${white}2.5s: ${yellow}$twoS\t\t${nc}1 Minute: $min"
+echo -e "#### ${white}MAX:  ${yellow}$maxSpeed\t\t${nc}15 Minutes: $fifteen" 
+echo "###################################################################"
+

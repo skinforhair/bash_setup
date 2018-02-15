@@ -1,0 +1,90 @@
+#!/bin/bash
+
+function GLADOS_Vars(){
+### Read in GLaDOS's variables from files:
+LOAD="$(head -1 $CPU)"
+NCPU="$(head -2 $CPU|tail -1)"
+Days="$(head -3 $CPU|tail -1)"
+
+HTP_STAT="$(head -1 $SERVICES|tail -1)"
+SQL_STAT="$(head -2 $SERVICES|tail -1)"
+SMB_STAT="$(head -3 $SERVICES|tail -1)"
+
+WANIP="$(localWAN)"
+VPNIP="$(head -1 $LANs)"
+
+CortanaUp="$(head -2 $LANs|tail -1)"
+WheatleyUp="$(head -3 $LANs|tail -1)"
+BB8Up="$(head -4 $LANs|tail -1)"
+R2D2Up="$(head -5 $LANs|tail -1)"
+ScholoUp="$(head -6 $LANs|tail -1)"
+ShodanUP="$(head -7 $LANs|tail -1)"
+#ShodanHS="$(head -8 $LANs|tail -1)"
+
+FPorch="$(head -1 $CAMS)"
+BPorch="$(head -2 $CAMS|tail -1)"
+BYard="$(head -3 $CAMS|tail -1)"
+WGar="$(head -4 $CAMS|tail -1)"
+EGar="$(head -5 $CAMS|tail -1)"
+
+ETN_VAL="$(head -1 $ETN_VALUES)"
+ETN_day="$(head -2 $ETN_VALUES|tail -1)"
+ETN_week="$(head -3 $ETN_VALUES|tail -1)"
+
+ETN_Mined="$(head -1 $SPACEPOOLS)"
+etn_pending="$(head -2 $SPACEPOOLS|tail -1)"
+if [ ${#etn_pending} -lt 5 ]; then
+ while [ ${#etn_pending} -lt 5 ]; do
+  etn_pending="0${etn_pending}"
+ done
+fi
+EST_Hashrate="$(head -3 $SPACEPOOLS|tail -1)"
+
+ETN_VAL_NUM=$(stripcolors "$ETN_VAL")
+ ETN_VAL_NUM=${ETN_VAL_NUM:1}
+mined_val=$(echo "scale=2; $ETN_Mined*$ETN_VAL_NUM" |bc)
+ETN_Total=$(echo "scale=2; $ETN_Mined+$ExtraETN" |bc)
+total_etn_val=$(echo "scale=2; $ETN_Total*$ETN_VAL_NUM" |bc)
+
+NewShows=$(get_new_shows)
+} ##GLADOS_Vars
+
+
+function build_minig_rigs_values(){
+ clean_values "60" "$1"
+ if [ ! -f "$1" ]; then
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "Mining Rigs" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+  for host in "${@:2}"; do
+   echo "$(isOnline $host)" >> "$1"
+   echo "$(hashrate $host simple)" >> "$1"
+  done
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_mining_rigs_values
+
+function build_ETN_values(){
+ clean_values "600" "$ETN_VALUES"
+ if [ ! -f "$ETN_VALUES" ]; then
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "ETN Values" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+   dl_etnstats_json
+  echo "$(etn_current etn-usd)" >> $ETN_VALUES
+  echo "$(etn_current etn-day)" >> $ETN_VALUES
+  echo "$(etn_current etn-week)" >> $ETN_VALUES
+  echo "$(etn_current etn-hour)" >> $ETN_VALUES
+  echo "$(etn_current etn-btc)" >> $ETN_VALUES
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_ETN_values
+
+function build_spacepools_values(){
+ clean_values "60" "$SPACEPOOLS"
+ if [ ! -f "$SPACEPOOLS" ]; then
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "Spacepools Account" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+   dl_etn_account_json
+  echo "$(etn_account total_mined)" >> $SPACEPOOLS
+  echo "$(etn_account pending)" >> $SPACEPOOLS
+  echo "$(etn_account hashrate)" >> $SPACEPOOLS
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_spacepools_values
+

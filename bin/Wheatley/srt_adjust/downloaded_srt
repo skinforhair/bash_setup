@@ -1,0 +1,16 @@
+#!/bin/bash
+
+DLfolder="/home/cavejohnson/Downloads/"
+extTo="/cortana/Move/get_srt/"
+
+
+for i in $(ls $DLfolder|grep zip); do
+ if [ -f "${DLfolder}$i" ] && [ -s "${DLfolder}$i" ]; then
+  unzip -qq "${DLfolder}${i}" -d "$extTo"
+   if [ "$?" == "0" ]; then 
+    rm -f "${DLfolder}${i}"
+   else
+    echo "There was an error with ${DLfolder}$i"
+   fi #if $?
+ fi #if -f -s
+done

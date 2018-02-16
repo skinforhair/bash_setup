@@ -15,7 +15,7 @@ function isOnline(){
  esac
 
  case "$tst" in
-  "vpn") echo -en "$(check_vpn Wheatley)";;
+  "vpn") echo -en "$(check_vpn $HOSTNAME)";;
   "service") echo -en "$(serviceStatus $1 simple)";;
   "hashrate") echo -en "$(print_colorHost $1 ssh)";;
   "etn_values") echo -en "$(etn_current $1)";;

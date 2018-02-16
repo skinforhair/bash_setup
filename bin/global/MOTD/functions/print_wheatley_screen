@@ -1,0 +1,46 @@
+#!/bin/bash
+
+##for screens 100 characters wide or more
+function print_wheatley_wide(){
+ ## Width of the box
+ W=98
+#echo "$(UL $W)"
+lim=21
+c=1;while [ $c -le $lim ]; do 
+ line=$(wheatley_wide_lines $c)
+ [ "$line" != "" ] && echo -e "$line"
+ c=$((c+1))
+done
+}
+#print wheatley wide
+
+##for screens 50 characters wide or more
+function print_wheatley_narrow(){
+ ## Width of the box
+ W=55
+lim=21
+c=1;while [ $c -le $lim ]; do
+ line=$(wheatley_narrow_lines $c)
+ [ "$line" != "" ] && echo -e "$line"
+ c=$((c+1))
+done
+}
+#print wheatley narrow
+
+
+function wheatley_wide_lines(){
+ case "$1" in
+ 1) line="Welcome to wheatley";;
+ *) line="";;
+ esac
+ echo -e "$line"
+} #wheatley_wide_lines
+
+
+function wheatley_narrow_lines(){
+case "$1" in
+ 1) line="Welcome to wheatley";;
+ *) line="";;
+ esac
+ echo -e "$line"
+} ##wheatley_narrow_lines

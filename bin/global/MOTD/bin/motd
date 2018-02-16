@@ -51,6 +51,16 @@ case "${HN,,}" in
     [ $NARROW -eq 0 ] && print_glados_wide || print_glados_narrow
    fi
    ;;
-  *) echo "I didn't find a config for $1 !";;
+  "wheatley")
+   build_lan_values "$LANs" "VPN"
+   QUOTE=$(quote_from_file $SYSADMIN_QUOTES)
+   build_mount_values "$MOUNTS" "Cortana" "Glados"
+   build_video_values "$VIDEOS" "srt" "rc" "cm" "conv"
+   build_dl_values
+   if [ $REFRESH -eq 0 ]; then
+     [ $NARROW -eq 0 ] && print_wheatley_wide || print_wheatley_narrow
+   fi
+   ;;
+  *) echo "I didn't find a config for $HN !";;
 esac
 

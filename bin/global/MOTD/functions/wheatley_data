@@ -1,0 +1,49 @@
+#!/bin/bash
+
+function WHEATLEY_Vars(){
+### Read in Wheatley's variables from files:
+LOAD="$(head -1 $CPU)"
+NCPU="$(head -2 $CPU|tail -1)"
+Days="$(head -3 $CPU|tail -1)"
+
+WANIP="$(localWAN)"
+VPNIP="$(head -1 $LANs)"
+
+NewShows=$(get_new_shows)
+} ##GLADOS_Vars
+
+
+function build_mount_values(){
+ clean_values "6" "$1"
+ if [ ! -f "$1" ]; then
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "Checking Mounts" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+  for host in "${@:2}"; do
+  [ "${host,,}" == "$(cat /${host,,}/.mountcheck)" ] && echo -e "${green}$host${NC}" || echo -e "${red}$host${NC}" >> "$1"
+  done
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_mount_values
+
+function build_video_values(){
+ clean_values "3" "$1"
+ if [ ! -f "$1" ]; then
+  if [ $LOGGING -eq 1 ]; then s=$(log_action "Counting videos" "start"); echo -en "$(tail -1 $LOGFILE)";fi
+  count=0
+  for folder in "${@:2}"; do
+    case "$folder" in
+      "srt") F="/cortana/Move/get_srt";;
+      "conv") F="/cortana/Move/Convert";;
+      "rc") F="/cortana/Move/RunningConvert";;
+      "cm") F="/cortana/Completed";;
+    esac
+    count=$(($count+$(ls -R $F|grep mp4|wc -l)))
+    count=$(($count+$(ls -R $F|grep mkv|wc -l)))
+    echo -e "$folder $count" >> "$1"
+  done
+  [ $LOGGING -eq 1 ] && log_end $s
+ fi
+} ##build_video_values
+
+function build_dl_values(){
+ echo "find downloads!!" > $DLS
+} ##build_dl_values

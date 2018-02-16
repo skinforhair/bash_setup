@@ -91,11 +91,11 @@ function glados_wide_lines(){
  13) line="${light}=H@@@@M@+,$(SP 21)%MM+..%#S.$(SP 57)${BE}";;
  14) 
 #MinersLine="$VanUP${NC}: $VanHS  $ShodanUP${NC}: $ShodanHS  $SpaceUP${NC}: $SpaceHS   ${white}$added_miners${NC} H/s"
-DiskPercent="$(disk_space mirror perc)"
+DiskPercent="$(glados_disks mirror perc)"
      line="${dark}|${light}/MMMM@MMH/.$(SP 19)XM@MH; =;   $DiskPercent"
      S=16
      line="$line$(SP $S)$BE";;
- 15) line="${dark}| ${light}/%+%SXHH@S=$(SP 15), .H@@@@MX,$(SP 5)$(disk_space used)"
+ 15) line="${dark}| ${light}/%+%SXHH@S=$(SP 15), .H@@@@MX,$(SP 5)$(glados_disks used)"
      S=14
      line="$line$(SP $S)$BE";;
  16) line="${dark}|${light}  .=--------.$(SP 12)=%H.,@@@@@MX,$(SP 59)${BE}";;
@@ -141,9 +141,9 @@ function glados_narrow_lines(){
  13) line="${dark}|$(SP 4)| ${NC}\$$mined_val/${white}$total_etn_val${NC}${dark} | |${NC}Recent: ${white}$NumTVadded${NC}${dark} | |${Box3}${LE}";;
  14) line="${dark}|$(SP 4)|${Box1}| |${white}$TVaddedDate${NC}${dark}|  ${Box3}  |${NC}";;
  15) line="${dark}| ${white}$(kungfu_quote "$QUOTE" "NUM")${NC} $(kungfu_quote "$QUOTE" 1)${dark}|${NC}Avail :${white}$(get_new_shows simple)${NC}  ${dark}| |    Disks     ${LE}";;
- 16) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 2)${dark}|  Movies  | |$(disk_space simple mirror shares) $(disk_space simple perc shares)  $LE";;
- 17) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 3)${dark}|Recent: ${white}$NumMoviesadded${NC}${dark} | |$(disk_space simple mirror movies) $(disk_space simple perc movies)  $LE";;
- 18) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 4)${dark}|${white}$MovieAddedDate${NC}${dark}| |$(disk_space simple mirror tv)     $(disk_space simple perc tv)  $LE";;
+ 16) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 2)${dark}|  Movies  | |$(glados_disks simple mirror shares) $(glados_disks simple perc shares)  $LE";;
+ 17) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 3)${dark}|Recent: ${white}$NumMoviesadded${NC}${dark} | |$(glados_disks simple mirror movies) $(glados_disks simple perc movies)  $LE";;
+ 18) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 4)${dark}|${white}$MovieAddedDate${NC}${dark}| |$(glados_disks simple mirror tv)     $(glados_disks simple perc tv)  $LE";;
  19) line="${dark}|$(SP 4)${NC}$(kungfu_quote "$QUOTE" 5)${dark}|${Box2}| |${Box3}$LE";;
  20) line="${dark}|$(UL $(($W-3)))_|${NC}";;
 21) line="$KFL";;

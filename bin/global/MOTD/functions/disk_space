@@ -32,7 +32,7 @@ function print_disk(){
 echo -en " $stringZ"
 } ##print_disk
 
-function disk_space(){
+function glados_disks(){
  if [ "$1" == "mirror" ] || [ "$2" == "mirror" ] || [ "$3" == "mirror" ]; then mirror=1;else mirror=0;fi
  if [ "$1" == "perc" ] || [ "$2" == "perc" ] || [ "$3" == "perc" ]; then perc=1;else perc=0;fi
  if [ "$1" == "used" ] || [ "$2" == "used" ] || [ "$3" == "used" ]; then used=1;else used=0;fi
@@ -74,5 +74,5 @@ if [ "$simple" == "1" ]; then
 else
  echo -en "$stringA$(SP 5)$stringB$(SP 5)$stringC"
 fi
-} ##disk_space
+} ##glados_disks
 

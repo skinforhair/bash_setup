@@ -1,0 +1,67 @@
+#!/bin/bash
+
+##############################################
+### YesNo
+### Displays a prompt with a yes/no question
+### accepts a default answer
+### retrieve answer with $?
+##############################################
+function YesNo() {
+        message="$1"
+        default="${2,,}"
+        if [ "$default" != "y" ] && [ "$default" != "n" ]; then
+                default=""
+        fi
+        myAnswer=""
+        while [ "$myAnswer" != "y" ] && [ "$myAnswer" != "n" ]; do
+                echo -en "$message "
+                if [ "$default" = "" ]; then
+                        echo -en "[y/n]: "
+                        read myAnswer
+                        myAnswer=${myAnswer,,}
+                else
+                        if [ "$default" = "y" ]; then
+                                echo -en "[${green}Y${NC}/n]: "
+                        else
+                                echo -en "[y/${red}N${NC}]: "
+                        fi
+                        read myAnswer
+                        if [ "$myAnswer" = "" ]; then
+                                myAnswer=$default
+                        else
+                                myAnswer=${myAnswer,,}
+                        fi
+                fi
+        done
+  if [ "$myAnswer" = "y" ]; then
+        return 1
+  else
+        return 0
+  fi
+} #END YesNo
+
+FORCE=0
+DELDIR=0
+
+### MAIN ###
+case "${1,,}" in
+ "d"|"-d"|"-delete"|"--delete" ) DELDIR=1;;
+ "f"|"-f"|"-force"|"--force" ) DELDIR=1;FORCE=1;;
+esac
+
+if [ $FORCE -eq 0 ]; then
+  echo "This script will move all files out of subfolders in the current directory!"
+  YesNo "Are you sure you want to continue?:" "n"
+    [ "$?" == "0" ] && exit 0
+fi
+
+find . -mindepth 2 -type f -exec mv {} . \;
+
+if [ $DELDIR -eq 0 ]; then
+  YesNo "Remove subdirectories?:" "y"
+    [ "$?" == "0" ] && exit 0
+fi
+
+for f in `ls`; do 
+  [ -d $f ] && rmdir $f
+done

@@ -56,6 +56,7 @@ if [ $FORCE -eq 0 ]; then
 fi
 
 find . -mindepth 2 -type f -exec mv {} . \;
+find . -mindepth 2 -type d -exec rm -rf {} \;
 
 if [ $DELDIR -eq 0 ]; then
   YesNo "Remove subdirectories?:" "y"

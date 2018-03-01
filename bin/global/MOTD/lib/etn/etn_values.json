@@ -4,16 +4,16 @@
         "name": "Electroneum", 
         "symbol": "ETN", 
         "rank": "44", 
-        "price_usd": "0.0725252", 
-        "price_btc": "0.00000672", 
-        "24h_volume_usd": "2611180.0", 
-        "market_cap_usd": "456770239.0", 
-        "available_supply": "6298090024.0", 
-        "total_supply": "6298090024.0", 
+        "price_usd": "0.0727009", 
+        "price_btc": "0.00000676", 
+        "24h_volume_usd": "2570700.0", 
+        "market_cap_usd": "457971735.0", 
+        "available_supply": "6299395676.0", 
+        "total_supply": "6299395676.0", 
         "max_supply": "21000000000.0", 
-        "percent_change_1h": "0.76", 
-        "percent_change_24h": "-1.5", 
-        "percent_change_7d": "-3.39", 
-        "last_updated": "1519914256"
+        "percent_change_1h": "-0.67", 
+        "percent_change_24h": "0.62", 
+        "percent_change_7d": "-2.16", 
+        "last_updated": "1519925056"
     }
 ]

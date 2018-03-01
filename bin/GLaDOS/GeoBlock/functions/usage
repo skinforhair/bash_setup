@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function usage(){
+ echo "Usage: $0 <options> <country code>"
+ echo "Options: --add  --remove --list"
+ echo "Try $0 --list available to show countries, or use 'all'"
+ case "${1,,}" in
+  "add"|"remove") echo "No Country Code found for \"$2\"";;
+  "list") echo "Option \"$2\" is invalid. Enter a country code or 'available' to list.";;
+ esac 
+ exit 1
+} ##usage

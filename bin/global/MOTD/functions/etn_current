@@ -7,9 +7,7 @@ function dl_etnstats_json(){
  # if [ "${firstLine:0:6}" == "<html>" ]; then
  #  worker=$(curl -s -X GET --header "Accept: application/json" "https://api.nanopool.org/v1/etn/prices")
  # fi
- 
-hours=3
- minutes=$(($hours*60))
+ minutes=$(($ETN_HOURS_AGE*60))
 if ! [ -f $ETN_STATS ] || [ "$(find $ETN_STATS -mmin +$minutes)" != "" ]; then
  worker=$(curl -s -X GET --header "Accept: application/json" "https://api.coinmarketcap.com/v1/ticker/electroneum/")
  echo "$worker" > $ETN_STATS

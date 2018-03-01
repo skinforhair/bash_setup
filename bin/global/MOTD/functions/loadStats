@@ -27,10 +27,10 @@ function getNumCPUs(){
 } ##NumCPUs
 
 function getLoad(){
- loadOne=$(uptime |awk '{print $10}')
+ loadOne=$(uptime |awk '{print $11}')
    loadOne=${loadOne:0:$((${#loadOne}-1))}
- loadFive=$(uptime |awk '{print $11}')
- loadFifteen=$(uptime |awk '{print $12}')
+ loadFive=$(uptime |awk '{print $12}')
+ loadFifteen=$(uptime |awk '{print $13}')
  case "$1" in
   "1") echo -e "$loadOne";;
   "5") echo -e "$loadFive";;

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+source $pLIB/colors
+source $pLIB/blocks
+
+clear
+
+c=0
+while [ $c -le ${#block[@]} ]; do
+ echo -e "$c : ${block[c]}"
+ c=$((c+1))
+done
+

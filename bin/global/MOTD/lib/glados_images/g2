@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source $pLIB/colors
+source $pLIB/blocks
+
+
+i="${yellow}*${white}"
+e="${NC}|${white}"
+
+clear
+echo -e "${white}
+ 
+  =================
+ ${NC}//${white}\\\\\\              \\\\\\
+ $e  ||             ||   
+ $e  ||    _____    ||
+ $e  ||   /     \\   ||
+ $e  ||  $e       $e  ||
+ $e  ||  $e       $e  ||
+ $e  ||  $e       $e  ||
+ $e  ||  $e  /$i\  $e  ||
+ $e  ||  $e  $i$i$i  $e  ||
+ $e  ||  $e  \\\\$i/  $e  ||
+ $e  ||  $e       $e  ||
+ $e  ||   \\_____/   ||
+ $e  ||             ||
+ $e  ||             ||
+  \\//=============//
+  /______________//
+"

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>so</short>
+  <description>Somalia</description>
+  <entry>41.78.72.0/22</entry>
+  <entry>41.79.196.0/22</entry>
+  <entry>41.223.108.0/22</entry>
+  <entry>154.72.24.0/22</entry>
+  <entry>154.72.48.0/22</entry>
+  <entry>154.73.24.0/22</entry>
+  <entry>154.73.44.0/22</entry>
+  <entry>154.73.76.0/22</entry>
+  <entry>154.73.124.0/22</entry>
+  <entry>154.115.192.0/18</entry>
+  <entry>154.118.240.0/22</entry>
+  <entry>196.11.62.0/24</entry>
+  <entry>197.157.244.0/22</entry>
+  <entry>197.220.64.0/19</entry>
+  <entry>197.231.200.0/22</entry>
+</ipset>

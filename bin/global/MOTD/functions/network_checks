@@ -7,11 +7,13 @@ function check_tcp(){
   "") port="22";;
   *)  port="$2";;
  esac
-if (exec 3<>/dev/tcp/$host/$port) 2> /dev/null; then
- echo 0
-else
- echo 2
-fi
+#if (exec 3<>/dev/tcp/$host/$port) 2> /dev/null; then
+# echo 0
+#else
+# echo 2
+#fi
+#timeout 20 "echo >/dev/tcp/$host/$port" >/dev/null 2>&1 && echo "0" || echo "2"
+timeout 1 bash -c "</dev/tcp/$host/$port" && echo "0" || echo "2"
 } ##end check_tcp
 
 
@@ -57,7 +59,7 @@ function print_colorHost(){
 ### VPN on Wheatley ###
 function check_vpn(){
  case "${1,,}" in
-  "wheatley") RemoteWAN=`ssh -q jar@192.168.1.143 "dig +short myip.opendns.com @resolver1.opendns.com;exit"`;;
+  #"wheatley") RemoteWAN=`ssh -q jar@192.168.1.143 "dig +short myip.opendns.com @resolver1.opendns.com;exit"`;;
   "glados") RemoteWAN=`ssh -q cavejohnson@wheatley "dig +short myip.opendns.com @resolver1.opendns.com;exit"`;;
   *) RemoteWAN="$(localWAN)";;
  esac
@@ -85,19 +87,19 @@ function spacing(){
 
 function hostAddress() {
  case "${1,,}" in
-  "cortana") echo "192.168.1.141";;
-  "wheatley") echo "192.168.1.142";;
-  "frontporch") echo "192.168.1.210";;
-  "backporch") echo "192.168.1.211";;
-  "backyard") echo "192.168.1.213";;
+#  "cortana") echo "192.168.1.141";;
+#  "wheatley") echo "192.168.1.142";;
+#  "frontporch") echo "192.168.1.210";;
+#  "backporch") echo "192.168.1.211";;
+#  "backyard") echo "192.168.1.213";;
   "eastgarage") echo "192.168.1.145";;
   "westgarage") echo "192.168.1.144";;
-  "r2d2") echo "192.168.1.146";;
-  "bb8") echo "192.168.1.8";;
-  "van") echo "52.224.232.125";;
+#  "r2d2") echo "192.168.1.146";;
+#  "bb8") echo "192.168.1.8";;
+#  "van") echo "52.224.232.125";;
   "shodan") echo "23.253.236.121";;
-  "spacesphere"|"space") echo "104.210.33.227";;
-  "adventuresphere"|"rick") echo "192.168.1.15";;
+#  "spacesphere"|"space") echo "104.210.33.227";;
+#  "adventuresphere"|"rick") echo "192.168.1.15";;
   *) echo "$1";;
  esac
 } ##hostAddress

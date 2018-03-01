@@ -1,0 +1,14 @@
+#!/bin/bash
+function firewalld_remove_country(){
+ [ "$1" == "" ] && usage "remove" "$1"
+ END_LINE=$(/bin/grep -rne "</zone>" $DROP_ZONE|grep -Eo '^[^:]+')
+ XMLfile=$(grep "<short>${1,,}</short>" ${gIPSETS}/*|head -1|awk '{print $1}')
+  [ $XMLfile == "" ] && usage "remove" "$1"
+ XMLfile=${XMLfile##*/}
+ XMLfile=${XMLfile:0:$((${#XMLfile}-1))}
+  [ -f ${FWD_IPSETS}/${XMLfile} ] && rm -f ${FWD_IPSETS}/${XMLfile}
+ XMLfile=${XMLfile:0:$((${#XMLfile}-4))}
+ FNDline=$(/bin/grep -rne $XMLfile $DROP_ZONE|grep -Eo '^[^:]+')
+  [ $FNDline -lt $END_LINE ] && sed -i.old -e "${FNDline}d" $DROP_ZONE
+} ##firewalld_remove_country
+

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>gw</short>
+  <description>Guinea Bissau</description>
+  <entry>154.73.60.0/22</entry>
+  <entry>196.22.12.0/22</entry>
+  <entry>197.214.80.0/20</entry>
+</ipset>

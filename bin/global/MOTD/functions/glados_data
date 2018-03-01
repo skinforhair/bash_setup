@@ -5,6 +5,18 @@ function GLADOS_Vars(){
 LOAD="$(head -1 $CPU)"
 NCPU="$(head -2 $CPU|tail -1)"
 Days="$(head -3 $CPU|tail -1)"
+if [ $Days -lt 100 ] && [ ${#Days} -lt 3 ]; then
+ while [ ${#Days} -lt 3 ]; do
+  Days="0"${Days}
+ done
+fi
+if [ $Days -lt 10 ] && [ ${#Days} -lt 3 ]; then
+ while [ ${#Days} -lt 3 ]; do
+  Days="0"${Days}
+ done
+fi
+
+
 
 HTP_STAT="$(head -1 $SERVICES|tail -1)"
 SQL_STAT="$(head -2 $SERVICES|tail -1)"
@@ -51,7 +63,7 @@ NewShows=$(get_new_shows)
 
 
 function build_minig_rigs_values(){
- clean_values "60" "$1"
+ clean_values "$MINING_VALUES_AGE" "$1"
  if [ ! -f "$1" ]; then
   if [ $LOGGING -eq 1 ]; then s=$(log_action "Mining Rigs" "start"); echo -en "$(tail -1 $LOGFILE)";fi
   for host in "${@:2}"; do
@@ -63,7 +75,7 @@ function build_minig_rigs_values(){
 } ##build_mining_rigs_values
 
 function build_ETN_values(){
- clean_values "600" "$ETN_VALUES"
+ clean_values "$(($ETN_HOURS_AGE*60))" "$ETN_VALUES"
  if [ ! -f "$ETN_VALUES" ]; then
   if [ $LOGGING -eq 1 ]; then s=$(log_action "ETN Values" "start"); echo -en "$(tail -1 $LOGFILE)";fi
    dl_etnstats_json
@@ -77,7 +89,7 @@ function build_ETN_values(){
 } ##build_ETN_values
 
 function build_spacepools_values(){
- clean_values "60" "$SPACEPOOLS"
+ clean_values "$(($SPACEPOOLS_HOURS_AGE*60))" "$SPACEPOOLS"
  if [ ! -f "$SPACEPOOLS" ]; then
   if [ $LOGGING -eq 1 ]; then s=$(log_action "Spacepools Account" "start"); echo -en "$(tail -1 $LOGFILE)";fi
    dl_etn_account_json

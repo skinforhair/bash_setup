@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>dj</short>
+  <description>Djibouti</description>
+  <entry>41.189.224.0/19</entry>
+  <entry>196.49.10.0/24</entry>
+  <entry>196.201.192.0/20</entry>
+  <entry>196.223.38.0/24</entry>
+  <entry>197.241.0.0/17</entry>
+  <entry>217.78.64.0/20</entry>
+</ipset>

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 function dl_etn_account_json(){
- hours=1
- minutes=$(($hours*60))
+ minutes=$(($SPACEPOOLS_HOURS_AGE*60))
 if ! [ -f $ETN_ACCT ] || [ "$(find $ETN_ACCT -mmin +$minutes)" != "" ]; then
  worker=$(curl -s -X GET --header "Accept: application/json" "https://api.etn.spacepools.org/v1/stats/address/$ETNwallet")
  echo "$worker" > $ETN_ACCT

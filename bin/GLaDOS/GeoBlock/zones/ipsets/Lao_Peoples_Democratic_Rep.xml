@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>la</short>
+  <description>Lao People's Democratic Republic</description>
+  <entry>43.224.36.0/22</entry>
+  <entry>43.228.84.0/22</entry>
+  <entry>43.252.244.0/22</entry>
+  <entry>101.78.8.0/21</entry>
+  <entry>103.1.28.0/22</entry>
+  <entry>103.1.232.0/22</entry>
+  <entry>103.13.88.0/22</entry>
+  <entry>103.43.76.0/22</entry>
+  <entry>103.59.52.0/22</entry>
+  <entry>103.67.20.0/22</entry>
+  <entry>103.82.56.0/22</entry>
+  <entry>103.95.24.0/22</entry>
+  <entry>103.109.116.0/22</entry>
+  <entry>103.110.41.0/24</entry>
+  <entry>103.205.16.0/22</entry>
+  <entry>103.228.252.0/22</entry>
+  <entry>103.232.80.0/22</entry>
+  <entry>103.240.240.0/22</entry>
+  <entry>103.245.164.0/22</entry>
+  <entry>103.249.156.0/22</entry>
+  <entry>114.129.24.0/21</entry>
+  <entry>115.84.64.0/18</entry>
+  <entry>139.5.156.0/22</entry>
+  <entry>157.119.180.0/22</entry>
+  <entry>180.131.148.0/22</entry>
+  <entry>183.182.96.0/19</entry>
+  <entry>202.9.76.0/23</entry>
+  <entry>202.62.96.0/20</entry>
+  <entry>202.123.176.0/21</entry>
+  <entry>202.136.240.0/21</entry>
+  <entry>202.137.128.0/19</entry>
+  <entry>202.144.184.0/21</entry>
+  <entry>203.76.252.0/22</entry>
+  <entry>203.110.64.0/20</entry>
+</ipset>

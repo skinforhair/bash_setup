@@ -6,3 +6,4 @@ bin/GLaDOS/media_library/tv_organizer/epguides/archive/**
 bin/ihc/aix_error_report/reports/**
 bin/Wheatley/episodes/lib/lists/**
 bin/global/MOTD/data/**
+bin/global/MOTD/log/**

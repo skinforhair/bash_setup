@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+function create_all_ipsets(){
+ countryList=$(ls $gCOUNTRIES)
+ for i in `echo $countryList`; do 
+  CC="${i:0:2}"
+  firewalld_create_ipset "$CC"
+ done
+} ##create_all_ipsets

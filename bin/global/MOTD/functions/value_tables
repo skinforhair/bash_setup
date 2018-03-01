@@ -20,13 +20,14 @@ function build_service_values(){
 } ##build_service_values
 
 function build_lan_values(){
- clean_values "5" "$1"
+ clean_values "$INFO_AGE_MINUTES" "$1"
  if [ ! -f "$1" ]; then
   argstring=
    for i in ${@:2}; do argstring="${argstring} $i";done
   if [ $LOGGING -eq 1 ]; then s=$(log_action "Checking LAN ($argstring)" "start"); echo -en "$(tail -1 $LOGFILE)";fi
    #get all arguments except the first
   for host in "${@:2}"; do
+    echo -en " $host "
    echo "$(isOnline $host)">> "$1"
   done
   [ $LOGGING -eq 1 ] && log_end $s

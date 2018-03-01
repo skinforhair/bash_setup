@@ -1,0 +1,72 @@
+#!/bin/bash
+for f in /root/.bin/lib/*; do source $f; done
+
+### - Find local path (See /root/.bin/lib/.localize) ###
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do 
+ DIR="$( cd -P "." && pwd )"
+ SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+BaseDir="/shares/fridge/Security_Cameras"
+
+MONTHS=(ZERO Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+CAMERAS=(NONE NONE SE_Driveway SW_Front Office FrontPorch BackPorch SW_Driveway EastGarage WestGarage NONE Backyard)
+#2 = southeast driveway
+#3 = 212 - Laundry Room currently looking southwest
+#4 - office talkback cam
+#5 - 210 - front porch
+#6 - 211 - back porch
+#7 - southwest driveway
+#8 - east (small) garage
+#9 - west (large) garage
+#10 - unused
+#11 - 213 - BackYard (from garage)
+
+#video format is 
+#Camera year mmonth day hour-minute-second
+
+#movie="$1"
+#clipName="$1"
+for movie in `find $BaseDir -maxdepth 1 -name "*.mp4"`; do
+ clipName="${movie:$((${#BaseDir}+1))}"
+ #clipName="5_2017-05-04_23-08-53.mp4"
+ underscore=`expr index $clipName _`
+ CameraNum="${clipName:0:$((underscore-1))}"
+ CameraName=${CAMERAS[$CameraNum]}
+
+ clipName=${clipName:$underscore}
+ ClipYear="${clipName:0:4}"
+ CM="${clipName:5:2}"
+ if [ "${CM:0:1}" == "0" ]; then CM=${CM:1};fi
+ ClipMonth=${MONTHS[${CM}]}
+ ClipDay="${clipName:8:2}"
+ ClipHour="${clipName:11:2}"
+ ClipMin="${clipName:14:2}"
+ ClipSec="${clipName:17:2}"
+
+ NewDirName="$BaseDir/$ClipYear/$ClipMonth/$ClipDay/$CameraName"
+
+if false; then
+echo "file: $movie"
+echo ""
+echo "Camera: $CameraNum"
+echo "CamName: $CameraName"
+echo "Year: $ClipYear"
+echo "Month: $ClipMonth"
+echo "Day: $ClipDay"
+echo "Hour: $ClipHour"
+echo "Min: $ClipMin"
+echo "Sec: $ClipSec"
+fi
+
+if [ ! -d $NewDirName ]; then
+ mkdir -p $NewDirName
+fi
+
+mv $movie $NewDirName
+
+done
+

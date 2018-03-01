@@ -1,0 +1,50 @@
+#!/bin/bash
+
+function CountryInfo(){
+ CN=$(grep "${1,,} " $CountryList| awk '{ $1=""; print}')
+ [ "$CN" == "" ] && CN=" #UNKNOWN"
+ CN=${CN:2}
+ CN=${CN,,}
+ DESC=""
+ TITLE=""
+
+ #If there are parenthesis, make them the description
+ if [[ $CN = *"("* ]]; then
+  D=$(echo $CN|cut -f2 -d"(")
+  D=$(echo $D|cut -f1 -d")")
+   B=( ${D,,} )
+   DESC=$(echo "${B[@]^}")
+  CN=$(echo $CN|cut -f1 -d"(")
+ fi
+
+ #If there is a comma, Make it the Title
+ if [[ "$CN" = *","* ]]; then
+  B=$(echo $CN|cut -f2 -d",")
+   A=( ${B,,} )
+   TITLE=$(echo "${A[@]^}")
+   [ "$TITLE" == "U.s." ] && TITLE="U.S."
+  CN=$(echo $CN|cut -f1 -d",")
+ fi
+
+ #If there is a hyphen, Capitalize both words
+ if [[ "$CN" = *"-"* ]]; then
+  A=$(echo $CN|cut -f1 -d"-")
+  B=$(echo $CN|cut -f2 -d"-")
+   C=( ${A,,} )
+   D=( ${B,,} )
+  A=$(echo "${C[@]^}")
+  B=$(echo "${D[@]^}")
+  CN="${A} ${B}"
+ fi
+
+ #Make sure all words are capitalized
+   B=( ${CN,,} )
+   CN=$(echo "${B[@]^}")
+
+ case "${2,,}" in
+  "description"|"desc" ) echo "$DESC";;
+  "title") echo "$TITLE";;
+  *) echo "$CN";;
+ esac
+
+} ##CountryInfo

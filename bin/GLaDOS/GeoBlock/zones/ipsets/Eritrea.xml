@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>er</short>
+  <description>Eritrea</description>
+  <entry>196.200.96.0/20</entry>
+</ipset>

@@ -40,12 +40,19 @@ done
 build_cpu_values
 case "${HN,,}" in
  "glados") 
+   echo -en "[ 1 / 7 ] Services...\\r"
    build_service_values "HTTPD" "MYSQL" "SMB"
+   echo -en "[ 2 / 7 ] LAN...\\r"
    build_lan_values "$LANs" "VPN" "Cortana" "Wheatley" "BB8" "R2D2" "Scholomance" "Shodan"
+   echo -en "[ 3 / 7 ] CAMERAS...\\r"
    build_lan_values "$CAMS" "Frontporch" "Backporch" "BackYard" "EastGarage" "WestGarage"
+   echo -en "[ 4 / 7 ] ETN...\\r"
    build_ETN_values
+   echo -en "[ 5 / 7 ] Spacepools...\\r"
    build_spacepools_values
+   echo -en "[ 6 / 7 ] Compiling...\\r"
    GLADOS_Vars
+   echo -en "[ 7 / 7 ] Quote...\\r"
    QUOTE=$(quote_from_file $KF_RULES)
    if [ $REFRESH -eq 0 ]; then
     [ $NARROW -eq 0 ] && print_glados_wide || print_glados_narrow

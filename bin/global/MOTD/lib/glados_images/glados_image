@@ -1,0 +1,37 @@
+#!/bin/bash
+
+source $pLIB/colors
+source $pLIB/blocks
+
+
+i="${yellow}*${white}"
+w="${On_White} ${NC}"
+
+#lear
+
+echo -e "
+ [8\\\\\\[[[\\\\\\[[[||||||||]]]//]]]//8]
+     ${tan}||${NC}  /8888888\\    ${orange}||${NC}
+     ${tan}||${NC}  888888888   ${orange}//${NC}
+     ${tan}||${NC}  \8888888/  ${orange}//${NC}
+     ${tan}||${NC}  (//{}\\\\)   ${orange}//${NC}
+     ${tan}||${NC}__8[{  })  ${orange}//${NC}
+     ${tan}\\\\\\ ${NC}[888_    ${orange}//${NC}
+     ${tan} \\\\\\ ${NC}8( )\\\\  ${orange}//${NC}
+     ${white} _${tan}||${NC} []88<${orange}//${NC}
+${white}     / ${tan}||${NC}88== ${orange}||${NC}
+${white}   [${NC}\\\\\\8${tan}||${NC}|___|${orange}//${NC}
+${white}  /${NC}/8\\\\\\]${tan}||${NC}000${orange}||${NC}
+${white} [${NC}] |\\\\\\8${tan}||${NC}8) ${orange}//${NC}        ${white}_________${NC}
+${white} /${NC}/ /888${tan}||${NC}88${orange}//${NC}___     ${white}/\\       \\\\\\ ${NC}
+${white}[${NC}] /888${red}@@@${NC}8${orange}||${NC}8888]   ${white}|| |  ___  ||${NC}
+${white}[${NC}] (|${red}@@(*)@@${orange})${NC}888 []  ${white}|| | /   \ ||${NC}
+${white}[${NC}] \888${red}@@@${NC}8)${white}++++${NC}  [] ${white}|| | |   | ||${NC}
+${white} |${NC}|  \8//88)${white}++++${NC}   []${white}|| | |   | ||${NC}
+${white} [${NC}] /888) 88${white}++++${NC}=====${white}|| | | $i | ||${NC}
+${white}  \\\\${NC}\\\\(888)8==(========${white}|| | | $i | ||${NC}
+${white}  |[88\\\\${NC}88|  \     // ${white}|| | \___/ ||${NC}
+${white}  \ \***********///  || |       ||${NC}
+${white}   \ \*******====/   \\\\\\/_______//${NC}
+${white}    \_\__//=====/${NC}                  
+"

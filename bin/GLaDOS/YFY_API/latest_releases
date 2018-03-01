@@ -1,0 +1,42 @@
+#!/bin/bash
+
+Quality='720p'
+#Quality='1080p'"
+
+[ "$1" == "" ] && limit=20 || limit=$1
+RottenTomatoes="false"
+
+list="movielist.json"
+titlelist="movietitles.txt"
+
+API_URL="https://yts.am/api/v2/list_movies.json?quality=${Quality}&limit=${limit}&with_rt_rating=${RottenTomatoes}"
+
+worker=$(curl -s -X GET --header "Accept: application/json" "${API_URL}")
+echo "$worker" > $list
+
+
+cat $list |jq '.data.movies[]'|jq -r '.title_long' > $titlelist
+c=0
+f=0
+while read line; do 
+c=$((c+1))
+line="${line:0:$((${#line}-7))}"
+foundID=$(echo "select id from VideoLibrary.movies where title=\"$line\""|mysql -N)
+if [ "$foundID" != "" ]; then
+ [ $f -eq 0 ] && f=$c
+fi
+done < $titlelist
+
+if [ $f -ne 0 ]; then
+ lTitle=$(head -$f $titlelist|tail -1)
+ echo "The last movie from YFY was $lTitle"
+ echo "Since then, these movies have been released."
+ echo "--------------------------------------------"
+ nf=$((f-1))
+ head -$nf $titlelist
+else
+ echo "Here are the latest $limit Movies on YFY:"
+ echo "--------------------------------------------"
+ cat $titlelist
+fi
+

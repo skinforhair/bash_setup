@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>ly</short>
+  <description>Libyan Arab Jamahiriya</description>
+  <entry>41.74.64.0/20</entry>
+  <entry>41.208.64.0/18</entry>
+  <entry>41.242.12.0/22</entry>
+  <entry>41.242.16.0/20</entry>
+  <entry>41.252.0.0/14</entry>
+  <entry>62.68.32.0/19</entry>
+  <entry>62.240.32.0/19</entry>
+  <entry>154.73.28.0/22</entry>
+  <entry>154.73.52.0/22</entry>
+  <entry>154.73.108.0/22</entry>
+  <entry>154.73.128.0/21</entry>
+  <entry>154.127.64.0/20</entry>
+  <entry>156.38.32.0/19</entry>
+  <entry>160.19.96.0/21</entry>
+  <entry>164.160.144.0/22</entry>
+  <entry>165.16.0.0/17</entry>
+  <entry>169.239.92.0/22</entry>
+  <entry>169.239.116.0/22</entry>
+  <entry>169.255.108.0/22</entry>
+  <entry>169.255.156.0/22</entry>
+  <entry>197.215.128.0/19</entry>
+  <entry>197.231.228.0/22</entry>
+  <entry>197.234.248.0/22</entry>
+  <entry>5.63.0.0/21</entry>
+  <entry>185.10.240.0/22</entry>
+</ipset>

@@ -134,7 +134,7 @@ function glados_narrow_lines(){
   6) line="${dark}|$(SP 4)|${Box1}${dark}$SPC$SQL_STAT  ${dark}$SPC$ScholoUp ${LE}";;
   7) line="${dark}|$(SP 4) ${Box1}  | $SMB_STAT    ${SPC}$ShodanUP$(SP 6)${LE}";;
   8) line="${dark}|$(SP 4)| ${NC}ETN: ${ETN_VAL}${dark}$(SP 4)| |${Box2}$SPC$FPorch  ${LE}";;
-  9) line="${dark}|$(SP 4)|  ${white}$ETN_Mined${NC} ($etn_pending)${dark} |$(SP 14)| $BPorch   ${LE}";;
+  9) line="${dark}|$(SP 4)|  ${white}$ETN_Mined${NC} ($etn_pending)${dark}|$(SP 14)| $BPorch   ${LE}";;
  10) line="${dark}|$(SP 4)| ${NC}+${white}${ExtraETN}${NC}${dark}$(SP 8)|$(SP 14)| $BYard    ${LE}";;
  11) line="${dark}|$(SP 4)| ${NC}=${white}$ETN_Total ${NC}ETN ${dark}  |  ${Box2}  | $EGar  ${LE}";;
  12) line="${dark}|$(SP 4)| ${NC} -----------  ${dark} | |    TV    | | $WGar${dark}  ${LE}";;

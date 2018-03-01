@@ -1,0 +1,10 @@
+#!/bin/bash
+function unpack_zonefile(){
+ rm -f $gCOUNTRIES/*.zone
+ download_zones
+ tar -xzf ${gZONES}/${ZoneTGZ} -C $gCOUNTRIES
+ echo -en "$(date +%s)" > $UPDATED
+ echo -e "     -----    Updated $(date '+%m-%d-%Y--%H:%M:%S')" >> $UPDATED
+ rm -f ${gZONES}/${ZoneTGZ}
+}
+

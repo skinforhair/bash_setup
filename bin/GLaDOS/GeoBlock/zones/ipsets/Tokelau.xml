@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>tk</short>
+  <description>Tokelau</description>
+  <entry>27.96.24.0/21</entry>
+</ipset>

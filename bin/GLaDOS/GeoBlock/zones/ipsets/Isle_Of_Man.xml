@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>im</short>
+  <description>Isle Of Man</description>
+  <entry>5.62.80.0/20</entry>
+  <entry>78.24.208.0/21</entry>
+  <entry>79.170.32.0/21</entry>
+  <entry>94.125.56.0/21</entry>
+  <entry>109.202.112.0/21</entry>
+  <entry>185.16.0.0/22</entry>
+  <entry>185.20.92.0/22</entry>
+  <entry>185.28.72.0/22</entry>
+  <entry>185.31.220.0/22</entry>
+  <entry>185.48.76.0/22</entry>
+  <entry>185.60.88.0/22</entry>
+  <entry>185.74.56.0/22</entry>
+  <entry>185.147.32.0/22</entry>
+  <entry>185.180.168.0/22</entry>
+  <entry>185.241.44.0/22</entry>
+  <entry>91.223.161.0/24</entry>
+  <entry>193.105.74.0/24</entry>
+  <entry>194.54.172.0/22</entry>
+</ipset>

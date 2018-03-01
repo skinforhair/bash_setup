@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>bl</short>
+  <description>Saint Barthelemy</description>
+  <entry>162.12.217.0/24</entry>
+  <entry>192.131.134.0/24</entry>
+  <entry>206.130.228.0/24</entry>
+</ipset>

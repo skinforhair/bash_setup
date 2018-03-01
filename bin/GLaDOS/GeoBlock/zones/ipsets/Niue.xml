@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ipset type="hash:net">
+  <short>nu</short>
+  <description>Niue</description>
+  <entry>49.156.48.0/22</entry>
+  <entry>202.59.4.0/22</entry>
+</ipset>

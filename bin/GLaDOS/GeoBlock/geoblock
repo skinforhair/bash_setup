@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source geoblock.conf
+
+[ "$(ls $gCOUNTRIES)" == "" ] && unpack_zonefile
+[ "$(ls $gIPSETS)" == "" ] && create_all_ipsets
+
+
+
+case "${1,,}" in
+ "--add") [ "${2,,}" == "all" ] && firewalld_add_all_countries || firewalld_add_country "$2";;
+ "--remove") [ "${2,,}" == "all" ] && firewalld_remove_all_countries || firewalld_remove_country "$2";;
+ "--list") firewalld_list_country "$2";;
+ *) usage;;
+esac
+#firewalld_add_country mk

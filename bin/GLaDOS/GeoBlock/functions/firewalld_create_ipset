@@ -1,0 +1,43 @@
+#!/bin/bash
+function firewalld_create_ipset(){
+ CN="$(CountryInfo $1)"
+ DESC=$(CountryInfo $1 description)
+ TITLE=$(CountryInfo $1 title)
+#Create the XML file
+   c=0
+ if [ "$CN" != "UNKNOWN" ]; then
+  RULES=$CN
+  [ "$TITLE" != "" ] && RULES="${RULES}-$TITLE"
+  echo -en "Creating $RULES ."
+  RULES=$(echo ${RULES}|sed 's;\ ;_;g')
+  RULES=$(echo ${RULES}|sed "s;';;g")
+  #Firewalld limits xml filenames to 31 characters.
+  [ ${#RULES} -gt 26 ] && RULES=${RULES:0:26}
+  RULES="${gIPSETS}/${RULES}.xml"
+   echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>" > $RULES
+   echo "<ipset type=\"hash:net\">" >> $RULES
+   echo "  <short>${1,,}</short>" >> $RULES
+   echo -n "  <description>" >> $RULES
+   [ "$TITLE" != "" ] && echo -n "${TITLE} " >> $RULES
+   echo -n "${CN}" >> $RULES
+   [ "$DESC" != "" ] && echo -n " (${DESC})" >> $RULES
+   echo "</description>" >> $RULES
+
+    lim=$(($(cat "${gCOUNTRIES}/${1,,}.zone"|wc -l|awk '{print $1}')/30))
+   ## Loop through and add IP blocks
+     while read IP; do
+      [ "$IP" != "" ] && stringZ="  <entry>$IP</entry>" || stringZ=""
+      [ "$stringZ" != "" ] && echo "${stringZ}" >> $RULES
+        c=$((c+1))
+        if [ $c -gt 5 ] && [ $lim -ne 0 ]; then
+         (($c % $lim == 0)) && echo -en "."
+        else
+         echo -en "."
+        fi
+     done < "${gCOUNTRIES}/${1,,}.zone"
+   echo "</ipset>" >> $RULES
+echo ""
+ fi #Not UNKNOWN
+
+} ##firewalld_create_ipset
+

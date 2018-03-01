@@ -8,7 +8,7 @@ curFile="${showDIR}/available_episodes.txt.${today}"
 stringZ=
 if ! [ -f $curFile ]; then
   #32
-  stringZ="${red}NO NEW EPISODES - File not Found${NC}"
+  stringZ="${red}NO NEW EPISODES -File not Found${NC}"
 else
  sta=0
  fin=0

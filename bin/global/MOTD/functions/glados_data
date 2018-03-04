@@ -5,15 +5,23 @@ function GLADOS_Vars(){
 LOAD="$(head -1 $CPU)"
 NCPU="$(head -2 $CPU|tail -1)"
 Days="$(head -3 $CPU|tail -1)"
-if [ $Days -lt 100 ] && [ ${#Days} -lt 3 ]; then
- while [ ${#Days} -lt 3 ]; do
-  Days="0"${Days}
- done
-fi
-if [ $Days -lt 10 ] && [ ${#Days} -lt 3 ]; then
- while [ ${#Days} -lt 3 ]; do
-  Days="0"${Days}
- done
+if [[ $Days = *":"* ]]; then
+ hrs=${Days:0:$(($(expr index "$Days" :)-1))}
+ min=${Days:$(expr index "$Days" :)}
+ min=${min:0:$((${#min}-1))}
+ Days="${hrs}h ${min}m"
+else
+ if [ $Days -lt 100 ] && [ ${#Days} -lt 3 ]; then
+  while [ ${#Days} -lt 3 ]; do
+   Days="0"${Days}
+  done
+ fi
+ if [ $Days -lt 10 ] && [ ${#Days} -lt 3 ]; then
+  while [ ${#Days} -lt 3 ]; do
+   Days="0"${Days}
+  done
+ fi
+ Days="${Days}d"
 fi
 
 
@@ -23,6 +31,7 @@ SQL_STAT="$(head -2 $SERVICES|tail -1)"
 SMB_STAT="$(head -3 $SERVICES|tail -1)"
 
 WANIP="$(localWAN)"
+while [ ${#WANIP} -lt 15 ]; do WANIP="${WANIP} ";done
 VPNIP="$(head -1 $LANs)"
 
 CortanaUp="$(head -2 $LANs|tail -1)"

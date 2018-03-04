@@ -71,9 +71,9 @@ function glados_wide_lines(){
  case "$1" in
   1) line="$(SP 2)${red}GLaDOS${dark}$(SP 31)${Box1}$(SP 7)${Box2}$(SP 7)${Box3}${NC}";;
   2) line="${dark} $(UL 13) ${light}.,-:;//;:-,${dark} $(UL 11)|${NC}      WAN        ${BoxTop}L:  $LOAD $BoxTop$CortanaUp     ${dark}|___";;
-  3) line="${dark}|$(SP 10)${light}. :H000MM@M#H/.,+%;,$(SP 7)${dark}| ${cyan}$WANIP  ${dark}$SPC${NC}C:  ${white}$NCPU${NC}    ${dark}$SPC$WheatleyUp    ${LE}";;
-  4) line="${dark}|$(SP 7)${light},/X+ +M@@M@MM%=,-%HMMM@X/,${dark}    |      ${NC}VPN${dark}$(SP 8)$SPC${NC}Up: ${Days}d ${dark}$SPC$BB8Up${dk_gray} Bedroom ${LE}";;
-  5) line="${dark}|$(SP 5)${light}-+@MM; SM@@MH+-,;XMMMM@MMMM@+-  ${dark}| $VPNIP${NC}  ${dark}$SPC${HTP_STAT}  ${dark}$SPC${R2D2Up}${dk_gray} Main   ${LE}";;
+  3) line="${dark}|$(SP 10)${light}. :H000MM@M#H/.,+%;,$(SP 7)${dark}| ${cyan}$WANIP ${dark}$SPC${NC}C:  ${white}$NCPU${NC}    ${dark}$SPC$WheatleyUp    ${LE}";;
+  4) line="${dark}|$(SP 7)${light},/X+ +M@@M@MM%=,-%HMMM@X/,${dark}    |      ${NC}VPN${dark}$(SP 8)$SPC${NC}Up: ${Days} ${dark}$SPC$BB8Up${dk_gray} Bedroom ${LE}";;
+  5) line="${dark}|$(SP 5)${light}-+@MM; SM@@MH+-,;XMMMM@MMMM@+-  ${dark}| $VPNIP${NC} ${dark}$SPC${HTP_STAT}  ${dark}$SPC${R2D2Up}${dk_gray} Main   ${LE}";;
   6) line="${dark}|$(SP 4)${light};@M@@m- XM0X;. -+XXXXXHHH@M@M#@/.${dark}|${Box1}${dark}$SPC$SQL_STAT  ${dark}$SPC$ScholoUp ${LE}";;
   7) line="${dark}|   ${light}%MM@@MH ,@%=$(SP 12).---=-=:=,.${dark}$(SP 23)| $SMB_STAT    ${SPC}$ShodanUP$(SP 6)${LE}";;
   8) line="${dark}| ${light}=@#@@@MX .,$(SP 15)-%HXSS%%%+;$(SP 23)${dark}|${Box2}$SPC$FPorch  ${LE}";;

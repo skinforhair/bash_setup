@@ -9,6 +9,7 @@ case "$cmd" in
  "fridge") DL_DIR="/shares/fridge";;
  "web") DL_DIR="/shares/glados";;
  "media") DL_DIR="$pBIN/GLaDOS/media_library";;
+ "ws") DL_DIR="/shares/filesystem/workshop";;
  *) usage;;
 esac
 
@@ -32,3 +33,4 @@ alias fridge="file_move_function fridge"
 alias web="file_move_function web"
 alias media="file_move_function media"
 alias ml="file_move_function media"
+alias ws="file_move_function ws"

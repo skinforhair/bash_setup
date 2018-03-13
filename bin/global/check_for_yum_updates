@@ -1,0 +1,26 @@
+#!/bin/bash
+
+UPDATELIST="/shares/incoming/available_yum_updates-$(date +%Y_%m_%d)"
+outputfile="/shares/incoming/TODO_List"
+
+
+function get_updates(){
+ yum -q updateinfo
+ yum -q check-update > $UPDATELIST
+  l=$(($(cat $UPDATELIST |wc -l)-1))
+  [ $l -lt 1 ] && rm -f $UPDATELIST
+ echo "$l"
+} ##get_updates
+
+if [ -f $UPDATELIST ]; then
+  [ "$1" == "--list" ] && cat $UPDATELIST
+  num=$(($(cat $UPDATELIST |wc -l)-1))
+else
+ num=$(get_updates)
+fi #if List
+
+
+if [ "$1" != "--list" ]; then
+ [ $num -eq 1 ] && echo -e "[1] YUM package update found:\n   $(cat $UPDATELIST |head -1)" >> $outputfile
+ [ $num -gt 1 ] && echo -en "[$num] YUM package updates found. Run $0 --list to see them." >> $outputfile
+fi

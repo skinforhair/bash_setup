@@ -12,7 +12,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 LOCAL_STORE="/cortana/security_cameras"
 LOCAL_BUCKET="$LOCAL_STORE/transfer"
-REMOTE_BUCKET="/shares/fridge/Security_Cameras/"
+REMOTE_BUCKET="/shares/archives/Security_Cameras/"
 LOGFILE="$LOCAL_STORE/logs/transfer.`date +%F.%H.%M`.log"
 
 conn="jar@192.168.1.143"

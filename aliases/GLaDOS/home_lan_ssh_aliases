@@ -8,6 +8,8 @@ if [ -a $SSH_COM ]; then
  alias westgarage="single_command_ssh_function westgarage "
  alias wheatley="single_command_ssh_function wheatley"
  alias spp="single_command_ssh_function spp"
+ alias sentryturret="single_command_ssh_function sentryturret"
+ alias sentry="single_command_ssh_function sentryturret"
 
  alias rackspace="single_command_ssh_function rackspace"
  alias byuvocalpoint="single_command_ssh_function rackspace"

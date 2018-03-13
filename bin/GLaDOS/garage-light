@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ssh jar@westgarage "/home/jar/.bin/light_toggle;exit"
+exit 0

@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function cam_box(){
+ [ "$2" != "" ] && c1=${2} || c1=${DEFAULT_COLOR1}
+ [ "$3" != "" ] && c2=${3} || c2=${DEFAULT_COLOR2}
+sz=12
+
+ LN=$(($i-10))
+ [ $LN -lt 1 ] && LN=0
+ HST=$(head -$LN ${data_CAM}|tail -1)
+ isUP=$(echo "$HST"|awk '{print $1}')
+ HN=$(echo "$HST"|awk '{print $2}')
+ while [ ${#HN} -lt $sz ]; do HN="${HN} "; done
+ [ "$isUP" == "UP" ] && HS="${green}${HN}${NC}" || HS="${red}${HN}${NC}"
+
+[ "$HS" == "" ] && HS="$i"
+
+if [ $(tput cols) -ge $screen_FULLMIN ]; then
+ case "$1" in
+  10) line="$(SP 3)${c1}$(UL 14)${NC}";;
+  11) line="$(SP 2)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  12) line="$(SP 2)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  13) line="$(SP 37)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  1[4-5]) line="$(SP 2)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  16) line="$(SP 37)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  17) line="$(SP 4)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  18) line=" ${c1}|$(UL 14)|${NC}";;
+ *) line="";;
+ esac
+elif [ $(tput cols) -ge $screen_NOLOGO ]; then
+ case "$1" in
+  10) line="$(SP 5)${c1}$(UL 14)${NC}";;
+  11) line="$(SP 4)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  12) line="$(SP 4)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  13) line="$(SP 39)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  1[4-5]) line="$(SP 4)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  16) line="$(SP 39)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  17) line="$(SP 4)${c1}|${NC} ${HS} ${c1}|${NC}";;
+  18) line=" ${c1}|$(UL 14)|${NC}";;
+ *) line="";;
+ esac
+else
+ downCount=0
+ downList="${orange}"
+ while read host; do
+  case "$(echo $host|awk '{print $1}')" in
+   "DN") downCount=$(($downCount+1));downList="${downList} $(echo $host|awk '{print $2}')";;
+    *) ;;
+  esac
+ done<$data_CAM
+ case "$1" in
+ 7) line="CAMS DOWN:"
+     [ $downCount -eq 0 ] && line="${line}${dk_gray} (NONE)${NC}" || line="${line}$downList${NC}";;
+ *) line="";;
+ esac
+fi
+ echo -e "$line"
+} #cam_box

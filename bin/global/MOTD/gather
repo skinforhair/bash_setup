@@ -1,0 +1,46 @@
+#!/bin/bash
+
+DIR="/shares/filesystem/bin/bin/global/MOTD"
+for f in ${DIR}/lib/*.cfg; do [ -f $f ] && source $f; done
+for f in ${DIR}/functions/*; do [ -f $f ] && source $f; done
+
+
+### DELETE OLD DATA FILES
+for f in $DATADIR/*; do refresh_files $f; done
+
+### GET NEW DATA INTO FILES
+ #CPU LOAD
+[ ! -f $data_CPU ] && CPU_Stats > $data_CPU
+
+ #HARD DRIVES
+if [ ! -f $data_DISKS ]; then
+ for disk in ${DiskList[@]}; do DiskCheck $disk >> $data_DISKS; done
+fi
+ 
+ #SERVICES
+if [ ! -f $data_SERVICES ]; then
+ for service in ${ServiceList[@]}; do ServiceCheck $service >> $data_SERVICES;done
+fi
+
+ #LOCAL NETWORK DEVICES
+if [ ! -f $data_LAN ]; then
+ VPN_IP > $data_LAN
+ WAN_IP >> $data_LAN
+ for host in ${LanHostList[@]}; do TCPCheck $host >> $data_LAN; done
+fi
+
+ #SECURITY CAMERAS
+if [ ! -f $data_CAM ]; then
+ for camera in ${CameraList[@]}; do PingCheck $camera >> $data_CAM; done
+fi
+
+ #ETN STATS
+#only refresh if one of the json files updated
+if [ ! -f $ETN_json ] || [ ! -f $SPACEPOOLS_json ] || [ ! -f $data_ETN ]; then
+ [ ! -f $ETN_json ] && dl_etnstats_json > $ETN_json
+ [ ! -f $SPACEPOOLS_json ] && dl_spacepools_json > $SPACEPOOLS_json
+ ETNStats > $data_ETN
+fi
+
+ #Media Files
+[ ! -f $data_MEDIA ] && MediaFiles > $data_MEDIA

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+function media_box(){
+ NumTVadded=$(cat $data_MEDIA|head -1)
+ TVaddedDate=$(cat $data_MEDIA|head -2 |tail -1) 
+ EpisodesAvailable=$(cat $data_MEDIA|head -3|tail -1)
+ NumMoviesadded=$(cat $data_MEDIA|head -4|tail -1)
+ MovieAddedDate=$(cat $data_MEDIA|head -5|tail -1) 
+
+ [ $EpisodesAvailable -lt 8 ] && color="${yellow}" || color="${orange}"
+ if [ $EpisodesAvailable -lt 10 ] && [ ${#EpisodesAvailable} -lt 2 ]; then EpisodesAvailable="0${EpisodesAvailable}";fi
+ EpisodesAvailable="${color}$EpisodesAvailable${NC}"
+ if [ $NumMoviesadded -lt 10 ] && [ ${#NumMoviesadded} -lt 2 ]; then NumMoviesadded=" ${NumMoviesadded}";fi
+
+if [ $(tput cols) -ge $screen_NOLOGO ]; then
+ case "$1" in
+  17) line="      TV:    ";[ $NumTVadded -lt 10 ] && line="${line} ";line="${line}${white}${NumTVadded}${NC} added on ${white}$TVaddedDate${NC}"; ;;
+  18) line="[${EpisodesAvailable}] Aired Episodes ready for Download${NC}";;
+  19) line="    Movies: ${white}${NumMoviesadded}${NC} added on ${white}${MovieAddedDate}${NC}";;
+  *) line=""
+ esac
+else
+ case "$1" in
+  11) line="TV:    ";[ $NumTVadded -lt 10 ] && line="${line} ";line="${line}${white}${NumTVadded}${NC} added on ${white}$TVaddedDate${NC}"; ;;
+  12) line="[${EpisodesAvailable}] Aired Episodes ready for Download${NC}";;
+  13) line="Movies: ${white}${NumMoviesadded}${NC} added on ${white}${MovieAddedDate}${NC}";;
+  *) line=""
+ esac
+fi
+ echo -e "$line"
+} #media_box

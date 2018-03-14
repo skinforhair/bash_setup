@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function TCPCheck(){
+ host="$1"
+ case "$2" in
+  "") port="22";;
+  *)  port="$2";;
+ esac
+
+if [ "$2" != "ping" ]; then 
+# timeout 1 bash -c "</dev/tcp/$host/$port" && echo "UP $host" || echo "DN $host"
+ timeout 1 bash -c "</dev/tcp/$host/$port" && echo "UP $host" || echo "$(PingCheck $1)"
+else
+ PingCheck "$1"
+fi
+} ##Check_TCP
+

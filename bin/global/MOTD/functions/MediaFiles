@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function MediaFiles(){
+ today=$(date +"%m%d%Y")
+ showDIR="/root/.skinforhair_settings/bin/GLaDOS/media_library/tv_organizer/epguides/archive"
+ curFile="${showDIR}/available_episodes.txt.${today}"
+ stringZ=
+ if ! [ -f $curFile ]; then
+   stringZ="0"
+ else
+ sta=0
+ fin=0
+ EpisodesAvailable=0
+ while read line; do
+  if [ "$line" == "---- Available ----" ]; then sta=1; fi
+  if [ "$line" == "---- Upcoming ----" ]; then fin=1; fi
+  if [ $sta -eq 1 ] && [ $fin -eq 0 ]; then
+   [ "$line" != "" ] && EpisodesAvailable=$(($EpisodesAvailable+1))
+  fi
+ done<$curFile
+fi #if file found
+TVTable="VideoLibrary.TV_feed"
+TVDate=$(echo "select added from $TVTable where id=(select max(id) from $TVTable)" |mysql -s -r -N)
+TVaddedDate=$(echo "$TVDate" |awk '{print $1}')
+NumTVadded=$(echo "select count(*) from $TVTable where added like \"$TVaddedDate%\"" |mysql -s -r -N)
+
+MovieTable="VideoLibrary.movies"
+MovieDate=$(echo "select added from $MovieTable where id=(select max(id) from $MovieTable)" |mysql -s -r -N)
+MovieAddedDate=$(echo "$MovieDate" |awk '{print $1}')
+NumMoviesadded=$(echo "select count(*) from $MovieTable where added like \"$MovieAddedDate%\"" |mysql -s -r -N)
+
+echo -e "${NumTVadded}\n${TVaddedDate}\n${EpisodesAvailable}\n${NumMoviesadded}\n${MovieAddedDate}"
+} ##MediaFiles
+

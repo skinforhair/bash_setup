@@ -1,0 +1,56 @@
+#!/bin/bash
+
+
+function quote_from_file(){
+ inputfile="$1"
+ fileSize=$(cat "$inputfile" |wc -l)
+ rand=$((1 + RANDOM % $fileSize))
+ line=$(head -$rand $inputfile|tail -1)
+ echo "$line"
+} ##quote_from_file
+
+
+function truncate_quote(){
+#Get the string
+[ "$1" != "" ] && Q="$1" || Q="NO QUOTE FOUND."
+[ "$2" != "" ] && w="$2" || w="50"
+
+#SZ=$(echo "$Q" |fold -s -w$w|wc -l)
+ QL=$(echo "$Q" |fold -s -w$w|head -1)
+ Q="${QL}\n""${Q:${#QL}}"
+
+echo "$Q"
+} ## truncate_quote
+
+
+function quote_box(){
+ QL="$(quote_from_file $QUOTEFILE)"
+if [ $(tput cols) -ge $screen_FULLMIN ]; then 
+ Q=$(truncate_quote "$QL" "$screen_FULLMIN")
+ case "$1" in
+  21) line="$(SP 5)$Q${NC}" ;;
+  *) line="";;
+ esac
+elif [ $(tput cols) -ge $screen_NOLOGO ]; then
+ Q=$(truncate_quote "$QL")
+  case "$1" in
+   20) line="$Q${NC}";;
+   *) line="";;
+  esac
+else
+ Q=$(truncate_quote "$QL")
+  case "$1" in
+   15) line="$Q${NC}";;
+   *) line="";;
+  esac
+fi
+ echo -e "$line"
+} #quote_box
+
+if [ "$(basename $0)" == "GLaDOS.quote_box" ]; then
+ for f in ../../lib/*.cfg; do [ -f $f ] && source $f; done
+ for f in `ls`; do if [ -f $f ] && [ "$f" != "$(basename $0)" ]; then source $f;fi; done
+ [ -f "/shares/incoming/TODO_List" ] && QUOTEFILE="/shares/incoming/TODO_List" || QUOTEFILE="${DIR}/lib/quotes/kung_fu_rules.quotes"
+ quote_box "$1" "$2" "$3"
+fi
+

@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function UL(){
+ [ "$2" == "" ] && stringZ= || stringZ="$2"
+ c=0
+ while [ $c -lt $1 ]; do
+  c=$((c+1))
+  stringZ="$stringZ""_"
+ done
+ [ "$2" == "" ] && echo -e "$stringZ" || echo -e "$stringZ${NC}"
+} ##print underline
+
+function SP(){
+ stringZ=
+ c=0
+ while [ $c -lt $1 ]; do
+  c=$((c+1))
+  stringZ="$stringZ "
+ done
+ echo -e "$stringZ"
+} ##print spaces
+
+function aperture_logo(){
+ [ "$2" != "" ] && c1=${2} || c1=${DEFAULT_COLOR1}
+ [ "$3" != "" ] && c2=${3} || c2=${DEFAULT_COLOR2}
+ [ "$4" != "" ] && width=${4} || width=40
+
+stringZ=
+case "$1" in
+  1) stringZ="$(SP 2)$(hostname)";rem=$(($width-${#stringZ}));line="$(SP 2)${red}$(hostname)$(SP $rem)${NC}";;
+  2) line="${c1} $(UL 13) ${c2}.,-:;//;:-,${c1} $(UL 12)|${NC}";;
+  3) line="${c1}|$(SP 10)${c2}. :H000MM@M#H/.,+%;,$(SP 8)${c1}|${NC}";;
+  4) line="${c1}|$(SP 7)${c2},/X+ +M@@M@MM%=,-%HMMM@X/,     ${c1}|${NC}";;
+  5) line="${c1}|$(SP 5)${c2}-+@MM; SM@@MH+-,;XMMMM@MMMM@+-   ${c1}|${NC}";;
+  6) line="${c1}|$(SP 4)${c2};@M@@m- XM0X;. -+XXXXXHHH@M@M#@/. ${c1}|${NC}";;
+  7) line="${c1}|   ${c2}%MM@@MH ,@%=$(SP 12).---=-=:=,.  ${NC} ";;
+  8) line="${c1}| ${c2}=@#@@@MX .,$(SP 15)-%HXSS%%%+;  ${NC} ";;
+  9) line="${c1}|${c2}=-./@M@MS$(SP 19).;@MMMM@MM: ${NC} ";;
+ 10) line="${c1}|${c2}X@/ -SMM/$(SP 21).+MM@@@M: ${NC} ";;
+ 11) line="${c2},@M@H: :0:$(SP 21). =X#@@@@-${NC} ";;
+ 12) line="${c2}-@@@MMX, .$(SP 21)/H- ;@M@M=${NC} ";;
+ 13) line="${c2}=H@@@@M@+,$(SP 21)%MM+..%#S.${NC} ";;
+ 14) line="${c1}|${c2}/MMMM@MMH/.$(SP 19)XM@MH; =; ${NC} ";;
+ 15) line="${c1}| ${c2}/%+%SXHH@S=$(SP 15), .H@@@@MX,  ${NC} ";;
+ 16) line="${c1}|${c2}  .=--------.$(SP 12)=%H.,@@@@@MX,  ${NC} ";;
+ 17) line="${c1}|${c2}  .%MM@@@HHHXXSSS%+- .:SMMX =M@@MM%.  ${NC} ";;
+ 18) line="${c1}|${c2}   =XMMM@MM@MM#H;,-+HMM@M+ /MMMX=$(SP 5)${NC} ";;
+ 19) line="${c1}|${c2}$(SP 6)-%@M@M#@S-.=S@MM@@M ;%M%-$(SP 7)${NC} ";;
+ 20) stringZ="|$(UL 7),:+S+-,/H#MMMMMM@/ ;M-, "
+     rem=$(($(tput cols)-${#stringZ}))
+     rem=$(($rem-2))
+     line="${c1}|$(UL 7)${c2},:+S+-,/H#MMMMMM@/ ;M-, $(UL $rem ${c1})${NC}";;
+ 21) line="$(SP 13)${c2} =++%%%%+/o-.${NC}";;
+ *) line=""
+ esac
+ echo -e "$line"
+} ##aperture_logo
+

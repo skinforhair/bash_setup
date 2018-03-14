@@ -1,0 +1,51 @@
+#!/bin/bash
+
+function disks_box(){
+ line= 
+
+if [ $(tput cols) -ge $screen_NOLOGO ]; then
+ case "$1" in
+   14) 
+     while read diskLine; do
+       s=$(echo "$diskLine" |awk '{print $1}')
+       [ "$s" == "UP" ] && t="${green}$(echo "$diskLine"|awk '{print $2}')" || t="${red}$(echo "$diskLine"|awk '{print $2}')"
+       perc=$(echo "$diskLine"|awk '{print $3}')
+       perc=${perc:0:$((${#perc}-1))}
+       if [ $perc -lt 50 ]; then perc="${green}${perc}%";
+       elif [ $perc -lt 78 ]; then perc="${yellow}${perc}%";
+       else perc="${red}${perc}%";fi
+        [ "$(echo $diskLine|awk '{print $2}')" == "$(head -$(cat $data_DISKS|wc -l|awk '{print $1}') $data_DISKS|tail -1|awk '{print $2}')" ] && line="${line}${t} ${perc}   " || line="${line}${t} ${perc}   "
+     done < $data_DISKS;;
+   15)
+      while read diskLine; do
+        a="$(echo "$diskLine"|awk '{print $4}')"
+        b="$(echo "$diskLine"|awk '{print $5}')"
+        [ "$(echo $diskLine|awk '{print $2}')" == "$(head -$(cat $data_DISKS|wc -l|awk '{print $1}') $data_DISKS|tail -1|awk '{print $2}')" ] && line="${line}${a}/${b}" || line="${line}${a}/${b}    "
+      done < $data_DISKS;;
+  *) line="";;
+ esac
+else
+ case "$1" in
+   9) 
+     while read diskLine; do
+       s=$(echo "$diskLine" |awk '{print $1}')
+       [ "$s" == "UP" ] && t="${green}$(echo "$diskLine"|awk '{print $2}')" || t="${red}$(echo "$diskLine"|awk '{print $2}')"
+       perc=$(echo "$diskLine"|awk '{print $3}')
+       perc=${perc:0:$((${#perc}-1))}
+       if [ $perc -lt 50 ]; then perc="${green}${perc}%";
+       elif [ $perc -lt 78 ]; then perc="${yellow}${perc}%";
+       else perc="${red}${perc}%";fi
+        [ "$(echo $diskLine|awk '{print $2}')" == "$(head -$(cat $data_DISKS|wc -l|awk '{print $1}') $data_DISKS|tail -1|awk '{print $2}')" ] && line="${line}${t} ${perc}   " || line="${line}${t} ${perc}   "
+     done < $data_DISKS;;
+   10)
+      while read diskLine; do
+        a="$(echo "$diskLine"|awk '{print $4}')"
+        b="$(echo "$diskLine"|awk '{print $5}')"
+        [ "$(echo $diskLine|awk '{print $2}')" == "$(head -$(cat $data_DISKS|wc -l|awk '{print $1}') $data_DISKS|tail -1|awk '{print $2}')" ] && line="${line}${a}/${b}" || line="${line}${a}/${b}    "
+      done < $data_DISKS;;
+  *) line="";;
+ esac
+
+fi
+ echo -e "$line${NC}"
+} #shares_box

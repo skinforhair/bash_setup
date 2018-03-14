@@ -1,0 +1,66 @@
+#!/bin/bash
+
+function etn_box(){
+ [ "$2" != "" ] && c1=${2} || c1=${DEFAULT_COLOR1}
+ [ "$3" != "" ] && c2=${2} || c2=${DEFAULT_COLOR2}
+sz=7
+
+ETN_VAL="$(head -1 $data_ETN)"
+ETN_day="$(head -2 $data_ETN|tail -1)"
+ETN_week="$(head -3 $data_ETN|tail -1)"
+
+ETN_Mined="$(head -4 $data_ETN|tail -1)"
+etn_pending="$(head -5 $data_ETN|tail -1)"
+if [ ${#etn_pending} -lt 5 ]; then
+ while [ ${#etn_pending} -lt 5 ]; do
+  etn_pending="0${etn_pending}"
+ done
+fi
+#EST_Hashrate="$(head -3 $SPACEPOOLS|tail -1)"
+purch="$(head -6 $data_ETN|tail -1)"
+ETN_Total="$(head -7 $data_ETN|tail -1)"
+mined_val="$(head -8 $data_ETN|tail -1)"
+total_etn_val="$(head -9 $data_ETN|tail -1)"
+
+if [ "${ETN_day:0:1}" == "-" ];then
+ ETN_day=${ETN_day:1}
+ dayC=${red}
+else
+ dayC=${green}
+fi
+ while [ ${#ETN_day} -lt 5 ]; do ETN_day="${ETN_day} ";done
+ETN_day="${dayC}$ETN_day"
+if [ "${ETN_week:0:1}" == "-" ];then
+ ETN_week="${ETN_week:1}"
+ dayC=${red}
+else
+ dayC=${green}
+fi 
+ while [ ${#ETN_week} -lt 5 ]; do ETN_week="${ETN_week} ";done
+ETN_week="${dayC}${ETN_week}${NC}"
+
+if [ $(tput cols) -ge $screen_NOLOGO ]; then
+ case "$1" in
+   9) line=" ETN->USD: ${white}${ETN_VAL}${NC} D:${ETN_day}%  W:${ETN_week}%${NC}";;
+  10) line=" ETN: ${white}$ETN_Mined${NC}   ${dk_gray}($etn_pending pending)$(SP 5)${NC}";;
+  11) line=" Purchased: ${white}${purch}${NC}$(SP 17)${NC}";;
+  12) line=" Bal: ETN ${white}${ETN_Total}${NC} \$${mined_val}/${white}${total_etn_val}${NC}$(SP 3)${NC}";;
+  *) line=""
+ esac
+else
+ case "$1" in
+  8) line="ETN:"
+     [ "${ETN_day:0:1}" == "-" ] && line="${line}${red}" || line="${line}${green}"
+     line="${line}${ETN_VAL}${NC} - ${ETN_Total} = ${white}\$${total_etn_val}${NC}";;
+  *) line="";;
+ esac
+fi
+ echo -e "$line"
+} ##etn_box
+
+if [ "$(basename $0)" == "GLaDOS.etn_box" ]; then
+ for f in ../../lib/*.cfg; do [ -f $f ] && source $f; done
+ for f in `ls`; do if [ -f $f ] && [ "$f" != "$(basename $0)" ]; then source $f;fi; done
+ 
+ etn_box "$1" "$2" "$3"
+fi

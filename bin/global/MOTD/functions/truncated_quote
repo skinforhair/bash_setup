@@ -1,8 +1,7 @@
 #!/bin/bash
 
-function kungfu_quote(){
-Q="$1"
-#Q="2 - Be honest and fair; show love for your country and respect for your parents."
+function truncated_quote(){
+[ "$1" != "" ] && Q="$1" || Q="NO QUOTE FOUND."
 QL=$(echo ${Q:$(expr index "$Q" "-")})
 if [ "${2^^}" == "NUM" ]; then
   n=$(echo "$Q" |awk '{print $1}')
@@ -12,9 +11,9 @@ if [ "${2^^}" == "NUM" ]; then
   outString="$n"
 else
 [ "$2" == "" ] && fnd=1 || fnd="$2"
-[ "$3" == "" ] && w=19 || w="$3"
+[ "$3" == "" ] && w=50 || w="$3"
 SZ=$(echo "$QL" |fold -s -w$w|wc -l)
-if [ $fnd -gt $SZ ]; then 
+if [ $fnd -gt $SZ ]; then
  outString=" "
 else
  outString=$(echo "$QL" |fold -s -w$w|head -$fnd|tail -1)
@@ -27,5 +26,12 @@ fi
  fi
 fi #if $2 is NUM
 echo "$outString"
-} ## kungfu_quote
+} ## truncated_quote
+
+if [ "$(basename $0)" == "truncated_quote" ]; then
+ for f in ../lib/*.cfg; do [ -f $f ] && source $f; done
+ for f in `ls`; do if [ -f $f ] && [ "$f" != "$(basename $0)" ]; then source $f;fi; done
+
+ truncated_quote "$1" "$2" "$3"
+fi
 

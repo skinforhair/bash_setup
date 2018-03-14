@@ -6,5 +6,5 @@ function quote_from_file(){
  rand=$((1 + RANDOM % $fileSize))
  line=$(head -$rand $inputfile|tail -1)
  echo "$line"
-} ##get_random_quote
+} ##quote_from_file
 

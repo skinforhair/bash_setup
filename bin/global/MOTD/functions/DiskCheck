@@ -1,0 +1,20 @@
+#!/bin/bash
+
+function DiskCheck(){
+if [ "${1,,}" == "shares" ]; then
+ pSize=$(df -h |grep shares|grep -v "shares/")
+ bSize=$(df -h |grep backup|grep -v "backup/")
+else
+ pSize=$(df -h |grep "$1"|grep -v "${1}/"|grep "shares")
+ bSize=$(df -h |grep "$1"|grep -v "${1}/"|grep "backup")
+fi
+
+Perc=$(echo "$pSize" |awk '{print $5}')
+pAvail=$(echo "$pSize" |awk '{print $4}')
+bAvail=$(echo "$bSize" |awk '{print $4}')
+Size=$(echo "$pSize" |awk '{print $2}')
+
+[ "$pAvail" == "$bAvail" ] && stat="UP" || stat="DN"
+echo "${stat} ${1^} ${Perc} ${pAvail} ${Size}"
+} ##Check_Disks
+

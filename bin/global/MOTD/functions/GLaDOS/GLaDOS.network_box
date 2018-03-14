@@ -1,0 +1,41 @@
+#!/bin/bash
+
+function network_box(){
+ [ "$2" != "" ] && c1=${2} || c1=${DEFAULT_COLOR1}
+ [ "$3" != "" ] && c2=${3} || c2=${DEFAULT_COLOR2}
+
+WANIP="$(head -2 $data_LAN|tail -1)"
+while [ ${#WANIP} -lt 15 ]; do WANIP="${WANIP} ";done
+
+VPNIP="$(head -1 $data_LAN)"
+while [ ${#VPNIP} -lt 15 ]; do VPNIP="${VPNIP} ";done
+ [ "$WANIP" == "$VPNIP" ] && VPNIP="${red}${VPNIP}${NC}" || VPNIP="${green}${VPNIP}${NC}"
+
+if [ $(tput cols) -ge $screen_FULLMIN ]; then
+ case "$1" in
+  1) line="${c1}$(UL 17)${NC}";;
+  2) line="${NC}$(SP 7)WAN$(SP 7)${c1}|${NC}";;
+  3) line="${cyan} $WANIP ${c1}|${NC}";;
+  4) line="$(SP 7)VPN$(SP 7)${c1}|${NC}";;
+  5) line=" $VPNIP ${c1}|${NC}";;
+  6) line="${c1}$(UL 17)|${NC}";;
+ *) line="";;
+ esac
+elif [ $(tput cols) -ge $screen_NOLOGO ]; then
+  case "$1" in
+  1) line=" ${c1}$(UL 16)${NC}";;
+  2) line="${c1}|${NC}$(SP 6)WAN$(SP 7)${c1}|${NC}";;
+  3) line="${c1}|${cyan}$WANIP ${c1}|${NC}";;
+  4) line="${c1}|${NC}$(SP 6)VPN$(SP 7)${c1}|${NC}";;
+  5) line="${c1}|$VPNIP ${c1}|${NC}";;
+  6) line="${c1}|$(UL 16)|${NC}";;
+ *) line="";;
+ esac
+else
+  case "$1" in
+  3) line="WAN:$WANIP${NC} VPN:$VPNIP${NC}";;
+ *) line="";;
+ esac
+fi
+ echo -e "$line"
+} #network_box

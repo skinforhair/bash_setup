@@ -1,0 +1,8 @@
+#!/bin/bash
+
+function refresh_files(){
+ FILE="$1"
+ max_age="${FILE##*.}" 
+ file_age=$(($(date +%s)-$(date +%s -r $FILE)))
+ [ $file_age -gt $max_age ] && rm -f $FILE
+} #refresh_files

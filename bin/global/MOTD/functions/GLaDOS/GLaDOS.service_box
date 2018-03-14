@@ -1,0 +1,101 @@
+#!/bin/bash
+
+function service_box(){
+sz=7
+ [ "$2" != "" ] && c1=${2} || c1=${DEFAULT_COLOR1}
+ [ "$3" != "" ] && c2=${3} || c2=${DEFAULT_COLOR2}
+
+
+LOAD="$(head -1 $data_CPU)"
+LOAD=$(echo "$LOAD" |awk '{print $1}')
+while [ ${#LOAD} -lt $sz ]; do LOAD="${LOAD} ";done
+
+#NCPU="$(head -2 $data_CPU|tail -1)"
+NCPU=2
+while [ ${#NCPU} -lt $sz ]; do NCPU="${NCPU} ";done
+
+UPTIME="$(head -3 $data_CPU|tail -1)"
+if [[ $UPTIME = *":"* ]]; then
+ hrs=${UPTIME:0:$(($(expr index "$UPTIME" :)-1))}
+ min=${UPTIME:$(expr index "$UPTIME" :)}
+ UPTIME="${hrs}h ${min}m"
+else
+ UPTIME=$(echo "$UPTIME"|awk '{print $1}')
+ if [[ $UPTIME != *"h"* ]]; then
+  if [ $UPTIME -eq 1 ]; then
+   UPTIME="${UPTIME} Day"
+  elif [ $UPTIME -lt 10 ]; then
+   UPTIME="${UPTIME} Days" 
+  elif [ $UPTIME -lt 100 ]; then
+   UPTIME="${UPTIME}Days"
+  else
+   UPTIME="${UPTIME} D"
+  fi
+ fi
+fi
+while [ ${#UPTIME} -lt $sz ]; do UPTIME="${UPTIME} ";done
+
+sz=11
+MYSQL="$(head -2 $data_SERVICES|tail -1)"
+ UD=${MYSQL:0:2}
+ MYSQL=${MYSQL:3}
+while [ ${#MYSQL} -lt $sz ]; do MYSQL="${MYSQL} ";done
+[ "$UD" == "UP" ] && MYSQL="${green}${MYSQL}${NC}" || MYSQL="${red}${MYSQL}${NC}"
+[ "$UD" == "UP" ] && MYSQLs="1" || MYSQLs="0"
+
+HTTPD="$(head -1 $data_SERVICES|tail -1)"
+ UD=${HTTPD:0:2}
+ HTTPD=${HTTPD:3}
+while [ ${#HTTPD} -lt $sz ]; do HTTPD="${HTTPD} ";done
+[ "$UD" == "UP" ] && HTTPD="${green}${HTTPD}${NC}" || HTTPD="${red}${HTTPD}${NC}"
+[ "$UD" == "UP" ] && HTTPDs="1" || HTTPDs="0"
+
+SMB="$(head -3 $data_SERVICES|tail -1)"
+ UD="${SMB:0:2}"
+ SMB="${SMB:3}"
+while [ ${#SMB} -lt $sz ]; do SMB="${SMB} ";done
+[ "$UD" == "UP" ] && SMB="${green}${SMB}${NC}" || SMB="${red}${SMB}${NC}"
+[ "$UD" == "UP" ] && SMBs="1" || SMBs="0"
+
+if [ $(tput cols) -ge $screen_FULLMIN ]; then
+ case "$1" in
+  1) line="$(SP 5)${c1}$(UL 13)${NC}";;
+  2) line="${c1}$(UL 3)${c1}|${NC} L:  $LOAD ${c1}|${NC}";;
+  3) line="$(SP 3)${c1}|${NC} C:  $NCPU ${c1}|${NC}";;
+  4) line="$(SP 3)${c1}|${NC} Up: $UPTIME ${c1}|${NC}";;
+  5) line="$(SP 3)${c1}|${NC} $MYSQL ${c1}|${NC}";;
+  6) line="$(SP 3)${c1}|${NC} $HTTPD ${c1}|${NC}";;
+  7) line="$(SP 19)" || line=$(SP 21); line="${line}${c1}|${NC} $SMB ${c1}|${NC}";;
+  8) line="$(SP 19)" || line="$(SP 21)";line="${line}${c1}|$(UL 13)|${NC}";;
+ *) line="";;
+ esac
+elif [ $(tput cols) -ge $screen_NOLOGO ]; then
+case "$1" in
+  1) line="$(SP 5)${c1}$(UL 13)${NC}";;
+  2) line="${c1}$(UL 3)${c1}|${NC} L:  $LOAD ${c1}|${NC}";;
+  3) line="$(SP 3)${c1}|${NC} C:  $NCPU ${c1}|${NC}";;
+  4) line="$(SP 3)${c1}|${NC} Up: $UPTIME ${c1}|${NC}";;
+  5) line="$(SP 3)${c1}|${NC} $MYSQL ${c1}|${NC}";;
+  6) line="$(SP 3)${c1}|${NC} $HTTPD ${c1}|${NC}";;
+  7) line=$(SP 21); line="${line}${c1}|${NC} $SMB ${c1}|${NC}";;
+  8) line="$(SP 21)";line="${line}${c1}|$(UL 13)|${NC}";;
+ *) line="";;
+ esac
+else
+ case "$1" in
+  4) line="${NC}Load: $LOAD${NC} Up $UPTIME${NC}";;
+  5) line="${NC}SERVICES DOWN:"
+     if [ $HTTPDs -eq 1 ] && [ $MYSQLs -eq 1 ] && [ $SMBs -eq 1 ]; then line="${line}${dk_gray} (NONE)"; else
+     line="${line}${red}"
+     [ $HTTPDs -eq 0 ] && line=" ${line}${HTTPD}"
+     [ $MYSQLs -eq 0 ] && line=" ${line}${MYSQL}"
+     [ $SMBs -eq 0 ] && line=" ${line}${SMB}"
+     line="${line}${NC}"
+     fi;;
+ *) line="";;
+ esac
+fi
+
+
+ echo -e "$line"
+} #service_box

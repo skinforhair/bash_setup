@@ -1,0 +1,36 @@
+#!/bin/bash
+ TIME=$(date +%r)
+
+function CPU_Stats(){
+ UT=$(uptime)
+ 
+ LOADs=$(echo "$UT"| tr ' ' '\n' | tail -3 | xargs -n3)
+  LOADs=$(echo "$LOADs" |sed 's;,;;g') 
+
+  u=`expr index "$UT" "up"`
+  UT=${UT:$(($u+2))}
+
+  u=`expr index "$UT" ","`
+  UT=${UT:0:$(($u-1))}
+ if [[ $UT = *":"* ]]; then
+   c=`expr index "$UT" ":"`
+   hrs=${UT:0:$(($c-1))}
+   min=${UT:$c}
+    if [ $hrs -lt 10 ] && [ ${#hrs} -lt 2 ]; then
+     hrs="0${hrs}"
+    fi #if single digit 
+   UT="${hrs}h ${min}m"
+# else
+#   dz=$(echo "$UT"|awk '{print $1}')
+#    if [ $dz -lt 10 ] && [ ${#dz} -lt 2 ]; then
+#      dz=" ${dz}"
+#    elif [ $dz -lt 100 ] && [ ${#dz} -lt 3 ]; then
+#      dz="  ${dz}"
+#    fi
+#   UT="${dz} days"
+ fi #if time instead of days
+
+echo -e "$LOADs\n$UT"
+} ##CPU_Stats
+
+#CPU_Stats

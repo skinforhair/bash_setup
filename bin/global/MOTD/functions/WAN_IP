@@ -1,0 +1,5 @@
+#!/bin/bash
+
+function WAN_IP(){
+/bin/dig +short myip.opendns.com @resolver1.opendns.com
+}

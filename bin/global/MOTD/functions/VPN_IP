@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function VPN_IP(){
+ RemoteWAN=`ssh -q cavejohnson@wheatley "dig +short myip.opendns.com @resolver1.opendns.com;exit"`
+ echo "$RemoteWAN"
+} ##VPN_IP
+

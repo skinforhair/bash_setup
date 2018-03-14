@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function PingCheck(){
+ ping -c 1 "$1" &> /dev/null
+ [ "$?" == "0" ] && echo "UP $1" || echo "DN $1"
+} ##Check_Ping
+

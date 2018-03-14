@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function ServiceCheck(){
+ case "${1,,}" in
+  "apache" | "http" | "httpd") processName="httpd";pText="HTTPD";;
+  "samba" | "smb") processName="smb";pText="SMB";;
+  "mysql" | "sql") processName="mysql";pText="MySQL";;
+ esac
+
+
+ SSTAT=$(ps -ef |grep $processName |grep -v grep)
+  [ "$SSTAT" == "" ] && echo "DN ${pText}" || echo "UP ${pText}"
+} ##CHeck_Services
+
+#Check_Services $1

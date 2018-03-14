@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+function dl_etnstats_json(){
+ worker=$(curl -s -X GET --header "Accept: application/json" "https://api.coinmarketcap.com/v1/ticker/electroneum/")
+ echo "$worker"
+} ##dl_etnstats_json
+
+function dl_spacepools_json(){
+ worker=$(curl -s -X GET --header "Accept: application/json" "https://api.etn.spacepools.org/v1/stats/address/$ETNwallet")
+ echo "$worker"
+} ##dl_spacepools_json
+
+function ETNStats(){
+#current value
+ USD=$(cat $ETN_json|jq -r '.[]|.price_usd')
+  dec=$(expr index $USD .)
+  dollas=${USD:0:$dec}
+  cents=${USD:$dec:3}
+ CurrentValue=$dollas$cents
+
+#up/dn today
+TodayCHG=$(cat $ETN_json|jq -r '.[]|.percent_change_24h')
+#up/dn week
+WeekCHG=$(cat $ETN_json|jq -r '.[]|.percent_change_7d')
+#mined
+Mined=$(cat $SPACEPOOLS_json|jq -r '.stats|.paid')
+ Mined=$(echo "scale=2; $Mined/100"|bc)
+#pending
+Pending=$(cat $SPACEPOOLS_json|jq -r '.stats|.balance')
+ Pending=$(echo "scale=2; $Pending/100"|bc)
+#purchased
+Purchased=${ETN_PURCHASED}
+#total balance
+TotalBal=$(echo "scale=2; $Mined+$Purchased"|bc)
+#value mined
+ValMined=$(echo "scale=2; $Mined*$CurrentValue"|bc)
+#value owned
+ValOwned=$(echo "scale=2; $TotalBal*$CurrentValue"|bc)
+
+echo -e "${CurrentValue}\n${TodayCHG}\n${WeekCHG}\n${Mined}\n${Pending}\n${Purchased}\n${TotalBal}\n${ValMined}\n${ValOwned}"
+} ##ETNStats

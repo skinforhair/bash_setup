@@ -22,18 +22,11 @@ function search_tmdb(){
   #echo "get_tmdb_id" "$1" "$2"
   TMDB_ID=$(get_tmdb_id "$1" "$2")
  elif [ "$3" == "prompted" ]; then
-#  YesNo "Do you expect this to be in the local DB?" "y"
-#  if [ "$?" == "0" ]; then
    echo -en "Please enter a Title to search for: "
    read inTitle
    TMDB_ID=$(get_tmdb_id "$inTitle")
-#  else
-#   ST="${1:0:4}"
-#   SY="${2:0:3}"
-#   LocalList=$(echo "select id, title, year from $movieTable where title like '$ST%' and year like '$SY%' limit 7"|mysql $dbOptions)
-#   echo -e "$LocalList"
-#   read -p "Please enter a DB ID: " inputDB
-#  fi
+ elif [ "$3" == "lastchance" ]; then
+   TMDB_ID=$(get_tmdb_id "$1" "$2" "somethingelse")
  else
   TMDB_ID=$(get_tmdb_id "$1")
  fi
@@ -67,6 +60,8 @@ function search_tmdb(){
   YesNo "Is this correct?" "y"
   if [ "$?" == "0" ]; then
    if [ "$3" == "prompted" ]; then
+    search_tmdb "$1" "$2" "lastchance"
+   elif [ "$3" == "lastchance" ]; then
     exit 0
    elif [ "$3" == "noyear" ]; then
     search_tmdb "$1" "$2" "prompted" 

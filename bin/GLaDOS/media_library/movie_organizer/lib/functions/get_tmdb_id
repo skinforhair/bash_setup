@@ -8,6 +8,8 @@ function get_tmdb_id() {
         #inputTitle=`echo "$inputTitle" |sed "s;';-;g"`
         inputYear="$2"
 
+        [ "$3" != "" ] && checkothers=1 || checkothers=0
+
 #echo "looking for $inputTitle $inputYear"
 
         TMDB_SEARCH_URL="$TMDB_URL/search/movie?$API_KEY&query=$inputTitle"
@@ -18,7 +20,11 @@ function get_tmdb_id() {
 	#echo -e "${yellow}TMDB: $TMDB_SEARCH_URL${NC}"
         TMDB_SEARCH=`curl -s "$TMDB_SEARCH_URL"`
 	#echo "$TMDB_SEARCH_URL"
-        tmdbID=`echo $TMDB_SEARCH |jq '.results[0]' |jq '.id'`
+        if [ "$checkothers" == 0 ]; then
+          tmdbID=`echo $TMDB_SEARCH |jq '.results[0]' |jq '.id'`
+        else
+          tmdbID=`echo $TMDB_SEARCH |jq '.results[1]' |jq '.id'`
+        fi
 
    #If there is a period in the title, sometimes it gets lost...
    if [ "$tmdbID" == "null" ]; then

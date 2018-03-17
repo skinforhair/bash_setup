@@ -124,6 +124,8 @@ while [ $i -le $arrayLen ]; do
   fi
   echo ""
  ;;
+ 0) echo -e "[${cyan}$i${NC} - ${yellow}${nameArray[$i]}${NC}]:\t\t${yellow}$(next_available_id)${NC}";;
+ 20) l=$i;;
  *)
  #only print nonstandards if they are blank
   if [ "$stringZ" == "" ]; then
@@ -179,13 +181,15 @@ echo "$stringZ"
 
 function edit_array() {
 finishLoop="X"
-while [[ ! $finishLoop =~ $NUMBERS ]] && [ ! "$finishLoop" == "q" ]; do
  print_modifiers
- read -p "Update? (0-29,f,q): " -e finishLoop
- if [ "${finishLoop,,}" == "f" ]; then
-  print_full_array
-  read -p "Update? (0-29,f,q): " -e finishLoop
- fi 
+ option_menu="Update? [0-29],[F]ull array print, [C]ancel, [W]rite:"
+ read -p "$option_menu " -e finishLoop
+while [[ ! $finishLoop =~ $NUMBERS ]] && [ "$finishLoop" != "w" ]; do
+  case "${finishLoop,,}" in 
+  "f" ) print_full_array; read -p "$option_menu " -e finishLoop;;
+  "c" ) YesNo "Are you sure you want to cancel? No changes will be saved." "n"
+           [ "$?" == "1" ] && exit 0 || read -p "$option_menu " -e finishLoop;;
+  esac
  if [[ $finishLoop =~ $NUMBERS ]] && [ $finishLoop -le ${#searchTerms[@]} ]; then
    #Shelf, Collection, Number
    case "$finishLoop" in
@@ -201,9 +205,8 @@ while [[ ! $finishLoop =~ $NUMBERS ]] && [ ! "$finishLoop" == "q" ]; do
     *) update_array "$finishLoop";;
    esac
  fi
- if [ "${finishLoop,,}" != "q" ]; then
-  finishLoop="X"
- fi
+ [ "${finishLoop,,}" != "w" ] && read -p "$option_menu " -e finishLoop
+ [[ $finishLoop =~ $NUMBERS ]] && read -p "$option_menu " -e finishLoop
 done
 #After editing, rebuild paths and terms
 searchTerms[21]=$(build_paths)

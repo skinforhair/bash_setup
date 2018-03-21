@@ -1,9 +1,0 @@
-#!/bin/bash
-
-function firewalld_add_all_countries(){
- countryList=$(ls $gCOUNTRIES)
- for i in `echo $countryList`; do 
-  CC="${i:0:2}"
-  [ "$(grep ${CC,,} ${WHITELIST})" == "" ] && firewalld_add_country "$CC"
- done
-} ##firewalld_add_all_countries

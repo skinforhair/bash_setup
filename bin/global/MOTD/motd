@@ -2,33 +2,12 @@
 
 DIR="/shares/filesystem/bin/bin/global/MOTD"
 for f in ${DIR}/lib/*.cfg; do [ -f $f ] && source $f; done
+for f in ${DIR}/functions/*; do [ -f $f ] && source $f; done
 for f in ${DIR}/functions/$(hostname)/*; do [ -f $f ] && source $f; done
 
-if [ "$(hostname)" == "GLaDOS" ]; then
- [ -f "/shares/incoming/TODO_List" ] && QUOTEFILE="/shares/incoming/TODO_List" || QUOTEFILE="${DIR}/lib/quotes/kung_fu_rules.quotes"
- screenSize=$(tput cols)
-### At least 54 characters wide
-if [ $screenSize -ge $screen_NOLOGO ]; then
- for i in {1..22}; do 
-  if [ $screenSize -ge $screen_FULLMIN ]; then
-   line="$(aperture_logo $i)$(network_box $i)$(service_box $i)$(etn_box $i)$(disks_box $i)$(media_box $i)$(lan_box $i)$(cam_box $i)$(quote_box $i)"
-  else
-   line="$(network_box $i)$(service_box $i)$(etn_box $i)$(disks_box $i)$(media_box $i)$(lan_box $i)$(cam_box $i)$(quote_box $i)"
-  fi
- echo -e "$line"
- done
-else
- for i in {1..15}; do
-   case "$i" in
-    1) line="${red}$(hostname)${NC}";;
-    [3-9] | 1[0-3]) line="$(network_box $i)$(service_box $i)$(etn_box $i)$(disks_box $i)$(media_box $i)$(lan_box $i)$(cam_box $i)";;
-    2 | 14) line="${DEFAULT_COLOR1}________________________${NC}";;
-    15) line="$(quote_box $i)";;
-    *) line="";;
-   esac
-  echo -e "$line"
- done
-fi
-else
- echo "Welcome to $(hostname)"
-fi
+case "${1,,}" in
+ "gather") gather_data;;
+ "clean" ) for arg in "${@:2}"; do clean_data "${arg,,}"; done;gather_data;;
+ * ) printout_MOTD;;
+esac
+

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-function next_available_id(){
- M=$(echo "select max(id) from $movieTable" |mysql $dbOptions)
- M=$(($M+1))
- echo "$M"
-} ##next_available_id

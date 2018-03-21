@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ipset type="hash:net">
-  <short>kp</short>
-  <description>Democratic People's Republic Of Korea</description>
-  <entry>175.45.176.0/22</entry>
-</ipset>

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ipset type="hash:net">
-  <short>yt</short>
-  <description>Mayotte</description>
-  <entry>41.242.116.0/22</entry>
-</ipset>

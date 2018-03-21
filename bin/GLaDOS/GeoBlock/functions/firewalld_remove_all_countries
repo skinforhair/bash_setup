@@ -1,5 +1,0 @@
-#!/bin/bash
-
-function firewalld_remove_all_countries(){
- [ -f ${DROP_ZONE} ] && rm -f $DROP_ZONE
-} ##firewalld_remove_all_countries

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+function clean_data(){
+    case "${arg,,}" in
+       "cameras"|"cams") rm -f ${data_CAM};;
+       "disks") rm -f ${data_DISKS};;
+       "lan") rm -f ${data_LAN};;
+       "media"|"tv"|"movies"|"movie") rm -f ${data_MEDIA};;
+       "services") rm -f ${data_SERVICES};;
+       "uptimes") rm -f ${data_CPU};;
+       "etn"|"spacepools"|"mining") rm -f ${data_ETN}; rm -f ${ETN_json};rm -f ${SPACEPOOLS_json};;
+     esac
+} #clean_data

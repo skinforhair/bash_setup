@@ -1,4 +1,0 @@
-#!/bin/bash
-function download_zones(){
- wget -q "${IPDENY}${ZoneTGZ}" -P ${gZONES}
-}

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ipset type="hash:net">
-  <short>nf</short>
-  <description>Norfolk Island</description>
-  <entry>103.43.204.0/23</entry>
-  <entry>203.12.249.0/24</entry>
-  <entry>203.17.240.0/22</entry>
-  <entry>203.142.221.0/24</entry>
-</ipset>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ipset type="hash:net">
-  <short>mq</short>
-  <description>Martinique</description>
-  <entry>104.245.112.0/21</entry>
-  <entry>94.124.216.0/21</entry>
-  <entry>109.203.224.0/19</entry>
-  <entry>185.60.232.0/22</entry>
-</ipset>

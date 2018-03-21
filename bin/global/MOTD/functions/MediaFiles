@@ -2,7 +2,7 @@
 
 function MediaFiles(){
  today=$(date +"%m%d%Y")
- showDIR="/root/.skinforhair_settings/bin/GLaDOS/media_library/tv_organizer/epguides/archive"
+ showDIR="/shares/filesystem/scripts/media_library/scripts/epguides/archive"
  curFile="${showDIR}/available_episodes.txt.${today}"
  stringZ=
  if ! [ -f $curFile ]; then

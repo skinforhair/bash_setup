@@ -7,6 +7,8 @@ function media_box(){
  NumMoviesadded=$(cat $data_MEDIA|head -4|tail -1)
  MovieAddedDate=$(cat $data_MEDIA|head -5|tail -1) 
 
+[ "$EpisodesAvailable" == "" ] && EpisodesAvailable=99
+
  [ $EpisodesAvailable -lt 8 ] && color="${yellow}" || color="${orange}"
  if [ $EpisodesAvailable -lt 10 ] && [ ${#EpisodesAvailable} -lt 2 ]; then EpisodesAvailable="0${EpisodesAvailable}";fi
  EpisodesAvailable="${color}$EpisodesAvailable${NC}"

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#list episodes available for download:
+
+tmpfile="/tmp/listeps.txt"
+today=$(date +"%m%d%Y")
+ showDIR="/shares/filesystem/toolbox/media_library/scripts/epguides/archive"
+ curFile="${showDIR}/available_episodes.txt.${today}"
+ stringZ=
+ if ! [ -f $curFile ]; then
+   stringZ="0"
+ else
+ sta=0
+ fin=0
+ EpisodesAvailable=0
+ while read line; do
+  if [ "$line" == "---- Available ----" ]; then sta=1; fi
+  if [ "$line" == "---- Upcoming ----" ]; then fin=1; fi
+  if [ $sta -eq 1 ] && [ $fin -eq 0 ] && [ "$line" != "---- Available ----" ]; then
+   [ "$line" != "" ] && EpisodesAvailable=$(($EpisodesAvailable+1))
+   [ "$line" != "" ] && echo -e "$line" >> $tmpfile
+  fi
+ done<$curFile
+
+echo "There are $(cat $tmpfile|wc -l) Episodes available:"
+cat $tmpfile
+rm $tmpfile
+ fi

@@ -1,4 +1,0 @@
-#aliases for media library
-
-movie="$lBIN/GLaDOS/media_library/movie_organizer/movie_organizer"
-tv="$lBIN/GLaDOS/media_library/tv_organizer/tv"

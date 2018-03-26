@@ -2,14 +2,18 @@ function file_move_function(){
  #cmd="$(echo "$0" |awk -F"/" '{print $NF}')"
  cmd="$1"
 
+#local variables
+TOOLBOX="/shares/filesystem/toolbox"
+
 #echo "cmd was $cmd"
 case "$cmd" in
  "incoming") DL_DIR="/shares/incoming";;
  "mp3") DL_DIR="/shares/mp3/mp3";;
  "fridge") DL_DIR="/shares/fridge";;
  "web") DL_DIR="/shares/glados";;
- "media") DL_DIR="$pBIN/GLaDOS/media_library";;
- "ws") DL_DIR="/shares/filesystem/workshop";;
+ "media") DL_DIR="$TOOLBOX/media_library";;
+ "tools") DL_DIR="$TOOLBOX";;
+ "ws") DL_DIR="$TOOLBOX/workshop";;
  *) usage;;
 esac
 
@@ -28,9 +32,14 @@ fi
 }
 
 alias incoming="file_move_function incoming"
+alias inc="file_move_function incoming"
 alias mp3="file_move_function mp3"
 alias fridge="file_move_function fridge"
 alias web="file_move_function web"
 alias media="file_move_function media"
 alias ml="file_move_function media"
 alias ws="file_move_function ws"
+alias tools="file_move_function tools"
+alias tb="file_move_function tools"
+alias tbx="file_move_function tools"
+alias toolbox="file_move_function tools"

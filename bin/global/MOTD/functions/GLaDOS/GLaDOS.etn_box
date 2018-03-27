@@ -42,9 +42,15 @@ ETN_week="${dayC}${ETN_week}${NC}"
 if [ $(tput cols) -ge $screen_NOLOGO ]; then
  case "$1" in
    9) line=" ETN->USD: ${white}${ETN_VAL}${NC} D:${ETN_day}%  W:${ETN_week}%${NC}";;
-  10) line=" ETN: ${white}$ETN_Mined${NC}   ${dk_gray}($etn_pending pending)$(SP 5)${NC}";;
+  10) sZ=" ETN: $ETN_Mined   ${dk_gray}($etn_pending pending)"
+      ln=${#sZ}
+      sP=$((49-$ln))
+      line=" ETN: ${white}$ETN_Mined${NC}   ${dk_gray}($etn_pending pending)$(SP $sP)${NC}";;
   11) line=" Purchased: ${white}${purch}${NC}$(SP 17)${NC}";;
-  12) line=" Bal: ETN ${white}${ETN_Total}${NC} \$${mined_val}/${white}${total_etn_val}${NC}$(SP 3)${NC}";;
+  12) sZ=" Bal: ETN ${ETN_Total} \$${mined_val}/${total_etn_val}"
+      ln=${#sZ}
+      sP=$((35-$ln))
+      line=" Bal: ETN ${white}${ETN_Total}${NC} \$${mined_val}/${white}${total_etn_val}${NC}$(SP $sP)${NC}";;
   *) line=""
  esac
 else

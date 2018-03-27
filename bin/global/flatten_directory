@@ -53,7 +53,7 @@ esac
 
 if [ $FORCE -eq 0 ]; then
   echo "This script will move all files out of subfolders in the current directory!"
-  YesNo "Are you sure you want to continue?:" "n"
+  YesNo "Are you sure you want to continue?:" "y"
     [ "$?" == "0" ] && exit 0
 fi
 
@@ -69,6 +69,7 @@ if [ $DELDIR -eq 1 ]; then
  for f in `ls`; do 
    [ -d $f ] && rmdir $f
  done
+ rmdir * & > /dev/null
 fi
 
 if [ $DELFILES -eq 1 ]; then

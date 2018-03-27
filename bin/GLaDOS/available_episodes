@@ -9,6 +9,7 @@ today=$(date +"%m%d%Y")
  stringZ=
  if ! [ -f $curFile ]; then
    stringZ="0"
+   echo "not found: $curFile"
  else
  sta=0
  fin=0

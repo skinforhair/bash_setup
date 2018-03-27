@@ -7,7 +7,7 @@ for f in ${DIR}/functions/$(hostname)/*; do [ -f $f ] && source $f; done
 
 case "${1,,}" in
  "gather") gather_data;;
- "clean" ) for arg in "${@:2}"; do clean_data "${arg,,}"; done;gather_data;;
+ "clean" ) for arg in "${@:2}"; do clean_data "${arg,,}"; done;gather_data;printout_MOTD;;
  * ) printout_MOTD;;
 esac
 

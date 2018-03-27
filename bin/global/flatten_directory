@@ -40,9 +40,9 @@ function YesNo() {
   fi
 } #END YesNo
 
-FORCE=0
-DELDIR=0
-DELFILES=0
+FORCE=1
+DELDIR=1
+DELFILES=1
 
 ### MAIN ###
 case "${1,,}" in
@@ -58,7 +58,8 @@ if [ $FORCE -eq 0 ]; then
 fi
 
 find . -mindepth 2 -type f -exec mv {} . \;
-find . -mindepth 2 -type d -exec rm -rf {} \;
+find . -mindepth 2 -type d -exec rm -rf {} \; 2>/dev/null
+
 
 if [ $DELDIR -eq 0 ]; then
   YesNo "Remove subdirectories?:" "y"
@@ -69,13 +70,14 @@ if [ $DELDIR -eq 1 ]; then
  for f in `ls`; do 
    [ -d $f ] && rmdir $f
  done
- rmdir * & > /dev/null
+ #rmdir * & > /dev/null
 fi
 
 if [ $DELFILES -eq 1 ]; then
-	rm *.txt
-	rm *.jpg
-	rm *.nfo
-	rm *.png
+	for type in txt jpg nfo png; do
+		#echo "removing $type"
+		find . -name "*.$type" -type f -delete
+	done
 	`which h265_check`
 fi
+

@@ -1,0 +1,8 @@
+
+export TOOLBOX="/shares/filesystem/toolbox"
+export MediaLibrary="$TOOLBOX/media_library"
+export MLScripts="$MediaLibrary/scripts"
+export Workshop="$TOOLBOX/workshop"
+
+PATH=$PATH:$TOOLBOX:$MediaLibrary:$MLScripts
+

@@ -9,6 +9,11 @@ alias dmesg='dmesg --color'
 alias ll="ls -lh"
 alias cls="clear; ls"
 alias cll="clear; ll -h"
+alias cla="clear; ll -a"
+
+function bin(){
+   cd $lBIN
+}
 
 function pd(){
     cd $profileDir

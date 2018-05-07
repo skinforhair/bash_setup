@@ -3,7 +3,7 @@ function file_move_function(){
  cmd="$1"
 
 #local variables
-TOOLBOX="/shares/filesystem/toolbox"
+[ "$TOOLBOX" == "" ] && TOOLBOX="/shares/filesystem/toolbox"
 
 #echo "cmd was $cmd"
 case "$cmd" in
